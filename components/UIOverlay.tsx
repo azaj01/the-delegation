@@ -2,10 +2,13 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import DebugPanel from './DebugPanel';
+import { AGENTS } from '../data/agents';
 
 const UIOverlay: React.FC = () => {
-  const { isThinking, setThinking, setAIResponse, setAnimation, isDebugOpen, toggleDebug } = useStore();
+  const { isThinking, setThinking, setAIResponse, setAnimation, isDebugOpen, toggleDebug, selectedNpcIndex } = useStore();
   const [input, setInput] = useState('');
+
+  const selectedAgent = selectedNpcIndex != null ? AGENTS[selectedNpcIndex] ?? null : null;
 
   const handleSend = async () => {
     if (!input.trim() || isThinking) return;
@@ -49,6 +52,37 @@ const UIOverlay: React.FC = () => {
 
       {/* Debug Panel Mount */}
       <DebugPanel />
+
+      {/* NPC Info Panel — shown when an NPC is selected */}
+      {selectedAgent && (
+        <div className="absolute bottom-28 left-8 w-72 bg-white/85 backdrop-blur-2xl rounded-2xl border border-black/5 shadow-2xl p-5 pointer-events-auto animate-in fade-in slide-in-from-left-4 duration-300">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5">
+                {selectedAgent.role}
+              </p>
+              <h2 className="text-xl font-black text-zinc-900 leading-tight">{selectedAgent.name}</h2>
+            </div>
+            <span className="text-xs font-bold bg-zinc-100 text-zinc-500 px-2 py-1 rounded-lg uppercase tracking-wide">
+              {selectedAgent.lang}
+            </span>
+          </div>
+
+          <p className="text-xs text-zinc-600 leading-relaxed mb-3 italic">
+            "{selectedAgent.mission}"
+          </p>
+
+          <div className="flex flex-wrap gap-1 mb-3">
+            {selectedAgent.expertise.map((tag) => (
+              <span key={tag} className="text-[10px] font-bold bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          <p className="text-[11px] text-zinc-400 leading-snug">{selectedAgent.personality}</p>
+        </div>
+      )}
 
       {/* Input Field */}
       <div className="flex justify-center">

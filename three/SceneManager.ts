@@ -4,7 +4,7 @@ import { Stage } from './core/Stage';
 import { CharacterManager } from './entities/CharacterManager';
 import { InputManager } from './input/InputManager';
 import { BehaviorManager } from './behavior/BehaviorManager';
-import { AGENTS } from '../data/agents';
+import { AGENTS, PLAYER_INDEX } from '../data/agents';
 import { useStore } from '../store/useStore';
 
 export class SceneManager {
@@ -59,7 +59,11 @@ export class SceneManager {
       this.stage.camera,
       () => this.characters.getCPUPositions(),
       () => this.characters.getCount(),
-      (index) => { this.selectedIndex = index; },
+      (index) => {
+        this.selectedIndex = index;
+        // Update store: null = default (follow player), number = selected NPC
+        useStore.getState().setSelectedNpc(index !== PLAYER_INDEX ? index : null);
+      },
       (x, z) => { this.behaviorManager?.setPlayerWaypoint(x, z); },
     );
 
@@ -120,13 +124,10 @@ export class SceneManager {
       }
     });
 
-    // 3. Camera follow selected character
-    if (this.selectedIndex !== null) {
-      const pos = this.characters.getCPUPosition(this.selectedIndex);
-      this.stage.setFollowTarget(pos);
-    } else {
-      this.stage.setFollowTarget(null);
-    }
+    // 3. Camera follow: NPC if one is selected, otherwise always follow the player
+    const followIdx = this.selectedIndex ?? PLAYER_INDEX;
+    const pos = this.characters.getCPUPosition(followIdx);
+    this.stage.setFollowTarget(pos);
 
     this.engine.render(this.stage.scene, this.stage.camera);
 

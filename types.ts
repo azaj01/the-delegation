@@ -27,6 +27,7 @@ export interface CharacterState {
   debugPositions: Float32Array | null;
   debugStates: Float32Array | null;    // vec4 stride: .w = AgentBehavior per instance
   activeEncounter: ActiveEncounter | null;
+  selectedNpcIndex: number | null;    // NPC explicitly clicked in the scene
 
   performance: PerformanceStats;
 
@@ -40,6 +41,7 @@ export interface CharacterState {
   setDebugPositions: (positions: Float32Array) => void;
   setDebugStates: (states: Float32Array) => void;
   setActiveEncounter: (encounter: ActiveEncounter | null) => void;
+  setSelectedNpc: (index: number | null) => void;
   updatePerformance: (stats: PerformanceStats) => void;
 }
 

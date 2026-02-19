@@ -25,6 +25,7 @@ export const useStore = create<CharacterState>()(
       debugPositions: null,
       debugStates: null,
       activeEncounter: null,
+      selectedNpcIndex: null,
 
       performance: {
         fps: 0,
@@ -49,6 +50,7 @@ export const useStore = create<CharacterState>()(
       setDebugPositions: (positions) => set({ debugPositions: positions }),
       setDebugStates: (states) => set({ debugStates: states }),
       setActiveEncounter: (encounter: ActiveEncounter | null) => set({ activeEncounter: encounter }),
+      setSelectedNpc: (index: number | null) => set({ selectedNpcIndex: index }),
 
       updatePerformance: (performance: PerformanceStats) => set({ performance }),
     }),

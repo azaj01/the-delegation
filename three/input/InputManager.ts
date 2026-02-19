@@ -93,24 +93,25 @@ export class InputManager {
       }
     }
 
-    if (closestIdx !== null && closestIdx === this.selectedIndex) {
-      // Click on already-selected → deselect
-      this.selectedIndex = null;
-      this.onSelect(null);
-    } else if (closestIdx !== null) {
-      this.selectedIndex = closestIdx;
-      this.onSelect(closestIdx);
-    } else {
-      // Click missed all characters
-      if (this.selectedIndex === PLAYER_INDEX) {
-        // Player selected + click on floor → set waypoint
-        const target = new THREE.Vector3();
-        if (ray.intersectPlane(FLOOR_PLANE, target)) {
-          this.onWaypoint(target.x, target.z);
-        }
-      } else if (this.selectedIndex !== null) {
+    if (closestIdx !== null) {
+      if (closestIdx === PLAYER_INDEX) {
+        // Click on the player → deselect any NPC (go back to default)
         this.selectedIndex = null;
         this.onSelect(null);
+      } else if (closestIdx === this.selectedIndex) {
+        // Click on already-selected NPC → deselect
+        this.selectedIndex = null;
+        this.onSelect(null);
+      } else {
+        // Click on a new NPC → select it
+        this.selectedIndex = closestIdx;
+        this.onSelect(closestIdx);
+      }
+    } else {
+      // Click missed all characters → always send player to waypoint
+      const target = new THREE.Vector3();
+      if (ray.intersectPlane(FLOOR_PLANE, target)) {
+        this.onWaypoint(target.x, target.z);
       }
     }
   }
