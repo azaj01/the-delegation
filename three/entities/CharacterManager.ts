@@ -5,7 +5,6 @@ import {
   Fn,
   instanceIndex,
   storage,
-  assign,
   float,
   vec3,
   vec4,
@@ -202,10 +201,19 @@ export class CharacterManager {
   }
 
   private initComputeNode() {
+    // FIX: Use .assign() as a METHOD on the storage element, not as a standalone function.
+    // Standalone assign() creates an AssignNode but doesn't register it as a side-effect
+    // in the TSL compute graph, so the writes were silently dropped.
     this.computeNode = Fn(() => {
       const index = instanceIndex;
-      const pos = this.positionStorage.element(index).xyz.toVar();
-      const vel = this.velocityStorage.element(index).xyz.toVar();
+
+      // Get references to the storage elements themselves (not just .xyz copies)
+      const posElement = this.positionStorage.element(index);
+      const velElement = this.velocityStorage.element(index);
+
+      // Read current values into local vars
+      const pos = posElement.xyz.toVar();
+      const vel = velElement.xyz.toVar();
       const accel = vec3(0).toVar();
 
       // World Boundary
@@ -232,9 +240,9 @@ export class CharacterManager {
          newVel.assign(vec3(0, 0, this.uSpeed));
       });
 
-      // CRITICAL: Assign to the full vec4 of the storage
-      assign(this.velocityStorage.element(index), vec4(newVel, 0.0));
-      assign(this.positionStorage.element(index), vec4(pos.add(newVel), 1.0));
+      // FIXED: Use .assign() method on storage elements (registers as side-effect)
+      velElement.assign(vec4(newVel, 0.0));
+      posElement.assign(vec4(pos.add(newVel), 1.0));
 
     })().compute(this.instanceCount);
   }
