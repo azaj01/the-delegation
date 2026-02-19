@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { CharacterState, AnimationName, PerformanceStats, BoidsParams } from '../types';
+import { CharacterState, AnimationName, PerformanceStats, BoidsParams, ActiveEncounter } from '../types';
 
 export const useStore = create<CharacterState>()(
   persist(
@@ -9,9 +9,9 @@ export const useStore = create<CharacterState>()(
       currentAction: AnimationName.WALK,
       isThinking: false,
       aiResponse: "Hello! I'm your AI character. Type something to talk to me.",
-      isDebugOpen: false, // Will be overwritten by persist if exists
-      instanceCount: 100, // Will be overwritten by persist if exists
-      worldSize: 20,      // Default radius
+      isDebugOpen: false,
+      instanceCount: 100,
+      worldSize: 25,      // radius of Kaldera
 
       // Default Boids Parameters
       boidsParams: {
@@ -23,6 +23,7 @@ export const useStore = create<CharacterState>()(
       },
 
       debugPositions: null,
+      activeEncounter: null,
 
       performance: {
         fps: 0,
@@ -45,6 +46,7 @@ export const useStore = create<CharacterState>()(
       })),
 
       setDebugPositions: (positions) => set({ debugPositions: positions }),
+      setActiveEncounter: (encounter: ActiveEncounter | null) => set({ activeEncounter: encounter }),
 
       updatePerformance: (performance: PerformanceStats) => set({ performance }),
     }),

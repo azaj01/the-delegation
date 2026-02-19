@@ -1,8 +1,10 @@
 import * as THREE from 'three/webgpu';
+import { PLAYER_INDEX } from '../../data/agents';
 
 const PICK_RADIUS = 0.65; // world-space sphere radius for hit testing
 const CHARACTER_Y_OFFSET = 0.9; // approximate center height of a character
 const DRAG_THRESHOLD_PX = 4;
+const FLOOR_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // y=0
 
 export class InputManager {
   private raycaster = new THREE.Raycaster();
@@ -21,7 +23,8 @@ export class InputManager {
     private camera: THREE.PerspectiveCamera,
     private getPositions: () => Float32Array | null,
     private getCount: () => number,
-    private onSelect: (index: number | null) => void
+    private onSelect: (index: number | null) => void,
+    private onWaypoint: (x: number, z: number) => void,
   ) {
     this.boundPointerDown = this.handlePointerDown.bind(this);
     this.boundPointerMove = this.handlePointerMove.bind(this);
@@ -50,7 +53,7 @@ export class InputManager {
   private handlePointerUp(event: PointerEvent) {
     if (event.button !== 0) return;
     if (this.isDragging) return;
-    this.handleClick(event as MouseEvent);
+    this.handleClick(event as unknown as MouseEvent);
   }
 
   private handleClick(event: MouseEvent) {
@@ -73,7 +76,6 @@ export class InputManager {
       const cy = positions[i * 4 + 1] + CHARACTER_Y_OFFSET;
       const cz = positions[i * 4 + 2];
 
-      // Ray-sphere intersection
       const ocx = ray.origin.x - cx;
       const ocy = ray.origin.y - cy;
       const ocz = ray.origin.z - cz;
@@ -92,15 +94,21 @@ export class InputManager {
     }
 
     if (closestIdx !== null && closestIdx === this.selectedIndex) {
-      // Click on already selected → deselect
+      // Click on already-selected → deselect
       this.selectedIndex = null;
       this.onSelect(null);
     } else if (closestIdx !== null) {
       this.selectedIndex = closestIdx;
       this.onSelect(closestIdx);
     } else {
-      // Click on empty space → deselect
-      if (this.selectedIndex !== null) {
+      // Click missed all characters
+      if (this.selectedIndex === PLAYER_INDEX) {
+        // Player selected + click on floor → set waypoint
+        const target = new THREE.Vector3();
+        if (ray.intersectPlane(FLOOR_PLANE, target)) {
+          this.onWaypoint(target.x, target.z);
+        }
+      } else if (this.selectedIndex !== null) {
         this.selectedIndex = null;
         this.onSelect(null);
       }

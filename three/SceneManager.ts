@@ -3,6 +3,8 @@ import { Engine } from './core/Engine';
 import { Stage } from './core/Stage';
 import { CharacterManager } from './entities/CharacterManager';
 import { InputManager } from './input/InputManager';
+import { BehaviorManager } from './behavior/BehaviorManager';
+import { AGENTS } from '../data/agents';
 import { useStore } from '../store/useStore';
 
 export class SceneManager {
@@ -11,6 +13,7 @@ export class SceneManager {
   private characters: CharacterManager;
 
   private inputManager: InputManager | null = null;
+  private behaviorManager: BehaviorManager | null = null;
   private selectedIndex: number | null = null;
 
   private frameCount = 0;
@@ -42,12 +45,22 @@ export class SceneManager {
     this.engine.renderer.setAnimationLoop(this.animate.bind(this));
     window.addEventListener('resize', this.onResize.bind(this));
 
+    const stateBuffer = this.characters.getAgentStateBuffer();
+    if (stateBuffer) {
+      this.behaviorManager = new BehaviorManager(
+        stateBuffer,
+        AGENTS,
+        (encounter) => useStore.getState().setActiveEncounter(encounter),
+      );
+    }
+
     this.inputManager = new InputManager(
       this.engine.renderer.domElement,
       this.stage.camera,
       () => this.characters.getCPUPositions(),
       () => this.characters.getCount(),
-      (index) => { this.selectedIndex = index; }
+      (index) => { this.selectedIndex = index; },
+      (x, z) => { this.behaviorManager?.setPlayerWaypoint(x, z); },
     );
 
     // Subscriptions
@@ -96,6 +109,8 @@ export class SceneManager {
     const { isDebugOpen } = useStore.getState();
     this.characters.syncFromGPU(this.engine.renderer).then((positions) => {
       if (!positions) return;
+      // Run behavior logic with fresh GPU positions
+      this.behaviorManager?.update(positions);
       if (isDebugOpen) {
         useStore.getState().setDebugPositions(new Float32Array(positions));
       }

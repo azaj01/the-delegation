@@ -22,7 +22,9 @@ import {
   sin,
   cos
 } from 'three/tsl';
-import { BoidsParams } from '../../types';
+import { BoidsParams, AgentBehavior } from '../../types';
+import { AgentStateBuffer } from '../behavior/AgentStateBuffer';
+import { PLAYER_INDEX } from '../../data/agents';
 
 export class CharacterManager {
   private instanceCount = 100;
@@ -35,6 +37,9 @@ export class CharacterManager {
   private colorAttribute: THREE.InstancedBufferAttribute | null = null;
   private positionStorage: any;
   private velocityStorage: any;
+
+  // Agent state buffer (CPU+GPU): waypoint + behavior state per instance
+  private agentStateBuffer: AgentStateBuffer | null = null;
 
   // CPU-side mirror of GPU positions (updated via GPU readback each frame)
   private debugPosArray: Float32Array | null = null;
@@ -148,26 +153,31 @@ export class CharacterManager {
     const colorArray = new Float32Array(this.instanceCount * 3);
 
     const tempColor = new THREE.Color();
+    const npcColors = this.colors.slice(1); // colors[1..] reserved for NPCs
 
     for (let i = 0; i < this.instanceCount; i++) {
-      posArray[i * 4 + 0] = (Math.random() - 0.5) * 20;
-      posArray[i * 4 + 2] = (Math.random() - 0.5) * 20;
-      posArray[i * 4 + 3] = 1;
-
-      velArray[i * 4 + 0] = (Math.random() - 0.5) * 0.1;
-      velArray[i * 4 + 2] = (Math.random() - 0.5) * 0.1;
+      if (i === PLAYER_INDEX) {
+        // Player spawns slightly offset from center so they're clearly visible
+        posArray[i * 4 + 0] = 0;
+        posArray[i * 4 + 2] = 3;
+        posArray[i * 4 + 3] = 1;
+        tempColor.set(this.colors[0]);
+      } else {
+        posArray[i * 4 + 0] = (Math.random() - 0.5) * 40;
+        posArray[i * 4 + 2] = (Math.random() - 0.5) * 40;
+        posArray[i * 4 + 3] = 1;
+        velArray[i * 4 + 0] = (Math.random() - 0.5) * 0.1;
+        velArray[i * 4 + 2] = (Math.random() - 0.5) * 0.1;
+        tempColor.set(npcColors[Math.floor(Math.random() * npcColors.length)]);
+      }
 
       timeOffsetArray[i] = Math.random() * 10;
-
-      // Assign random color from array
-      const hex = this.colors[Math.floor(Math.random() * this.colors.length)];
-      tempColor.set(hex);
       colorArray[i * 3 + 0] = tempColor.r;
       colorArray[i * 3 + 1] = tempColor.g;
       colorArray[i * 3 + 2] = tempColor.b;
     }
 
-    this.debugPosArray = new Float32Array(posArray); // seeded with initial positions, updated via GPU readback
+    this.debugPosArray = new Float32Array(posArray);
 
     this.posAttribute = new THREE.StorageInstancedBufferAttribute(posArray, 4);
     this.velAttribute = new THREE.StorageInstancedBufferAttribute(velArray, 4);
@@ -177,46 +187,82 @@ export class CharacterManager {
     this.positionStorage = storage(this.posAttribute, 'vec4', this.instanceCount);
     this.velocityStorage = storage(this.velAttribute, 'vec4', this.instanceCount);
 
+    // Agent state buffer — player starts FROZEN, NPCs start BOIDS (0 = default)
+    // Create BEFORE initComputeNode so the storage node is ready, and set
+    // needsUpdate AFTER the attribute is constructed to force the initial upload.
+    this.agentStateBuffer = new AgentStateBuffer(this.instanceCount);
+    this.agentStateBuffer.setState(PLAYER_INDEX, AgentBehavior.FROZEN);
+
     this.initComputeNode();
     this.createInstancedMesh();
   }
 
   private initComputeNode() {
+    const agentStorage = this.agentStateBuffer!.storageNode;
+
     this.computeNode = Fn(() => {
       const index = instanceIndex;
 
       const posElement = this.positionStorage.element(index);
       const velElement = this.velocityStorage.element(index);
+      const agentData  = agentStorage.element(index);   // vec4: (wpX, 0, wpZ, state)
+      const agentState = agentData.w;                   // float: 0=BOIDS 1=FROZEN 2=GOTO
+
       const pos = posElement.xyz.toVar();
-      const vel = velElement.xyz.toVar();
-      const accel = vec3(0).toVar();
 
-      // World Boundary (Square)
-      const halfSize = this.uWorldSize;
-      If(pos.x.abs().greaterThan(halfSize).or(pos.z.abs().greaterThan(halfSize)), () => {
-        accel.addAssign(pos.negate().normalize().mul(0.01));
-      });
+      // ── FROZEN (state ≈ 1, between 0.5 and 1.5) ─────────────
+      If(agentState.greaterThan(float(0.5)), () => {
 
-      // Separation
-      Loop({ start: uint(0), end: uint(this.instanceCount), type: 'uint' }, ({ i }) => {
-        const otherPos = this.positionStorage.element(i).xyz;
-        const diff = pos.sub(otherPos);
-        const dist = diff.length();
-        If(dist.lessThan(this.uSeparationRadius).and(dist.greaterThan(0.01)), () => {
-            accel.addAssign(diff.normalize().mul(this.uSeparationStrength));
+        // ── GOTO (state ≈ 2, > 1.5) ───────────────────────────
+        If(agentState.greaterThan(float(1.5)), () => {
+          const waypointXZ = vec3(agentData.x, float(0), agentData.z);
+          const toTarget = waypointXZ.sub(pos);
+          const dist = toTarget.length();
+          const gotoVel = vec3(0).toVar();
+          If(dist.greaterThan(float(0.2)), () => {
+            gotoVel.assign(toTarget.normalize().mul(this.uSpeed));
+          });
+          velElement.assign(vec4(gotoVel, 0.0));
+          posElement.assign(vec4(pos.add(gotoVel), 1.0));
+
+        }).Else(() => {
+          // FROZEN — hold position, zero velocity
+          velElement.assign(vec4(0, 0, 0, 0));
+          posElement.assign(vec4(pos, 1.0));
         });
-      });
 
-      const newVel = vel.add(accel).toVar();
-      const speed = newVel.length();
-      If(speed.greaterThan(0.001), () => {
-         newVel.assign(newVel.normalize().mul(this.uSpeed));
       }).Else(() => {
-         newVel.assign(vec3(0, 0, this.uSpeed));
-      });
+        // ── BOIDS (state ≈ 0) ──────────────────────────────────
+        const vel   = velElement.xyz.toVar();
+        const accel = vec3(0).toVar();
 
-      velElement.assign(vec4(newVel, 0.0));
-      posElement.assign(vec4(pos.add(newVel), 1.0));
+        // World boundary (square)
+        const halfSize = this.uWorldSize;
+        If(pos.x.abs().greaterThan(halfSize).or(pos.z.abs().greaterThan(halfSize)), () => {
+          accel.addAssign(pos.negate().normalize().mul(0.01));
+        });
+
+        // Separation
+        Loop({ start: uint(0), end: uint(this.instanceCount), type: 'uint' }, ({ i }) => {
+          const otherPos = this.positionStorage.element(i).xyz;
+          const diff = pos.sub(otherPos);
+          const dist = diff.length();
+          If(dist.lessThan(this.uSeparationRadius).and(dist.greaterThan(0.01)), () => {
+            accel.addAssign(diff.normalize().mul(this.uSeparationStrength));
+          });
+        });
+
+        const newVel = vel.add(accel).toVar();
+        const speed  = newVel.length();
+        If(speed.greaterThan(0.001), () => {
+          newVel.assign(newVel.normalize().mul(this.uSpeed));
+        }).Else(() => {
+          newVel.assign(vec3(0, 0, this.uSpeed));
+        });
+
+        velElement.assign(vec4(newVel, 0.0));
+        posElement.assign(vec4(pos.add(newVel), 1.0));
+      });
 
     })().compute(this.instanceCount);
   }
@@ -256,10 +302,16 @@ export class CharacterManager {
   private createVertexNode() {
     return Fn(() => {
       const instancePos = this.positionStorage.element(instanceIndex).xyz;
-      const instanceVel = this.velocityStorage.element(instanceIndex).xyz;
+      const rawVel = this.velocityStorage.element(instanceIndex).xyz;
       const timeOffset = attribute('instanceTimeOffset');
 
-      const angle = atan(instanceVel.z, instanceVel.x).negate().add(float(Math.PI / 2));
+      // When velocity is zero (FROZEN/GOTO-arrived) atan(0,0) = NaN breaks the mesh.
+      // Fall back to facing +Z so the rotation matrix is always valid.
+      const isMoving = rawVel.length().greaterThan(float(0.001));
+      const safeVel = vec3(0, 0, 1).toVar();
+      If(isMoving, () => { safeVel.assign(rawVel); });
+
+      const angle = atan(safeVel.z, safeVel.x).negate().add(float(Math.PI / 2));
       const rotationMat = mat3(
         vec3(cos(angle), float(0), sin(angle).negate()),
         vec3(float(0), float(1), float(0)),
@@ -320,6 +372,11 @@ export class CharacterManager {
 
   public fadeToAction(name: string) {}
   public getCount() { return this.instanceCount; }
+
+  /** Exposes the agent state buffer so BehaviorManager can read/write states. */
+  public getAgentStateBuffer(): AgentStateBuffer | null {
+    return this.agentStateBuffer;
+  }
 
   /** Returns the current CPU-tracked positions buffer (vec4 stride). Updated each simulateOnCPU call. */
   public getCPUPositions(): Float32Array | null {

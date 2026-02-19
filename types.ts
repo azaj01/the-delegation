@@ -22,9 +22,10 @@ export interface CharacterState {
   aiResponse: string;
   isDebugOpen: boolean;
   instanceCount: number;
-  worldSize: number; // New: Radius of the world
+  worldSize: number;
   boidsParams: BoidsParams;
   debugPositions: Float32Array | null;
+  activeEncounter: ActiveEncounter | null;
 
   performance: PerformanceStats;
 
@@ -33,13 +34,29 @@ export interface CharacterState {
   setAIResponse: (response: string) => void;
   toggleDebug: () => void;
   setInstanceCount: (count: number) => void;
-  setWorldSize: (size: number) => void; // New
+  setWorldSize: (size: number) => void;
   setBoidsParams: (params: Partial<BoidsParams>) => void;
   setDebugPositions: (positions: Float32Array) => void;
+  setActiveEncounter: (encounter: ActiveEncounter | null) => void;
   updatePerformance: (stats: PerformanceStats) => void;
 }
 
 export enum AnimationName {
   IDLE = 'Idle',
   WALK = 'Walk'
+}
+
+/** Stored as a float in the GPU agent buffer (.w component). */
+export enum AgentBehavior {
+  BOIDS = 0,   // follows Reynolds separation
+  FROZEN = 1,  // position locked, velocity zero
+  GOTO = 2,    // moves toward waypoint (.x/.z of agent buffer)
+}
+
+export interface ActiveEncounter {
+  npcIndex: number;
+  npcName: string;
+  npcRole: string;
+  npcMission: string;
+  npcPersonality: string;
 }
