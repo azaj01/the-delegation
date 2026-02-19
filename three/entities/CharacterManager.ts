@@ -19,7 +19,6 @@ import {
   positionLocal,
   time,
   texture,
-  mix,
   sin,
   cos
 } from 'three/tsl';
@@ -27,11 +26,13 @@ import { BoidsParams } from '../../types';
 
 export class CharacterManager {
   private instanceCount = 100;
+  private colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'];
 
   // Compute Buffers (GPU)
   private posAttribute: THREE.StorageInstancedBufferAttribute | null = null;
   private velAttribute: THREE.StorageInstancedBufferAttribute | null = null;
   private timeOffsetAttribute: THREE.InstancedBufferAttribute | null = null;
+  private colorAttribute: THREE.InstancedBufferAttribute | null = null;
   private positionStorage: any;
   private velocityStorage: any;
 
@@ -58,7 +59,6 @@ export class CharacterManager {
   private uSeparationRadius = uniform(2.0);
   private uSeparationStrength = uniform(0.05);
   private uWorldSize = uniform(20.0);
-  private uDebugMode = uniform(0);
 
   public isLoaded = false;
 
@@ -77,7 +77,7 @@ export class CharacterManager {
         }
       });
 
-      const clip = gltf.animations[0];
+      const clip = gltf.animations[1];
       if (!skinnedMesh || !clip) return;
 
       this.baseGeometry = skinnedMesh.geometry;
@@ -108,10 +108,6 @@ export class CharacterManager {
 
   public updateWorldSize(size: number) {
     this.uWorldSize.value = size;
-  }
-
-  public setDebugMode(enabled: boolean) {
-    this.uDebugMode.value = enabled ? 1 : 0;
   }
 
   public simulateOnCPU(params: BoidsParams, worldSize: number): Float32Array | null {
@@ -176,14 +172,26 @@ export class CharacterManager {
     const posArray = new Float32Array(this.instanceCount * 4);
     const velArray = new Float32Array(this.instanceCount * 4);
     const timeOffsetArray = new Float32Array(this.instanceCount);
+    const colorArray = new Float32Array(this.instanceCount * 3);
+
+    const tempColor = new THREE.Color();
 
     for (let i = 0; i < this.instanceCount; i++) {
       posArray[i * 4 + 0] = (Math.random() - 0.5) * 20;
       posArray[i * 4 + 2] = (Math.random() - 0.5) * 20;
       posArray[i * 4 + 3] = 1;
+
       velArray[i * 4 + 0] = (Math.random() - 0.5) * 0.1;
       velArray[i * 4 + 2] = (Math.random() - 0.5) * 0.1;
+
       timeOffsetArray[i] = Math.random() * 10;
+
+      // Assign random color from array
+      const hex = this.colors[Math.floor(Math.random() * this.colors.length)];
+      tempColor.set(hex);
+      colorArray[i * 3 + 0] = tempColor.r;
+      colorArray[i * 3 + 1] = tempColor.g;
+      colorArray[i * 3 + 2] = tempColor.b;
     }
 
     this.debugPosArray = new Float32Array(posArray);
@@ -192,6 +200,7 @@ export class CharacterManager {
     this.posAttribute = new THREE.StorageInstancedBufferAttribute(posArray, 4);
     this.velAttribute = new THREE.StorageInstancedBufferAttribute(velArray, 4);
     this.timeOffsetAttribute = new THREE.InstancedBufferAttribute(timeOffsetArray, 1);
+    this.colorAttribute = new THREE.InstancedBufferAttribute(colorArray, 3);
 
     this.positionStorage = storage(this.posAttribute, 'vec4', this.instanceCount);
     this.velocityStorage = storage(this.velAttribute, 'vec4', this.instanceCount);
@@ -201,17 +210,11 @@ export class CharacterManager {
   }
 
   private initComputeNode() {
-    // FIX: Use .assign() as a METHOD on the storage element, not as a standalone function.
-    // Standalone assign() creates an AssignNode but doesn't register it as a side-effect
-    // in the TSL compute graph, so the writes were silently dropped.
     this.computeNode = Fn(() => {
       const index = instanceIndex;
 
-      // Get references to the storage elements themselves (not just .xyz copies)
       const posElement = this.positionStorage.element(index);
       const velElement = this.velocityStorage.element(index);
-
-      // Read current values into local vars
       const pos = posElement.xyz.toVar();
       const vel = velElement.xyz.toVar();
       const accel = vec3(0).toVar();
@@ -240,7 +243,6 @@ export class CharacterManager {
          newVel.assign(vec3(0, 0, this.uSpeed));
       });
 
-      // FIXED: Use .assign() method on storage elements (registers as side-effect)
       velElement.assign(vec4(newVel, 0.0));
       posElement.assign(vec4(pos.add(newVel), 1.0));
 
@@ -254,21 +256,22 @@ export class CharacterManager {
 
     // Solo dejamos el atributo que NO se calcula en el Compute Shader
     if (this.timeOffsetAttribute) instancedGeometry.setAttribute('instanceTimeOffset', this.timeOffsetAttribute);
+    if (this.colorAttribute) instancedGeometry.setAttribute('instanceColor', this.colorAttribute);
 
     const material = new THREE.MeshStandardNodeMaterial();
-    material.roughness = this.baseMaterial.roughness;
-    material.metalness = this.baseMaterial.metalness;
+    material.roughness = 1;
+    material.metalness = 0.25;
 
     const map = (this.baseMaterial as any).map;
-    const baseColor = map ? texture(map) : vec4(1,1,1,1);
+    const instanceColor = attribute('instanceColor', 'vec3');
 
-    // Color por velocidad + Pulsación de debug para confirmar frescura de datos
-    const vel = this.velocityStorage.element(instanceIndex).xyz;
-    const speed = vel.length();
-    const pulse = sin(time.mul(5)).add(1).mul(0.2); // Pequeño pulso de brillo
-    const debugColor = vec4(speed.mul(20), float(1).sub(speed.mul(20)), pulse, 1);
+    if (map) {
+      const texColor = texture(map);
+      material.colorNode = vec4(texColor.rgb.mul(instanceColor), texColor.a);
+    } else {
+      material.colorNode = vec4(instanceColor, 1.0);
+    }
 
-    material.colorNode = mix(baseColor, debugColor, this.uDebugMode);
     material.positionNode = this.createVertexNode();
 
     this.instancedMesh = new THREE.Mesh(instancedGeometry, material);
@@ -319,10 +322,7 @@ export class CharacterManager {
         finalPosition.assign(skinMat.mul(vec4(positionLocal, 1.0)).xyz);
       }
 
-      // Wobble solo si es debug
-      const wobble = vec3(sin(time.mul(10)).mul(0.05), 0, 0).mul(this.uDebugMode);
-
-      return rotationMat.mul(finalPosition).add(instancePos).add(wobble);
+      return rotationMat.mul(finalPosition).add(instancePos);
     })();
   }
 
@@ -348,4 +348,12 @@ export class CharacterManager {
 
   public fadeToAction(name: string) {}
   public getCount() { return this.instanceCount; }
+
+  public setColors(hexColors: string[]) {
+    this.colors = hexColors;
+    if (this.isLoaded) {
+      this.cleanupInstances();
+      this.initInstances();
+    }
+  }
 }

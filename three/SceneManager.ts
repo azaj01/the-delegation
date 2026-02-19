@@ -8,40 +8,42 @@ export class SceneManager {
   private engine: Engine;
   private stage: Stage;
   private characters: CharacterManager;
-  
+
   private frameCount = 0;
   private lastTime = 0;
+  private unsubs: (() => void)[] = [];
+  private isDisposed = false;
 
   constructor(container: HTMLElement) {
     this.engine = new Engine(container);
     this.stage = new Stage(this.engine.renderer.domElement);
     this.characters = new CharacterManager(this.stage.scene);
-    
     this.init();
   }
 
   private async init() {
     await this.engine.init();
+    if (this.isDisposed) return;
     await this.characters.load();
+    if (this.isDisposed) return;
 
     const state = useStore.getState();
-    
+
     // Initial sync
     this.characters.setInstanceCount(state.instanceCount);
     this.characters.updateBoidsParams(state.boidsParams);
     this.characters.updateWorldSize(state.worldSize);
-    this.characters.setDebugMode(state.isDebugOpen); // Sync Debug Mode
     this.stage.updateDimensions(state.worldSize);
 
     this.engine.renderer.setAnimationLoop(this.animate.bind(this));
     window.addEventListener('resize', this.onResize.bind(this));
 
     // Subscriptions
-    useStore.subscribe((state) => {
+    const sub1 = useStore.subscribe((state) => {
       this.characters.fadeToAction(state.currentAction);
     });
 
-    useStore.subscribe((state, prevState) => {
+    const sub2 = useStore.subscribe((state, prevState) => {
       if (state.instanceCount !== prevState.instanceCount) {
         this.characters.setInstanceCount(state.instanceCount);
       }
@@ -49,18 +51,15 @@ export class SceneManager {
       if (state.boidsParams !== prevState.boidsParams) {
         this.characters.updateBoidsParams(state.boidsParams);
       }
-      
+
       // Update World Size
       if (state.worldSize !== prevState.worldSize) {
         this.characters.updateWorldSize(state.worldSize);
         this.stage.updateDimensions(state.worldSize);
       }
-
-      // Sync Debug Mode
-      if (state.isDebugOpen !== prevState.isDebugOpen) {
-        this.characters.setDebugMode(state.isDebugOpen);
-      }
     });
+
+    this.unsubs.push(sub1, sub2);
   }
 
   private onResize() {
@@ -76,10 +75,10 @@ export class SceneManager {
     const time = this.engine.timer.getElapsed();
 
     this.stage.update();
-    
+
     // 1. GPU Update
     this.characters.update(delta, this.engine.renderer);
-    
+
     // 2. CPU Debug Simulation (Only if debug panel is open)
     const { isDebugOpen, boidsParams, worldSize } = useStore.getState();
     if (isDebugOpen) {
@@ -119,6 +118,8 @@ export class SceneManager {
   }
 
   public dispose() {
+    this.isDisposed = true;
+    this.unsubs.forEach(unsub => unsub());
     window.removeEventListener('resize', this.onResize);
     this.engine.dispose();
     if (this.stage.controls) this.stage.controls.dispose();

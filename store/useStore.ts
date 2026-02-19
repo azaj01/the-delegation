@@ -6,7 +6,7 @@ import { CharacterState, AnimationName, PerformanceStats, BoidsParams } from '..
 export const useStore = create<CharacterState>()(
   persist(
     (set) => ({
-      currentAction: AnimationName.IDLE,
+      currentAction: AnimationName.WALK,
       isThinking: false,
       aiResponse: "Hello! I'm your AI character. Type something to talk to me.",
       isDebugOpen: false, // Will be overwritten by persist if exists

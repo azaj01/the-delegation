@@ -26,9 +26,9 @@ export interface CharacterState {
   worldSize: number; // New: Radius of the world
   boidsParams: BoidsParams;
   debugPositions: Float32Array | null;
-  
+
   performance: PerformanceStats;
-  
+
   setAnimation: (name: string) => void;
   setThinking: (isThinking: boolean) => void;
   setAIResponse: (response: string) => void;
@@ -42,8 +42,5 @@ export interface CharacterState {
 
 export enum AnimationName {
   IDLE = 'Idle',
-  WALK = 'Walk',
-  WAVE = 'Wave',
-  TALK = 'Talk',
-  DANCE = 'Dance'
+  WALK = 'Walk'
 }
