@@ -33,7 +33,7 @@ const UIOverlay: React.FC = () => {
           <h1 className="text-xl font-bold mb-1 text-zinc-900">Autonomous Characters Lab</h1>
           <div className="flex items-center gap-2">
             <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <p className="text-xs text-zinc-500 font-medium tracking-tight">Three.js WebGPU • Gemini AI</p>
+            <p className="text-xs text-zinc-500 font-medium tracking-tight">Three.js WebGPU</p>
           </div>
         </div>
 
@@ -85,7 +85,7 @@ const UIOverlay: React.FC = () => {
       )}
 
       {/* Input Field */}
-      <div className="flex justify-center">
+      {/* <div className="flex justify-center">
         <div className="bg-white/90 backdrop-blur-xl p-2 pl-6 rounded-full border border-black/10 w-full max-w-2xl flex items-center gap-2 pointer-events-auto shadow-xl shadow-black/5">
           <input
             type="text"
@@ -107,7 +107,7 @@ const UIOverlay: React.FC = () => {
             {isThinking ? '...' : 'Send'}
           </button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

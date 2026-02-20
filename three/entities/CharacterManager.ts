@@ -66,6 +66,7 @@ export class CharacterManager {
   private uSeparationRadius = uniform(0.6);
   private uSeparationStrength = uniform(0.030);
   private uWorldSize = uniform(20.0);
+  private worldSize = 20.0;
 
   public isLoaded = false;
 
@@ -132,6 +133,7 @@ export class CharacterManager {
 
   public updateWorldSize(size: number) {
     this.uWorldSize.value = size;
+    this.worldSize = size;
   }
 
   /**
@@ -174,17 +176,18 @@ export class CharacterManager {
 
     const tempColor = new THREE.Color();
     const npcColors = this.colors.slice(1); // colors[1..] reserved for NPCs
+    const spawnRadius = this.worldSize;
 
     for (let i = 0; i < this.instanceCount; i++) {
       if (i === PLAYER_INDEX) {
         // Player spawns slightly offset from center so they're clearly visible
         posArray[i * 4 + 0] = 0;
-        posArray[i * 4 + 2] = 3;
+        posArray[i * 4 + 2] = 0;
         posArray[i * 4 + 3] = 1;
         tempColor.set(this.colors[0]);
       } else {
-        posArray[i * 4 + 0] = (Math.random() - 0.5) * 40;
-        posArray[i * 4 + 2] = (Math.random() - 0.5) * 40;
+        posArray[i * 4 + 0] = (Math.random() - 0.5) * spawnRadius * 2;
+        posArray[i * 4 + 2] = (Math.random() - 0.5) * spawnRadius * 2;
         posArray[i * 4 + 3] = 1;
         velArray[i * 4 + 0] = (Math.random() - 0.5) * 0.1;
         velArray[i * 4 + 2] = (Math.random() - 0.5) * 0.1;

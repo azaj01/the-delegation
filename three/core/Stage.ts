@@ -17,7 +17,7 @@ export class Stage {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xffffff);
 
-    this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
     this.camera.position.set(10, 8, 15);
 
     this.controls = new OrbitControls(this.camera, rendererElement);
@@ -88,7 +88,7 @@ export class Stage {
     this.scene.add(this.plane);
 
     // 3. Create New Grid
-    this.gridHelper = new THREE.GridHelper(diameter, gridDivisions, 0xcccccc, 0xeeeeee);
+    this.gridHelper = new THREE.GridHelper(diameter, gridDivisions, 0xcacaca, 0xdedede);
     this.scene.add(this.gridHelper);
   }
 
