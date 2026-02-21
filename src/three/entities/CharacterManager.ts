@@ -376,7 +376,13 @@ export class CharacterManager {
         }
       }
 
-      material.positionNode = this.createVertexNode();
+      // Use the SAME node instance for both main pass and shadow depth pass.
+      // castShadowPositionNode is the r183 WebGPU-specific API that overrides the
+      // position used in the shadow depth pass. Setting it explicitly alongside
+      // positionNode ensures the shadow pass always uses our compute-driven positions.
+      const vertexNode = this.createVertexNode();
+      material.positionNode = vertexNode;
+      (material as any).castShadowPositionNode = vertexNode;
 
       const instancedMesh = new THREE.Mesh(instancedGeometry, material);
       instancedMesh.frustumCulled = false;

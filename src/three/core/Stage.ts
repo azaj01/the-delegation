@@ -45,11 +45,12 @@ export class Stage {
   }
 
   private setupLights() {
+    // Keep ambient low so directional shadows have visible contrast
     const ambientLight = new THREE.AmbientLight(0xffffff, 1 * Math.PI);
     this.scene.add(ambientLight);
 
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.5 * Math.PI);
-    dirLight.position.set(5, 10, 5);
+    dirLight.position.set(10, 20, 10);
     dirLight.castShadow = true;
     dirLight.shadow.camera.near = 0.1;
     dirLight.shadow.camera.far = 100;
@@ -60,8 +61,7 @@ export class Stage {
     dirLight.shadow.mapSize.set(2048, 2048);
     dirLight.shadow.bias = -0.002;
     dirLight.shadow.radius = 2;
-    dirLight.shadow.autoUpdate = false;
-    dirLight.shadow.needsUpdate = true;
+    dirLight.shadow.autoUpdate = true;
     this.scene.add(dirLight);
   }
 
@@ -84,14 +84,15 @@ export class Stage {
     // 2. Create New Plane
     const planeGeometry = new THREE.PlaneGeometry(diameter, diameter);
     planeGeometry.rotateX(-Math.PI / 2);
+    // Transparent materials receive shadows poorly in WebGPU — use opaque white
     const planeMaterial = new THREE.MeshStandardNodeMaterial({
       color: 0xffffff,
-      transparent: true,
-      opacity: 0.5,
+      roughness: 1,
+      metalness: 0.35,
     });
     this.plane = new THREE.Mesh(planeGeometry, planeMaterial);
     this.plane.receiveShadow = true;
-    this.plane.position.y = -0.01;
+    this.plane.position.y = -0.012;
     this.scene.add(this.plane);
 
     // 3. Create New Grid
