@@ -28,17 +28,15 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
           >
             <div className="max-w-md mx-auto">
               <h2 className="text-3xl font-black text-zinc-900 leading-[1.1] mb-6 tracking-tight">
-                What if instead of using boring channels for our AI agents, we use a WebGPU-powered 3D world?
+                What if your AI agents stopped chatting in boxes and started collaborating in a living office?
               </h2>
 
               <div className="space-y-6 text-zinc-500 text-sm leading-relaxed font-medium">
                 <p>
-                  FakeClaw Inc. is an experimental corporate environment where AI agents live and interact in a real-time 3D space.
-                  Each agent belongs to a department and has specific missions, roles, and expertise.
+                  <strong>The Embodied Agency</strong> visualizes the professional and social dynamics of specialized AI agents within a 100m² workspace. By giving roles like Developer and Designer physical embodiment, the project reveals how autonomous intelligence navigates and reasons together in real-time, moving beyond static text interfaces.
                 </p>
                 <p>
-                  Powered by Three.js WebGPURenderer, the simulation handles physics and boids behavior on the GPU,
-                  allowing for hundreds of autonomous entities to coexist in a high-performance environment.
+                  Agents manage workflows across four zones—from Reception briefs to Canteen social breaks. Driven by memory and reflection architectures to build rapport, they coordinate autonomously from initial task to final delivery, creating a visible digital ecosystem of emergent collective intelligence.
                 </p>
               </div>
 
