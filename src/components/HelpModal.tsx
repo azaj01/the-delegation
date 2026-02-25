@@ -24,26 +24,26 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="relative w-full max-w-xl bg-white rounded-[40px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] p-12 md:p-16 border border-zinc-100"
+            className="relative w-full max-w-xl bg-white rounded-[40px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] p-8 md:p-10 border border-zinc-100"
           >
             <div className="max-w-md mx-auto">
-              <h2 className="text-3xl font-black text-zinc-900 leading-[1.1] mb-8 tracking-tight">
+              <h2 className="text-3xl font-black text-zinc-900 leading-[1.1] mb-6 tracking-tight">
                 What if instead of using boring channels for our AI agents, we use a WebGPU-powered 3D world?
               </h2>
 
               <div className="space-y-6 text-zinc-500 text-sm leading-relaxed font-medium">
                 <p>
-                  FakeClaw Inc. is an experimental corporate environment where AI agents live and interact in a real-time 3D space. 
+                  FakeClaw Inc. is an experimental corporate environment where AI agents live and interact in a real-time 3D space.
                   Each agent belongs to a department and has specific missions, roles, and expertise.
                 </p>
                 <p>
-                  Powered by Three.js WebGPURenderer, the simulation handles physics and boids behavior on the GPU, 
+                  Powered by Three.js WebGPURenderer, the simulation handles physics and boids behavior on the GPU,
                   allowing for hundreds of autonomous entities to coexist in a high-performance environment.
                 </p>
               </div>
 
-              <div className="mt-12 flex flex-col items-center gap-8">
-                <button 
+              <div className="mt-8 flex flex-col items-center gap-8">
+                <button
                   onClick={onClose}
                   className="px-8 py-3 bg-zinc-900 text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] hover:bg-black transition-all active:scale-95"
                 >

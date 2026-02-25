@@ -1,4 +1,4 @@
-# Autonomous Characters Lab — Agent City System Design
+# FakeClaw Inc. HQ — Corporate Agent Simulation
 
 > Status: **In development** · Last updated: Feb 2026
 
@@ -6,7 +6,7 @@
 
 ## Overview
 
-A Three.js WebGPU simulation of **Bubbylon**, a fictional city with 100 autonomous agents. One agent is always the **Player** (index 0); the other 99 are **NPCs**. All share the same `InstancedMesh`. Physics run on the GPU via a compute shader; state logic runs on CPU and is synced to the GPU each frame.
+A Three.js WebGPU simulation of **FakeClaw Inc.**, a fictional IT company with 100 autonomous agents. One agent is the **CEO (Player)**; the other 99 are **Employees (NPCs)** divided into departments: **Production, Sales, Marketing, and Finance**. All share the same `InstancedMesh`. Physics run on the GPU via a compute shader; state logic runs on CPU and is synced to the GPU each frame.
 
 ---
 
@@ -14,7 +14,7 @@ A Three.js WebGPU simulation of **Bubbylon**, a fictional city with 100 autonomo
 
 ```
 data/
-  agents.ts               ← static city data (names, roles, missions, …)
+  agents.ts               ← corporate data (departments, roles, missions, …)
 
 three/
   core/
@@ -75,7 +75,6 @@ enum AgentBehavior {
   BOIDS = 0, // Reynolds separation — GPU compute, autonomous movement
   FROZEN = 1, // Position locked, velocity = 0, animation idle
   GOTO = 2, // Moving toward a waypoint at uSpeed, then → FROZEN on arrival
-  TALK = 3, // Position locked, playing talk animation + mouth movement
 }
 ```
 
@@ -93,14 +92,12 @@ enum AgentBehavior {
    dist(i,j) < 0.8 units            timer (4 000 ms)
      (NPC↔NPC collision)                   │
            │                               │
-         TALK   ───────────────────────────┘
-   (Alternating turns)
+        FROZEN ─────────────────────────────┘
+        (both of the colliding pair)
 ```
 
-- Maximum **10 talking pairs** simultaneously (cap to avoid stacking effects).
-- Only NPCs in `BOIDS` state can trigger a new talking freeze.
-- NPCs in `TALK` state automatically loop mouth animations via `ExpressionBuffer`.
-- **Alternation Logic:** During NPC-NPC encounters, agents alternate speaking turns every 1.5–3 seconds (one talks, one listens).
+- Maximum **10 frozen pairs** simultaneously (cap to avoid stacking effects).
+- Only NPCs in `BOIDS` state can trigger a new collision freeze.
 
 ### Player state machine
 
@@ -108,55 +105,142 @@ enum AgentBehavior {
          spawn
            ├── FROZEN  (standing, default)
            │
-    click on floor (GOTO) or startChat (moveToNPC)
+    click on floor
+    (player is selected)
            │
-          GOTO  (moves to waypoint/target)
+          GOTO  (moves to waypoint)
            │
     dist to waypoint < 0.3 units
            │
-         FROZEN / TALK (if chatting & thinking/typing)
+         FROZEN  (arrived)
 
-    ─── Interaction ────────────────────────────
-    chatting (store.isChatting) ─┐
-                                 ├─► TALK state triggered on arrival
-    thinking/typing (sync)  ────┘
+    ─── at any state ───────────────────────────
+    dist(player, npc) < 1.5 units → ActiveEncounter emitted to store
+    player moves away             → encounter cleared
 ```
 
-- **startChat(npc):** Sets NPC to `FROZEN` (facing player) and Player to `GOTO` (destination near NPC).
-- **Arrival Logic:** Upon reaching the NPC, the chat begins.
-- **Visual Sync:** NPC enters `TALK` animation only when `isThinking` (AI is generating). Player enters `TALK` animation only when `isTyping` in the chat UI.
-- **endChat:** Restores player to `FROZEN` and NPC to `BOIDS`.
+---
+
+## AgentStateBuffer (`three/behavior/AgentStateBuffer.ts`)
+
+A `StorageInstancedBufferAttribute` of **vec4 per instance**, shared between CPU and GPU:
+
+```
+vec4 layout per instance:
+  .x  =  waypointX   (GOTO target, world space)
+  .y  =  0           (reserved)
+  .z  =  waypointZ   (GOTO target, world space)
+  .w  =  AgentBehavior (0 / 1 / 2)
+```
+
+**API:**
+
+```typescript
+setState(index, AgentBehavior)           // writes .w, marks needsUpdate
+getState(index): AgentBehavior
+setWaypoint(index, x, z)                 // writes .x/.z, marks needsUpdate
+getWaypoint(index): { x, z }
+resetAllNPCsToState(state, startIndex?)
+```
+
+CPU writes → GPU reads the buffer in the compute shader each frame.
+
+---
+
+## BehaviorManager (`three/behavior/BehaviorManager.ts`)
+
+Pure logic class. No Three.js, no React.
+Receives GPU-readback positions every frame and drives state transitions.
+
+**Constructor:**
+
+```typescript
+new BehaviorManager(
+  stateBuffer:      AgentStateBuffer,
+  agents:           AgentData[],
+  onEncounterChange: (encounter: ActiveEncounter | null) => void
+)
+```
+
+**`update(positions: Float32Array)` — called each frame after GPU readback:**
+
+| Step | What it does                                                                           |
+| ---- | -------------------------------------------------------------------------------------- |
+| 1    | Expires frozen NPC pairs whose timer has elapsed → both back to `BOIDS`                |
+| 2    | Scans BOIDS NPCs for new collisions → freeze both, register pair with expiry timestamp |
+| 3    | Detects player arrival at GOTO waypoint → `FROZEN`                                     |
+| 4    | Detects nearest NPC within player encounter radius → emits `ActiveEncounter` to store  |
+
+**Constants:**
+
+```
+NPC_COLLISION_RADIUS    = 0.8  world units
+PLAYER_ENCOUNTER_RADIUS = 1.5  world units
+PLAYER_ARRIVAL_RADIUS   = 0.3  world units
+FROZEN_DURATION_MS      = 4000 ms
+MAX_FROZEN_PAIRS        = 10
+```
+
+**External action:**
+
+```typescript
+setPlayerWaypoint(x, z) // sets waypoint + transitions player to GOTO
+```
 
 ---
 
 ## CharacterManager (`three/entities/CharacterManager.ts`)
 
-Owns all GPU buffers and the instanced meshes. Handles multi-mesh character structure.
-
-**Multi-Mesh Support:**
-
-- Supports characters with 3 `SkinnedMesh` components: `body`, `eyes`, and `mouth`.
-- **Body:** Receives `instanceColor` and handles skeletal animations.
-- **Eyes/Mouth:** Use the original texture maps with alpha transparency. UVs are offset on the GPU using a 4x2 expression atlas.
+Owns all GPU buffers and the instanced mesh. Talks to the compute shader.
 
 **GPU buffers:**
 
-| Buffer                       | Type                              | Stride | Content                      |
-| ---------------------------- | --------------------------------- | ------ | ---------------------------- |
-| `posAttribute`               | `StorageInstancedBufferAttribute` | vec4   | position (x, y, z, 1)        |
-| `velAttribute`               | `StorageInstancedBufferAttribute` | vec4   | velocity (x, 0, z, 0)        |
-| `agentStateBuffer.attribute` | `StorageInstancedBufferAttribute` | vec4   | (wpX, 0, wpZ, state)         |
-| `expressionBuffer.attribute` | `StorageInstancedBufferAttribute` | vec4   | (eyeX, eyeY, mouthX, mouthY) |
-| `bakedIdleBuffer`            | `StorageBufferAttribute`          | mat4   | pre-baked idle (clip 0)      |
-| `bakedTalkBuffer`            | `StorageBufferAttribute`          | mat4   | pre-baked talk (clip 1)      |
-| `bakedWalkBuffer`            | `StorageBufferAttribute`          | mat4   | pre-baked walk (clip 2)      |
+| Buffer                       | Type                              | Stride | Content                 |
+| ---------------------------- | --------------------------------- | ------ | ----------------------- |
+| `posAttribute`               | `StorageInstancedBufferAttribute` | vec4   | position (x, y, z, 1)   |
+| `velAttribute`               | `StorageInstancedBufferAttribute` | vec4   | velocity (x, 0, z, 0)   |
+| `agentStateBuffer.attribute` | `StorageInstancedBufferAttribute` | vec4   | (wpX, 0, wpZ, state)    |
+| `bakedAnimationBuffer`       | `StorageBufferAttribute`          | mat4   | pre-baked bone matrices |
 
-**Expression System (`three/behavior/ExpressionBuffer.ts`):**
+**Compute shader logic (TSL):**
 
-- Per-instance control of UV offsets for facial expressions.
-- **Atlas (4x2):** Supports 8 distinct frames for eyes and mouth.
-- **Blinking:** Automatic random blinking logic (CPU timer → GPU offset update).
-- **Mouth Sync:** Looping mouth animation frames triggered during `TALK` state (sync'd to AI thinking or Player typing).
+```
+for each instance:
+  read agentState (.w)
+
+  if state > 1.5  → GOTO
+      move toward waypoint at uSpeed
+      stop if dist < 0.2
+
+  else if state > 0.5  → FROZEN
+      velocity = 0, position unchanged
+
+  else  → BOIDS
+      boundary steering (push inward if out of world bounds)
+      separation force (Reynolds)
+      normalize to uSpeed
+      integrate position
+```
+
+**Vertex shader safety fix:**
+When velocity is zero, `atan(0,0)` is undefined (NaN in WGSL), which collapses the rotation matrix making the instance invisible. Fix: fall back to direction `(0, 0, 1)` when `length(vel) < 0.001`.
+
+**Uniforms:**
+
+```
+uSpeed              (default 0.015)
+uSeparationRadius   (default 0.6)
+uSeparationStrength (default 0.030)
+uWorldSize          (default 25.0)
+```
+
+**GPU readback:**
+
+```typescript
+async syncFromGPU(renderer): Promise<Float32Array | null>
+```
+
+Reads `posAttribute` from VRAM to `debugPosArray` (CPU). Called every frame with 1-frame lag. Used for picking, camera follow, and BehaviorManager.
 
 ---
 
@@ -224,12 +308,14 @@ setActiveEncounter(encounter | null)
 
 ## What is NOT yet implemented
 
-| Feature                        | Notes                                                                             |
-| ------------------------------ | --------------------------------------------------------------------------------- |
-| **Player selection highlight** | Player is identified by `colors[0]` (blue) but has no highlight ring or indicator |
-| **Waypoint indicator**         | No visual marker on the floor when player is sent to a destination                |
-| **NPC state exposed to UI**    | No overlay showing nearby NPC name/role on hover or proximity                     |
-| **Department Logic**           | NPCs currently wander randomly; no "go to office" or department-specific behavior |
+| Feature                           | Notes                                                                                              |
+| --------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **AI chat when player meets NPC** | `activeEncounter` is ready in the store; needs UI panel + LLM call                                 |
+| **NPC–NPC "talking" visual**      | They freeze correctly but no visual cue (no speech bubble, no animation)                           |
+| **Player selection highlight**    | Player is identified by `colors[0]` (blue) but has no highlight ring or indicator                  |
+| **Waypoint indicator**            | No visual marker on the floor when player is sent to a destination                                 |
+| **NPC state exposed to UI**       | No overlay showing nearby NPC name/role on hover or proximity                                      |
+| **Encounter with non-BOIDS NPC**  | Player can only encounter NPCs regardless of their state, but no special handling for frozen pairs |
 
 ---
 
