@@ -38,7 +38,17 @@ export interface CharacterState {
 
 export enum AnimationName {
   IDLE = 'Idle',
-  WALK = 'Walk'
+  WALK = 'Walk',
+  TALK = 'Talk',
+  LISTEN = 'Listen',
+  SIT = 'Sit',
+  SIT_IDLE = 'Sit_idle',
+  SIT_WORK = 'Sit_work',
+  LOOK_AROUND = 'LookAround',
+  HAPPY = 'Happy',
+  SAD = 'Sad',
+  PICK = 'Pick',
+  WAVE = 'Wave'
 }
 
 /** Stored as a float in the GPU agent buffer (.w component). */

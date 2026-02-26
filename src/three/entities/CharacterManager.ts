@@ -23,7 +23,7 @@ import {
   cos,
   uv
 } from 'three/tsl';
-import { AgentBehavior, ExpressionKey } from '../../types';
+import { AgentBehavior, ExpressionKey, AnimationName } from '../../types';
 import { AgentStateBuffer } from '../behavior/AgentStateBuffer';
 import { ExpressionBuffer } from '../behavior/ExpressionBuffer';
 import { AGENTS, PLAYER_INDEX } from '../../data/agents';
@@ -90,10 +90,15 @@ export class CharacterManager {
         }
       });
 
-      const walkClip = gltf.animations[2];
-      const talkClip = gltf.animations[1];
-      const idleClip = gltf.animations[0];
-      if (skinnedMeshes.length === 0 || !walkClip) return;
+      const animations = gltf.animations;
+      const walkClip = animations.find(a => a.name === AnimationName.WALK);
+      const talkClip = animations.find(a => a.name === AnimationName.TALK);
+      const idleClip = animations.find(a => a.name === AnimationName.IDLE);
+
+      if (skinnedMeshes.length === 0 || !walkClip) {
+        console.warn("CharacterManager: Missing essential animations or meshes.");
+        return;
+      }
 
       this.meshData = skinnedMeshes.map(m => ({
         name: m.name,

@@ -1,13 +1,6 @@
-# Autonomous Characters Lab
+# The Embodied Agency
 
-Three.js WebGPU simulation of a small city with autonomous characters and a player-controlled agent.
-
-## Features
-
-- 100 instanced characters (1 player + 99 NPCs).
-- GPU compute for movement, CPU logic for behaviors.
-- Click-to-move player, NPC selection, and encounter detection.
-- Debug panel with world and behavior visualization.
+Three.js WebGPU simulation of autonomous characters and a player-controlled agent.
 
 ## Tech Stack
 
@@ -36,13 +29,6 @@ npm run dev
 - `npm run dev` - Start the development server.
 - `npm run build` - Build for production.
 - `npm run preview` - Preview the production build.
-
-## Project Structure
-
-- `three/` - Rendering, compute, input, and behavior logic.
-- `components/` - UI and debug panels.
-- `store/` - Zustand store for UI and runtime state.
-- `data/` - Static agent data.
 
 ## License & IP
 
