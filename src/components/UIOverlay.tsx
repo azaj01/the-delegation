@@ -59,7 +59,7 @@ const UIOverlay: React.FC = () => {
 
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-8 z-10">
+    <div className="absolute inset-0 pointer-events-none flex flex-col justify-end p-8 z-10 overflow-hidden">
       {/* Selected Bubble (Always visible when selected) */}
       {selectedAgent && selectedPosition && (
         <div
@@ -165,7 +165,7 @@ const UIOverlay: React.FC = () => {
       )}
 
       {/* Top Header */}
-      <div className="flex justify-between items-start relative z-30">
+      <div className="flex justify-between items-start relative z-30 mb-auto pb-8">
         <div className="bg-white/20 p-4 rounded-2xl max-w-96 pointer-events-auto flex gap-4">
           <div className="w-2 h-8 bg-[#7EACEA] rounded-full shrink-0 mt-1" />
           <div>
