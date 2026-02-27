@@ -7,8 +7,8 @@ import { AnimationName, CharacterStateDef, CharacterStateKey, ICharacterDriver }
  *
  *  loop: true  → animation loops; state persists until an explicit transition.
  *  loop: false → animation plays once, then auto-transitions to `nextState`.
- *  interruptible: false → the state machine will queue the new state and apply
- *                         it once the current animation finishes.
+ *  interruptible: false → the state machine will NOT apply a new state until the
+ *                         current animation finishes.
  */
 export const STATE_MAP: Record<CharacterStateKey, CharacterStateDef> = {
   idle:        { animation: AnimationName.IDLE,        expression: 'idle',      loop: true,  interruptible: true },
@@ -32,29 +32,36 @@ export class CharacterStateMachine {
   private currentState: CharacterStateKey[] = [];
   /** Countdown timer for non-looping states (seconds remaining). */
   private stateTimer: number[] = [];
-  /** Queued state to apply once current non-interruptible state finishes. */
-  private pendingState: (CharacterStateKey | null)[] = [];
+  /**
+   * Explicit sit target — set via prepareSitDown() before entering sit_down.
+   * When the sit_down animation finishes this state is applied directly,
+   * bypassing the generic pendingState / nextState mechanism.
+   */
+  private sitTarget: (CharacterStateKey | null)[] = [];
 
   constructor(private readonly count: number) {
     for (let i = 0; i < count; i++) {
       this.currentState[i] = 'idle';
-      this.stateTimer[i] = 0;
-      this.pendingState[i] = null;
+      this.stateTimer[i]   = 0;
+      this.sitTarget[i]    = null;
     }
   }
 
   // ── Public API ───────────────────────────────────────────────
 
-  /** Request a state transition. If the current state is non-interruptible, the request is queued. */
+  /**
+   * Store the desired final seated state BEFORE calling transition('sit_down').
+   * The state machine will apply this state once the sit_down animation finishes,
+   * regardless of timing between the async arrival callback and the sync update loop.
+   */
+  public prepareSitDown(index: number, finalState: 'sit_idle' | 'sit_work'): void {
+    this.sitTarget[index] = finalState;
+  }
+
+  /** Request a state transition. Non-interruptible states silently reject new requests. */
   public transition(index: number, newState: CharacterStateKey, driver: ICharacterDriver): void {
     const current = STATE_MAP[this.currentState[index]];
-
-    if (!current.interruptible) {
-      // Queue the request; it will be applied when the current animation ends.
-      this.pendingState[index] = newState;
-      return;
-    }
-
+    if (!current.interruptible) return; // non-interruptible: ignore; caller must wait
     this._applyState(index, newState, driver);
   }
 
@@ -74,8 +81,11 @@ export class CharacterStateMachine {
 
       this.stateTimer[i] -= delta;
       if (this.stateTimer[i] <= 0) {
-        const next = this.pendingState[i] ?? def.nextState ?? 'idle';
-        this.pendingState[i] = null;
+        // sitTarget is ONLY consumed when sit_down finishes \u2014 prevents stale values
+        // from leaked prepareSitDown calls affecting other non-looping states.
+        const isSitDown = this.currentState[i] === 'sit_down';
+        const next = (isSitDown ? this.sitTarget[i] : null) ?? def.nextState ?? 'idle';
+        if (isSitDown) this.sitTarget[i] = null;
         this._applyState(i, next, driver);
       }
     }
@@ -90,20 +100,20 @@ export class CharacterStateMachine {
       return;
     }
 
+    const prev = this.currentState[index];
     this.currentState[index] = key;
 
-    // Set animation via driver
     driver.setAnimation(index, def.animation);
 
-    // Set expression if defined for this state
     if (def.expression !== undefined) {
       driver.setExpression(index, def.expression);
     }
 
-    // Start timer for non-looping states
     if (!def.loop) {
       const duration = def.durationOverride ?? driver.getAnimationDuration(def.animation);
       this.stateTimer[index] = duration > 0 ? duration : 1.0;
     }
+
+    console.debug(`[StateMachine] agent ${index}: ${prev} → ${key} (timer=${this.stateTimer[index].toFixed(2)}, sitTarget=${this.sitTarget[index]})`);
   }
 }

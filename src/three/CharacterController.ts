@@ -105,27 +105,30 @@ export class CharacterController implements ICharacterDriver {
     this.poiManager.occupy(poiId, index);
 
     const targetState = poi.arrivalState;
-    // POI arrivalState is always the desired FINAL state (sit_idle or sit_work).
-    // Both require the one-shot 'sit_down' entry animation first.
     const isSitVariant = targetState === 'sit_idle' || targetState === 'sit_work';
 
+    if (isSitVariant) {
+      // Pre-arm the sit sequence: sitTarget is stored NOW, before the async arrival fires.
+      // When sit_down timer expires the state machine reads sitTarget directly — this is
+      // immune to the async gap between syncFromGPU.then() and stateMachine.update().
+      this.stateMachine.prepareSitDown(index, targetState as 'sit_idle' | 'sit_work');
+    }
+
     // Navigate to the exact POI position.
-    // We use 'idle' as a throw-away arrivalState and handle everything
-    // explicitly in the callback so orientation is set BEFORE any animation.
     this.moveTo(index, poi.position, 'idle', (i) => {
-      // 1. Snap orientation to POI facing direction FIRST
-      this.characterManager.setOrientation(i, poi.quaternion);
+      // 1. Teleport to exact POI position (removes any sub-unit navmesh offset)
+      this.characterManager.setPosition(i, poi.position);
 
-      // 2. Drive the correct animation sequence
+      // 2. Snap orientation to POI facing direction (skip if it's an 'area' POI)
+      if (!poi.id.startsWith('area')) {
+        this.characterManager.setOrientation(i, poi.quaternion);
+      }
+
+      // 3. Switch GPU to SEATED so the character won't be moved by any stray GOTO commands
       if (isSitVariant) {
-        // Play sit_down once (non-interruptible, nextState → 'sit_idle' by default)
+        this.setPhysicsMode(i, AgentBehavior.SEATED);
+        // play('sit_down') — sitTarget already set above, will auto-transition to finalState
         this.play(i, 'sit_down');
-
-        // For sit_work: queue the work loop — applied once 'sit_down' finishes,
-        // overriding the default nextState ('sit_idle')
-        if (targetState === 'sit_work') {
-          this.play(i, 'sit_work');
-        }
       } else {
         this.play(i, targetState);
       }

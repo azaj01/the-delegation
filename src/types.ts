@@ -32,8 +32,8 @@ export enum AnimationName {
   TALK = 'Talk',
   LISTEN = 'Listen',
   SIT_DOWN = 'Sit',      // one-shot sit-down entry animation
-  SIT_IDLE = 'Sit_idle', // loop: seated idle
-  SIT_WORK = 'Sit_work', // loop: seated working
+  SIT_IDLE = 'Sit_Idle', // loop: seated idle
+  SIT_WORK = 'Sit_Work', // loop: seated working
 
   LOOK_AROUND = 'LookAround',
   HAPPY = 'Happy',
@@ -44,8 +44,9 @@ export enum AnimationName {
 
 /** Stored as a float in the GPU agent buffer (.w component). */
 export enum AgentBehavior {
-  IDLE = 0,    // position locked, velocity zero, facing follows waypoint field (if non-zero)
-  GOTO = 1,    // moves toward target waypoint (.x/.z of agent buffer)
+  IDLE   = 0, // position locked, velocity zero, facing follows waypoint field (if non-zero)
+  GOTO   = 1, // moves toward target waypoint (.x/.z of agent buffer)
+  SEATED = 2, // position locked, velocity zero — character is seated, treated like IDLE on GPU
 }
 
 // ── Character State Machine ───────────────────────────────────

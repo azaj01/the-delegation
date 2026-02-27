@@ -214,6 +214,8 @@ export class CharacterManager {
     const spawnPois = this.poiManager?.getFreePoisByPrefix('spawn') || [];
     let spawnIndex = 0;
 
+    const agentsBuffer = []; // Temporary to store POIs for orientation
+
     for (let i = 0; i < this.instanceCount; i++) {
         const agent = AGENTS[i] || AGENTS[0];
         const colorOverride = this.colors && this.colors[i] ? this.colors[i] : agent.color;
@@ -224,15 +226,18 @@ export class CharacterManager {
             posArray[i * 4 + 2] = 0;
             posArray[i * 4 + 3] = 1;
             tempColor.set(colorOverride);
+            agentsBuffer[i] = null;
         } else {
             const poi = spawnPois[spawnIndex % spawnPois.length];
             if (poi) {
                 posArray[i * 4 + 0] = poi.position.x;
                 posArray[i * 4 + 2] = poi.position.z;
                 spawnIndex++;
+                agentsBuffer[i] = poi;
             } else {
                 posArray[i * 4 + 0] = (Math.random() - 0.5) * spawnRadius * 2;
                 posArray[i * 4 + 2] = (Math.random() - 0.5) * spawnRadius * 2;
+                agentsBuffer[i] = null;
             }
             posArray[i * 4 + 3] = 1;
             velArray[i * 4 + 0] = (Math.random() - 0.5) * 0.1;
@@ -261,6 +266,12 @@ export class CharacterManager {
     for (let i = 0; i < this.instanceCount; i++) {
         this.setPhysicsMode(i, AgentBehavior.IDLE);
         this.setAnimation(i, AnimationName.IDLE);
+
+        // APPLY POI ORIENTATION
+        const poi = agentsBuffer[i];
+        if (poi && (poi.id.includes('spawn') || poi.id.includes('sit'))) {
+          this.setOrientation(i, poi.quaternion);
+        }
     }
 
     this.expressionBuffer = new ExpressionBuffer(this.instanceCount);
@@ -278,14 +289,16 @@ export class CharacterManager {
       const posElement = this.positionStorage.element(index);
       const velElement = this.velocityStorage.element(index);
       const agentData  = agentStorage.element(index);   // vec4: (wpX, anim, wpZ, state)
-      const agentState = agentData.w;                   // float: 0=IDLE 1=GOTO
+      const agentState = agentData.w;                   // float: 0=IDLE 1=GOTO 2=SEATED
 
       const pos = posElement.xyz.toVar();
 
       // ── Physical Logic ──────────────────────────────────────
 
-      If(agentState.greaterThan(float(0.5)), () => {
-        // ── GOTO (state == 1) ──────────────────────────────────
+      // GOTO = 1  |  IDLE = 0  |  SEATED = 2 (treated as IDLE on GPU)
+      const isGoto = agentState.greaterThan(float(0.5)).and(agentState.lessThan(float(1.5)));
+
+      If(isGoto, () => {
         const waypointXZ = vec3(agentData.x, float(0), agentData.z);
         const toTarget = waypointXZ.sub(pos);
         const dist = toTarget.length();
@@ -299,9 +312,10 @@ export class CharacterManager {
         });
 
       }).Else(() => {
-        // ── IDLE (0) ──────────────────────────────────────────
+        // ── IDLE / SEATED (0 or 2) ───────────────────────────────
         // Zero velocity so the vertex shader uses facingOverride (setFacing/setOrientation)
         // instead of the stale walk velocity for rotation.
+        // SEATED (2) is handled identically on the GPU — the semantic difference is CPU-only.
         velElement.assign(vec4(float(0), float(0), float(0), float(0)));
         posElement.assign(vec4(pos, 1.0));
       });
@@ -482,6 +496,22 @@ export class CharacterManager {
   public setPhysicsMode(index: number, mode: AgentBehavior) {
     if (!this.agentStateBuffer || index < 0 || index >= this.instanceCount) return;
     this.agentStateBuffer.setState(index, mode);
+  }
+
+  /** Teleport an agent to an exact world position by writing directly to the CPU→GPU buffer. */
+  public setPosition(index: number, position: THREE.Vector3): void {
+    if (!this.posAttribute || index < 0 || index >= this.instanceCount) return;
+    const arr = this.posAttribute.array as Float32Array;
+    arr[index * 4 + 0] = position.x;
+    arr[index * 4 + 1] = position.y;
+    arr[index * 4 + 2] = position.z;
+    this.posAttribute.needsUpdate = true;
+    // Also update the CPU mirror so getCPUPosition() is immediately accurate
+    if (this.debugPosArray) {
+      this.debugPosArray[index * 4 + 0] = position.x;
+      this.debugPosArray[index * 4 + 1] = position.y;
+      this.debugPosArray[index * 4 + 2] = position.z;
+    }
   }
 
   /** Force a specific facing direction when IDLE. */

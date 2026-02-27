@@ -117,17 +117,27 @@ export class PoiManager {
   /**
    * Extract POIs from a loaded GLB scene.
    * Convention: empty objects named "poi-<arrivalState>-<uniqueId>".
-   * The arrivalState is the FINAL resting state, not the entry animation.
-   * Example: "poi-sit_idle-chair_01", "poi-sit_work-desk_02"
+   * Special arrival states: "spawn" and "area" default to "idle" state.
+   *
+   * Example: "poi-sit_idle-chair_01", "poi-sit_work-desk_02", "poi-spawn-A", "poi-area-lounge"
    */
   public loadFromGlb(scene: THREE.Object3D): void {
     scene.traverse((child) => {
-      const match = child.name.match(/^poi-([a-z_]+)-(.+)$/);
+      // Regex detects poi-TYPE-ID
+      const match = child.name.match(/^poi-([a-z0-9_]+)-(.+)$/);
       if (!match) return;
 
-      const arrivalState = match[1] as CharacterStateKey;
+      const type = match[1];
       const uniqueId = match[2];
-      const id = `${arrivalState}-${uniqueId}`;
+
+      // "spawn" and "area" aren't real character states, they map to 'idle'.
+      // Anything else is treated as a CharacterStateKey ('sit_idle', etc).
+      let arrivalState: CharacterStateKey = 'idle';
+      if (type !== 'spawn' && type !== 'area') {
+        arrivalState = type as CharacterStateKey;
+      }
+
+      const id = `${type}-${uniqueId}`;
 
       const worldPos = new THREE.Vector3();
       const worldQuat = new THREE.Quaternion();

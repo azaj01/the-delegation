@@ -78,7 +78,7 @@ export class NpcAgentDriver implements IAgentDriver {
 
     // 4. Standing: try wandering to an area POI
     if (rand < 0.9) {
-      const areaPois = this.controller.poiManager.getFreePoisByPrefix('area_');
+      const areaPois = this.controller.poiManager.getFreePoisByPrefix('area-');
       if (areaPois.length > 0) {
         const areaPoi = areaPois[Math.floor(Math.random() * areaPois.length)];
         const target = this.controller.poiManager.getRandomPointNearPoi(areaPoi.id, 3);
