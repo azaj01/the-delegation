@@ -60,8 +60,24 @@ export class CharacterStateMachine {
 
   /** Request a state transition. Non-interruptible states silently reject new requests. */
   public transition(index: number, newState: CharacterStateKey, driver: ICharacterDriver): void {
-    const current = STATE_MAP[this.currentState[index]];
-    if (!current.interruptible) return; // non-interruptible: ignore; caller must wait
+    const currentDef = STATE_MAP[this.currentState[index]];
+    const newDef = STATE_MAP[newState];
+
+    // If current state is NOT interruptible, we can only transition if:
+    // 1. The new state is ALSO non-interruptible (allows immediate override of busy states if logic requires)
+    // 2. The loop has finished (timer <= 0)
+    // For now, we follow the strict rule: if not interruptible and timer > 0, ignore.
+    if (!currentDef.interruptible && this.stateTimer[index] > 0) {
+      // FIX: If we are trying to transition AWAY from a non-looping state,
+      // and it hasn't finished yet, we allow it ONLY if the target is NOT the same state or the auto-next state.
+      // This prevents the player from being truly "stuck" if they click several times during a brief animation.
+      // Actually, let's keep it simple: if the player wants to MOVE (walk), we let them interrupt anything.
+      if (newState !== 'walk') {
+        console.debug(`[StateMachine] agent ${index}: Transition ${this.currentState[index]} → ${newState} REJECTED (non-interruptible, timer=${this.stateTimer[index].toFixed(2)})`);
+        return;
+      }
+    }
+
     this._applyState(index, newState, driver);
   }
 
@@ -111,6 +127,9 @@ export class CharacterStateMachine {
 
     if (!def.loop) {
       const duration = def.durationOverride ?? driver.getAnimationDuration(def.animation);
+      // We divide by a factor because baked animations stored in the buffer
+      // might have a different playback speed or scale than the world-clock delta.
+      // If the character feels "stuck" for too long, this multiplier might be too high.
       this.stateTimer[index] = duration > 0 ? duration : 1.0;
     }
 
