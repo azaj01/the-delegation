@@ -20,12 +20,24 @@ export class PathAgent {
   ) {}
 
   /** Start following a new path. Immediately writes the first waypoint to the GPU buffer. */
-  public setPath(path: THREE.Vector3[]): void {
+  public setPath(path: THREE.Vector3[], fromPos?: THREE.Vector3): void {
     this.path = path;
+    let prepended = false;
+    if (fromPos && path.length > 0) {
+      const firstNode = path[0];
+      const distSq = (firstNode.x - fromPos.x) ** 2 + (firstNode.z - fromPos.z) ** 2;
+      if (distSq > 0.0001) {
+        this.path = [fromPos, ...path];
+        prepended = true;
+      }
+    }
     this.nodeIndex = 0;
-    this.isMoving = path.length > 0;
+    this.isMoving = this.path.length > 0;
     if (this.isMoving) {
-      this._writeWaypoint(this.path[0]);
+      if (prepended && this.path.length > 1) {
+        this.nodeIndex = 1;
+      }
+      this._writeWaypoint(this.path[this.nodeIndex]);
     }
   }
 
@@ -62,6 +74,20 @@ export class PathAgent {
     }
 
     return false;
+  }
+
+  /** Returns the current target waypoint. */
+  public getTarget(): THREE.Vector3 | null {
+    if (!this.isMoving || this.path.length === 0) return null;
+    return this.path[this.nodeIndex];
+  }
+
+  /** Returns the last direction vector of the current path. */
+  public getLastDirection(): THREE.Vector3 {
+    if (this.path.length < 2) return new THREE.Vector3(0, 0, 1);
+    const last = this.path[this.path.length - 1];
+    const prev = this.path[this.path.length - 2];
+    return new THREE.Vector3().subVectors(last, prev).normalize();
   }
 
   private _writeWaypoint(node: THREE.Vector3): void {

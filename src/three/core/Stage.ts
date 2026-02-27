@@ -27,7 +27,7 @@ export class Stage {
     this.controls.minPolarAngle = Math.PI / 4.5;
     this.controls.maxPolarAngle = Math.PI / 2.4;
     this.controls.minDistance = 3;
-    this.controls.maxDistance = 50; // Increased to allow viewing larger worlds
+    this.controls.maxDistance = 10;
     this.controls.target.set(0, 0.8, 0);
 
     this.controls.addEventListener('start', () => {
@@ -51,12 +51,12 @@ export class Stage {
     dirLight.castShadow = true;
     dirLight.shadow.camera.near = 0.1;
     dirLight.shadow.camera.far = 100;
-    dirLight.shadow.camera.top = 50;
-    dirLight.shadow.camera.bottom = -50;
-    dirLight.shadow.camera.right = 50;
-    dirLight.shadow.camera.left = -50;
+    dirLight.shadow.camera.top = 10;
+    dirLight.shadow.camera.bottom = -10;
+    dirLight.shadow.camera.right = 10;
+    dirLight.shadow.camera.left = -10;
     dirLight.shadow.mapSize.set(2048, 2048);
-    dirLight.shadow.bias = -0.002;
+    dirLight.shadow.bias = -0.0001;
     dirLight.shadow.radius = 2;
     dirLight.shadow.autoUpdate = true;
     this.scene.add(dirLight);

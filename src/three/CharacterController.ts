@@ -91,7 +91,7 @@ export class CharacterController implements ICharacterDriver {
     // not at the nearest navmesh polygon boundary.
     path[path.length - 1] = target.clone();
 
-    this.pathAgents[index].setPath(path);
+    this.pathAgents[index].setPath(path, from);
     this.arrivalCallbacks[index] = (i) => {
       this.play(i, arrivalState);
       onArrival?.(i);
@@ -203,6 +203,10 @@ export class CharacterController implements ICharacterDriver {
 
       const arrived = this.pathAgents[i].update(currentPos);
       if (arrived) {
+        // Keep the last movement direction when transitioning to IDLE
+        const lastDir = this.pathAgents[i].getLastDirection();
+        this.characterManager.setFacing(i, lastDir.x, lastDir.z);
+
         this.setPhysicsMode(i, AgentBehavior.IDLE);
         this.arrivalCallbacks[i]?.(i);
       }
