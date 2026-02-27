@@ -11,6 +11,8 @@ export const useStore = create<CharacterState>()(
     selectedNpcIndex: null,
     selectedPosition: null,
     hoveredNpcIndex: null,
+    hoveredPoiId: null,
+    hoveredPoiLabel: null,
     hoverPosition: null,
     isChatting: false,
     isTyping: false,
@@ -22,6 +24,17 @@ export const useStore = create<CharacterState>()(
 
     setSelectedNpc: (index: number | null) => set({ selectedNpcIndex: index, selectedPosition: null }),
     setSelectedPosition: (pos: { x: number; y: number } | null) => set({ selectedPosition: pos }),
-    setHoveredNpc: (index: number | null, pos: { x: number; y: number } | null) => set({ hoveredNpcIndex: index, hoverPosition: pos }),
+    setHoveredNpc: (index: number | null, pos: { x: number; y: number } | null) => set({
+      hoveredNpcIndex: index,
+      hoverPosition: pos,
+      hoveredPoiId: null,
+      hoveredPoiLabel: null,
+    }),
+    setHoveredPoi: (id: string | null, label: string | null, pos: { x: number; y: number } | null) => set({
+      hoveredPoiId: id,
+      hoveredPoiLabel: label,
+      hoverPosition: pos,
+      hoveredNpcIndex: null,
+    }),
   })
 );

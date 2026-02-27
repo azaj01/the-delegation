@@ -27,6 +27,12 @@ export class PlayerInputDriver implements IAgentDriver {
     this.controller.moveTo(PLAYER_INDEX, target, 'idle', undefined, from);
   }
 
+  /** User clicked on a POI (e.g. chair): walk to and interact. */
+  public onPoiClick(id: string): void {
+    const from = this._getCurrentPos();
+    this.controller.walkToPoi(PLAYER_INDEX, id, undefined, from);
+  }
+
   /**
    * Walk the player toward a specific world position with a custom arrival state.
    * Used by SceneManager when the player initiates a chat with an NPC.

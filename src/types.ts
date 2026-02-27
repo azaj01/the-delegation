@@ -13,6 +13,8 @@ export interface CharacterState {
   selectedNpcIndex: number | null;
   selectedPosition: { x: number; y: number } | null;
   hoveredNpcIndex: number | null;
+  hoveredPoiId: string | null;
+  hoveredPoiLabel: string | null;
   hoverPosition: { x: number; y: number } | null;
   isChatting: boolean;
   isTyping: boolean;
@@ -24,6 +26,7 @@ export interface CharacterState {
   setSelectedNpc: (index: number | null) => void;
   setSelectedPosition: (pos: { x: number; y: number } | null) => void;
   setHoveredNpc: (index: number | null, pos: { x: number; y: number } | null) => void;
+  setHoveredPoi: (id: string | null, label: string | null, pos: { x: number; y: number } | null) => void;
 }
 
 export enum AnimationName {
@@ -103,6 +106,8 @@ export interface PoiDef {
   arrivalState: CharacterStateKey;
   /** Agent index currently occupying this POI, or null if free. */
   occupiedBy: number | null;
+  /** Optional label to show on hover (e.g. "Sit down"). */
+  label?: string;
 }
 
 // ── Driver interfaces ─────────────────────────────────────────

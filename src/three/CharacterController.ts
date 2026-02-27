@@ -50,6 +50,15 @@ export class CharacterController implements ICharacterDriver {
    * Non-interruptible states (e.g. 'sit_down') will queue the new state until ready.
    */
   public play(index: number, state: CharacterStateKey): void {
+    // If transitioning away from a seated state, release any POIs
+    const currentState = this.stateMachine.getState(index);
+    const isCurrentlySeated = currentState === 'sit_idle' || currentState === 'sit_work' || currentState === 'sit_down';
+    const isNewStateSeated = state === 'sit_idle' || state === 'sit_work' || state === 'sit_down';
+
+    if (isCurrentlySeated && !isNewStateSeated) {
+      this.poiManager.releaseAll(index);
+    }
+
     this.stateMachine.transition(index, state, this);
   }
 

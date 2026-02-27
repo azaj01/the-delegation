@@ -1,9 +1,10 @@
 import * as THREE from 'three/webgpu';
 import { PLAYER_INDEX } from '../../data/agents';
-import { CHARACTER_Y_OFFSET, PICK_RADIUS } from '../constants';
+import { CHARACTER_Y_OFFSET, PICK_RADIUS, POI_PICK_RADIUS } from '../constants';
+import { PoiDef } from '../../types';
 
 const DRAG_THRESHOLD_PX = 4;
-const FLOOR_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // y=0
+const FLOOR_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0),0); // y=0
 
 export class InputManager {
   private raycaster = new THREE.Raycaster();
@@ -25,6 +26,9 @@ export class InputManager {
     private onSelect: (index: number | null) => void,
     private onWaypoint: (x: number, z: number) => void,
     private onHover: (index: number | null, pos: { x: number; y: number } | null) => void,
+    private getPois: () => PoiDef[],
+    private onPoiHover: (id: string | null, label: string | null, pos: { x: number; y: number } | null) => void,
+    private onPoiClick: (id: string) => void,
     private raycastObject?: THREE.Object3D,
     private isPointValid?: (point: THREE.Vector3) => boolean,
   ) {
@@ -85,13 +89,31 @@ export class InputManager {
         worldPos.project(this.camera);
         const x = (worldPos.x * 0.5 + 0.5) * rect.width;
         const y = (worldPos.y * -0.5 + 0.5) * rect.height;
+        this.onPoiHover(null, null, null);
         this.onHover(effectiveHoverIdx, { x, y });
       }
     } else {
-      // Not over an agent, check floor/navmesh
-      const target = this.getWorldClickPosition();
-      this.canvas.style.cursor = target ? 'pointer' : 'auto';
-      this.onHover(null, null);
+      // Not over an agent, check POIs
+      const hoveredPoi = this.getPoiAtPointer();
+
+      if (hoveredPoi && hoveredPoi.occupiedBy === null && hoveredPoi.label) {
+        this.canvas.style.cursor = 'pointer';
+
+        const worldPos = hoveredPoi.position.clone();
+        worldPos.y += 0.5; // Bubble a bit above the POI
+        worldPos.project(this.camera);
+        const x = (worldPos.x * 0.5 + 0.5) * rect.width;
+        const y = (worldPos.y * -0.5 + 0.5) * rect.height;
+
+        this.onHover(null, null);
+        this.onPoiHover(hoveredPoi.id, hoveredPoi.label, { x, y });
+      } else {
+        // Not over agent or POI, check floor/navmesh
+        const target = this.getWorldClickPosition();
+        this.canvas.style.cursor = target ? 'pointer' : 'auto';
+        this.onHover(null, null);
+        this.onPoiHover(null, null, null);
+      }
     }
   }
 
@@ -129,6 +151,37 @@ export class InputManager {
     return closestIdx;
   }
 
+  private getPoiAtPointer(): PoiDef | null {
+    this.raycaster.setFromCamera(this.pointer, this.camera);
+    const pois = this.getPois();
+
+    let closestT = Infinity;
+    let closestPoi: PoiDef | null = null;
+
+    for (const poi of pois) {
+      if (!poi.label) continue;
+
+      // Project POI to a small sphere for easier clicking than just the point
+      const ocx = this.raycaster.ray.origin.x - poi.position.x;
+      const ocy = this.raycaster.ray.origin.y - poi.position.y;
+      const ocz = this.raycaster.ray.origin.z - poi.position.z;
+
+      const halfB = ocx * this.raycaster.ray.direction.x + ocy * this.raycaster.ray.direction.y + ocz * this.raycaster.ray.direction.z;
+      const c = ocx * ocx + ocy * ocy + ocz * ocz - POI_PICK_RADIUS * POI_PICK_RADIUS;
+      const discriminant = halfB * halfB - c;
+
+      if (discriminant < 0) continue;
+
+      const t = -halfB - Math.sqrt(discriminant);
+      if (t > 0 && t < closestT) {
+        closestT = t;
+        closestPoi = poi;
+      }
+    }
+
+    return closestPoi;
+  }
+
   private handlePointerUp(event: PointerEvent) {
     if (event.button !== 0) return;
     if (this.isDragging) return;
@@ -157,8 +210,14 @@ export class InputManager {
         this.onSelect(closestIdx);
       }
     } else {
-      // Click missed all characters
-      if (this.selectedIndex !== null) {
+      // Click missed all characters, check POIs
+      const hoveredPoi = this.getPoiAtPointer();
+
+      if (hoveredPoi && hoveredPoi.occupiedBy === null && hoveredPoi.label) {
+        // Clear hover state immediately on click
+        this.onPoiHover(null, null, null);
+        this.onPoiClick(hoveredPoi.id);
+      } else if (this.selectedIndex !== null) {
         // If an NPC was selected, deselect it first
         this.selectedIndex = null;
         this.onSelect(null);

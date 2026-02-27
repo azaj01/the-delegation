@@ -91,6 +91,9 @@ export class SceneManager {
       },
       (x, z) => playerDriver.onFloorClick(x, z),
       (index, pos) => useStore.getState().setHoveredNpc(index, pos),
+      () => this.poiManager.getAllPois(),
+      (id, label, pos) => useStore.getState().setHoveredPoi(id, label, pos),
+      (id) => playerDriver.onPoiClick(id),
       this.worldManager.getOffice() ?? undefined,
       (point) => this.navMesh.isPointOnNavMesh(point)
     );

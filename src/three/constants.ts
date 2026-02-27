@@ -7,6 +7,8 @@ export const CHARACTER_Y_OFFSET = 0.9;
 export const BUBBLE_Y_OFFSET = 1.3;
 /** World-space sphere radius used for mouse-picking characters. */
 export const PICK_RADIUS = 0.65;
+/** World-space sphere radius used for mouse-picking POIs. */
+export const POI_PICK_RADIUS = 0.4;
 
 // ── Resource Loading ──────────────────────────────────────────
 /** Path to Draco decoders (hosted in public/vendor/). */

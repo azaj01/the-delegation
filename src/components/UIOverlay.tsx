@@ -14,6 +14,7 @@ const UIOverlay: React.FC = () => {
     selectedNpcIndex,
     selectedPosition,
     hoveredNpcIndex,
+    hoveredPoiLabel,
     hoverPosition,
     isChatting
   } = useStore();
@@ -103,6 +104,22 @@ const UIOverlay: React.FC = () => {
                 </>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* POI Hover Bubble */}
+      {hoveredPoiLabel && hoverPosition && (
+        <div
+          className="absolute z-10 pointer-events-none transition-all duration-75 ease-out"
+          style={{
+            left: hoverPosition.x,
+            top: hoverPosition.y,
+            transform: 'translate(-50%, -100%) translateY(-10px)'
+          }}
+        >
+          <div className="bg-zinc-800/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-xl flex items-center gap-2 whitespace-nowrap animate-in fade-in zoom-in-95 duration-200">
+            <span className="text-[10px] font-black uppercase tracking-widest text-white">{hoveredPoiLabel}</span>
           </div>
         </div>
       )}

@@ -135,8 +135,13 @@ export class PoiManager {
       // "spawn" and "area" aren't real character states, they map to 'idle'.
       // Anything else is treated as a CharacterStateKey ('sit_idle', etc).
       let arrivalState: CharacterStateKey = 'idle';
+      let label: string | undefined = undefined;
+
       if (type !== 'spawn' && type !== 'area') {
         arrivalState = type as CharacterStateKey;
+        if (arrivalState === 'sit_idle') {
+          label = 'Sit down';
+        }
       }
 
       const id = `${type}-${uniqueId}`;
@@ -146,7 +151,7 @@ export class PoiManager {
       child.getWorldPosition(worldPos);
       child.getWorldQuaternion(worldQuat);
 
-      this.addPoi({ id, position: worldPos, quaternion: worldQuat, arrivalState, occupiedBy: null });
+      this.addPoi({ id, position: worldPos, quaternion: worldQuat, arrivalState, occupiedBy: null, label });
     });
   }
 
