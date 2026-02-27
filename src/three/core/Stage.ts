@@ -1,6 +1,6 @@
-
 import * as THREE from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { SCENE_BACKGROUND_COLOR } from '../constants';
 
 export class Stage {
   public scene: THREE.Scene;
@@ -12,10 +12,7 @@ export class Stage {
 
   constructor(rendererElement: HTMLElement) {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf4f4f5); // Slightly off-white
-
-    this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
-    this.scene.background = new THREE.Color(0xffffff);
+    this.scene.background = new THREE.Color(SCENE_BACKGROUND_COLOR);
 
     this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
     this.camera.position.set(10, 8, 15);

@@ -9,10 +9,10 @@ export class Engine {
     this.renderer = new THREE.WebGPURenderer({ antialias: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(container.clientWidth, container.clientHeight);
-    
+
     // Use default shadow map (PCF) as VSM support in WebGPU/NodeMaterial can be sensitive
     this.renderer.shadowMap.enabled = true;
-    
+
     container.appendChild(this.renderer.domElement);
     this.timer = new THREE.Timer();
   }
