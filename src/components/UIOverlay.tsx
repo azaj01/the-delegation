@@ -56,7 +56,7 @@ const UIOverlay: React.FC = () => {
             />
             <div className="flex items-center gap-1.5">
               {selectedAgent.isPlayer ? (
-                <span className="text-[10px] font-black uppercase tracking-widest text-white">CEO (You)</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-white">{selectedAgent.role} (You)</span>
               ) : (
                 <>
                   <span className="text-[10px] font-black uppercase tracking-widest text-white">
@@ -90,7 +90,7 @@ const UIOverlay: React.FC = () => {
             />
             <div className="flex items-center gap-1.5">
               {hoveredAgent.isPlayer ? (
-                <span className="text-[10px] font-black uppercase tracking-widest text-white">CEO (You)</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-white">{hoveredAgent.role} (You)</span>
               ) : (
                 <>
                   <span className="text-[10px] font-black uppercase tracking-widest text-white">

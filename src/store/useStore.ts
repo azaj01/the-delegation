@@ -1,11 +1,12 @@
 
 import { create } from 'zustand';
 import { CharacterState } from '../types';
+import { TOTAL_COUNT } from '../data/agents';
 
 export const useStore = create<CharacterState>()(
   (set) => ({
     isThinking: false,
-    instanceCount: 10,
+    instanceCount: TOTAL_COUNT,
     worldSize: 10,
 
     selectedNpcIndex: null,
