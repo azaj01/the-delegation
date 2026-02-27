@@ -165,6 +165,7 @@ export class SceneManager {
 
     const target = npc.clone().addScaledVector(dir, 1.2);
 
+    // Stop NPC autonomous behavior by making them "busy" in the agency store sense
     useStore.setState({
       selectedNpcIndex: npcIndex,
       isChatting: true,
@@ -174,17 +175,20 @@ export class SceneManager {
     this.selectedIndex = npcIndex;
 
     // Stop NPC, face player
+    this.controller.cancelMovement(npcIndex);
     this.controller.play(npcIndex, 'listen');
     this.controller.getAgentStateBuffer()?.setWaypoint(npcIndex, dir.x, dir.z);
 
     // Walk player to the NPC
     const playerDriver = this.driverManager?.getPlayerDriver();
     playerDriver?.walkTo(target, 'listen', () => {
-      // Face the NPC once arrived
+      // Face each other once arrived
       const p = this.controller!.getCPUPositions()!;
       const fx = p[npcIndex * 4] - p[PLAYER_INDEX * 4];
       const fz = p[npcIndex * 4 + 2] - p[PLAYER_INDEX * 4 + 2];
       this.controller!.getAgentStateBuffer()?.setWaypoint(PLAYER_INDEX, fx, fz);
+      this.controller!.getAgentStateBuffer()?.setWaypoint(npcIndex, -fx, -fz);
+
       this._triggerNpcGreeting(npcIndex);
     });
   }
@@ -200,6 +204,8 @@ export class SceneManager {
     if (selectedNpcIndex !== null && this.controller) {
       this.controller.setSpeaking(selectedNpcIndex, false);
       this.controller.play(selectedNpcIndex, 'idle');
+      // Release POI if any
+      this.controller.poiManager.releaseAll(selectedNpcIndex);
     }
     if (this.controller) {
       this.controller.setSpeaking(PLAYER_INDEX, false);

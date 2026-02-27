@@ -3,6 +3,7 @@ import { IAgentDriver } from '../../types';
 import { CharacterController } from '../CharacterController';
 import { AgentData } from '../../data/agents';
 import { useAgencyStore } from '../../store/agencyStore';
+import { useStore } from '../../store/useStore';
 
 /**
  * NpcAgentDriver — drives a single NPC autonomously.
@@ -29,6 +30,12 @@ export class NpcAgentDriver implements IAgentDriver {
   public update(positions: Float32Array, delta: number): void {
     const currentState = this.controller.getState(this.agentIndex);
     const agencyState = useAgencyStore.getState();
+    const globalState = useStore.getState();
+
+    // If we are currently chatting with this NPC, suspend autonomous behavior
+    if (globalState.isChatting && globalState.selectedNpcIndex === this.agentIndex) {
+      return;
+    }
 
     // If the agent is currently "working" or "on hold" (waiting for approval)
     // according to the agency system, we let the agency system control its main animation state.
