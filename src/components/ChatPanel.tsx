@@ -73,33 +73,41 @@ const ChatPanel: React.FC = () => {
   if (!isChatting || !agent) return null;
 
   return (
-    <motion.div
-      initial={{ x: '100%' }}
-      animate={{ x: 0 }}
-      exit={{ x: '100%' }}
-      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="fixed top-0 right-0 w-100 h-full bg-white border-l border-zinc-100 shadow-2xl z-50 flex flex-col pointer-events-auto overflow-hidden"
-    >
+    <div className="w-[320px] h-full bg-white border-l border-zinc-100 shadow-2xl flex flex-col pointer-events-auto overflow-hidden shrink-0">
       {/* Color accent bar */}
       <div
         className="absolute top-0 left-0 w-full h-1.5 z-20"
         style={{ backgroundColor: agent.color }}
       />
       {/* Header */}
-      <div className="p-8 border-b border-zinc-100 flex justify-between items-end bg-white/80 backdrop-blur-md sticky top-0 z-10">
-        <div>
-          <h2 className="text-3xl font-black text-zinc-900 tracking-tight">Chat</h2>
-        </div>
-        <div className="text-right">
-          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">{agent.department}</p>
-          <h3 className="text-lg font-black text-zinc-900 leading-tight">{agent.role}</h3>
+      <div className="px-8 py-6 border-b border-zinc-100 flex justify-between items-start bg-white/80 backdrop-blur-md sticky top-0 z-10">
+        <button
+          onClick={() => scene?.endChat()}
+          className="text-zinc-300 hover:text-zinc-600 transition-colors text-base leading-none pt-1"
+        >
+          ✕
+        </button>
+
+        <div className="flex flex-col gap-1.5 items-end">
+          <h2 className="text-xl font-black text-zinc-900 tracking-tight">Chat</h2>
+          <div className="text-right flex flex-col items-end px-0.5">
+            <p
+              className="text-[9px] font-black uppercase tracking-widest leading-none mb-1"
+              style={{ color: agent.color }}
+            >
+              {agent.department}
+            </p>
+            <h3 className="text-sm font-black text-zinc-900 leading-tight">
+              {agent.role}
+            </h3>
+          </div>
         </div>
       </div>
 
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-8 space-y-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:display-none"
+        className="flex-1 overflow-y-auto p-6 space-y-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:display-none"
       >
         <AnimatePresence initial={false}>
           {chatMessages.map((msg, i) => (
@@ -171,7 +179,7 @@ const ChatPanel: React.FC = () => {
       </div>
 
       {/* Input */}
-      <div className="p-8 border-t border-zinc-50">
+      <div className="p-6 border-t border-zinc-50">
         <div className="relative flex items-center gap-2">
           <div className="flex-1 relative">
             <textarea
@@ -197,28 +205,27 @@ const ChatPanel: React.FC = () => {
                 }
               }}
               placeholder="Message (↵ to send)"
-              className="w-full bg-white border border-zinc-200 rounded-2xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all resize-none h-14 pr-12 [scrollbar-width:none]"
+              className="w-full bg-white border border-zinc-200 rounded-2xl px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all resize-none pr-12 [scrollbar-width:none]"
             />
           </div>
           <button
             onClick={handleSend}
             disabled={!input.trim() || isThinking}
             style={{ backgroundColor: !input.trim() || isThinking ? undefined : agent.color }}
-            className={`h-14 px-6 rounded-2xl flex items-center gap-2 font-black text-xs uppercase tracking-widest transition-all active:scale-95 ${
+            className={`h-[56px] w-[56px] shrink-0 rounded-2xl flex items-center justify-center font-black text-xs uppercase tracking-widest transition-all active:scale-95 ${
               !input.trim() || isThinking
               ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
               : 'text-white shadow-lg hover:brightness-90'
             }`}
           >
-            Send
-            <Send size={14} strokeWidth={3} />
+            <Send size={18} strokeWidth={3} />
           </button>
         </div>
         <p className="text-[9px] text-zinc-400 mt-2 text-center font-medium uppercase tracking-wider">
           Shift + ↵ for new line
         </p>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

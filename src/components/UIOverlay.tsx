@@ -3,14 +3,9 @@ import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { useSceneManager } from '../three/SceneContext';
 import HelpModal from './HelpModal';
-import ChatPanel from './ChatPanel';
 import { AGENTS } from '../data/agents';
 import { HelpCircle } from 'lucide-react';
-import { AnimatePresence } from 'motion/react';
 import { useAgencyStore } from '../store/agencyStore';
-import { KanbanModal } from './KanbanModal';
-import { ActionLogModal } from './ActionLogModal';
-import { FinalOutputModal } from './FinalOutputModal';
 
 const UIOverlay: React.FC = () => {
   const {
@@ -57,10 +52,7 @@ const UIOverlay: React.FC = () => {
 
 
   return (
-    <div className="fixed inset-0 pointer-events-none flex flex-col justify-between p-8">
-      <AnimatePresence>
-        <ChatPanel />
-      </AnimatePresence>
+    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-8 z-10">
       {/* Selected Bubble (Always visible when selected) */}
       {selectedAgent && selectedPosition && (
         <div
@@ -147,7 +139,7 @@ const UIOverlay: React.FC = () => {
 
       {/* Top Header */}
       <div className="flex justify-between items-start relative z-30">
-        <div className="bg-white p-4 rounded-2xl border border-black/5 shadow-xl max-w-96 pointer-events-auto flex gap-4">
+        <div className="bg-white/20 p-4 rounded-2xl max-w-96 pointer-events-auto flex gap-4">
           <div className="w-2 h-8 bg-[#7EACEA] rounded-full shrink-0 mt-1" />
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -193,14 +185,9 @@ const UIOverlay: React.FC = () => {
       {/* Help Modal */}
       <HelpModal isOpen={isHelpOpen} onClose={() => setHelpOpen(false)} />
 
-      {/* Agency Modals */}
-      <KanbanModal />
-      <ActionLogModal />
-      <FinalOutputModal />
-
       {/* NPC Info Panel — shown when an NPC is selected */}
       {selectedAgent && (
-        <div className="absolute bottom-8 left-8 w-72 bg-white/85 backdrop-blur-2xl rounded-2xl border border-black/5 shadow-2xl p-5 pointer-events-auto animate-in fade-in slide-in-from-left-4 duration-300 z-30 overflow-hidden">
+        <div className="absolute bottom-6 left-8 w-72 bg-white/85 backdrop-blur-2xl rounded-2xl border border-black/5 shadow-2xl p-5 pointer-events-auto animate-in fade-in slide-in-from-left-4 duration-300 z-30 overflow-hidden">
           {/* Color accent bar */}
           <div
             className="absolute top-0 left-0 w-full h-1"

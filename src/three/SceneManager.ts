@@ -34,8 +34,11 @@ export class SceneManager {
 
   private unsubs: (() => void)[] = [];
   private isDisposed = false;
+  private container: HTMLElement;
+  private resizeObserver: ResizeObserver;
 
   constructor(container: HTMLElement) {
+    this.container = container;
     this.engine = new Engine(container);
     this.stage = new Stage(this.engine.renderer.domElement);
     this.characterManager = new CharacterManager(this.stage.scene);
@@ -102,7 +105,8 @@ export class SceneManager {
     );
 
     this.engine.renderer.setAnimationLoop(this.animate.bind(this));
-    window.addEventListener('resize', this.onResize.bind(this));
+    this.resizeObserver = new ResizeObserver(() => this.onResize());
+    this.resizeObserver.observe(this.container);
 
     // React to store changes that affect the 3D world
     const unsub = useStore.subscribe((s, prev) => {
@@ -306,8 +310,11 @@ export class SceneManager {
   }
 
   private onResize() {
-    this.engine.onResize(window.innerWidth, window.innerHeight);
-    this.stage.onResize(window.innerWidth, window.innerHeight);
+    const w = this.container.clientWidth;
+    const h = this.container.clientHeight;
+    if (w === 0 || h === 0) return;
+    this.engine.onResize(w, h);
+    this.stage.onResize(w, h);
   }
 
   private animate() {
@@ -339,9 +346,11 @@ export class SceneManager {
         const screenPos = npcPos.clone();
         screenPos.y += BUBBLE_Y_OFFSET;
         screenPos.project(this.stage.camera);
+
+        const rect = this.container.getBoundingClientRect();
         setSelectedPosition({
-          x: (screenPos.x * 0.5 + 0.5) * window.innerWidth,
-          y: (screenPos.y * -0.5 + 0.5) * window.innerHeight,
+          x: (screenPos.x * 0.5 + 0.5) * rect.width,
+          y: (screenPos.y * -0.5 + 0.5) * rect.height,
         });
       }
     } else {
@@ -359,7 +368,7 @@ export class SceneManager {
   public dispose() {
     this.isDisposed = true;
     this.unsubs.forEach(u => u());
-    window.removeEventListener('resize', this.onResize.bind(this));
+    this.resizeObserver.disconnect();
     this.inputManager?.dispose();
     this.driverManager?.dispose();
     this.engine.dispose();

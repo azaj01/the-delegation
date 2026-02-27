@@ -38,16 +38,15 @@ export function ActionLogPanel() {
           />
 
           {/* Header */}
-          <div className="px-8 py-6 border-b border-zinc-100 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-10">
-            <div>
+          <div className="px-8 py-6 border-b border-zinc-100 flex justify-between items-start bg-white/80 backdrop-blur-md sticky top-0 z-10">
+            <div className="flex flex-col gap-1.5">
               <h2 className="text-xl font-black text-zinc-900 tracking-tight">Log</h2>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right flex flex-col items-end">
+
+              <div className="flex flex-col items-start px-0.5">
                 {filterAgent ? (
                   <>
                     <p
-                      className="text-[9px] font-black uppercase tracking-widest"
+                      className="text-[9px] font-black uppercase tracking-widest leading-none mb-1"
                       style={{ color: accentColor }}
                     >
                       {filterAgent.department ?? 'Agent'}
@@ -66,13 +65,14 @@ export function ActionLogPanel() {
                   <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">All agents</p>
                 )}
               </div>
-              <button
-                onClick={() => setLogOpen(false)}
-                className="text-zinc-300 hover:text-zinc-600 transition-colors text-base leading-none"
-              >
-                ✕
-              </button>
             </div>
+
+            <button
+              onClick={() => setLogOpen(false)}
+              className="text-zinc-300 hover:text-zinc-600 transition-colors text-base leading-none pt-1"
+            >
+              ✕
+            </button>
           </div>
 
           {/* Entries */}
