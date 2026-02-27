@@ -59,21 +59,29 @@ export class CharacterController implements ICharacterDriver {
    *
    * @param arrivalState State to enter upon reaching the destination (default: 'idle')
    * @param onArrival    Optional callback fired when the destination is reached
+   * @param fromPosition Optional start position (defaults to current CPU position)
    */
   public moveTo(
     index: number,
     target: THREE.Vector3,
     arrivalState: CharacterStateKey = 'idle',
     onArrival?: (index: number) => void,
+    fromPosition?: THREE.Vector3,
   ): boolean {
-    const positions = this.characterManager.getCPUPositions();
-    if (!positions) return false;
+    let from: THREE.Vector3;
 
-    const from = new THREE.Vector3(
-      positions[index * 4],
-      positions[index * 4 + 1],
-      positions[index * 4 + 2],
-    );
+    if (fromPosition) {
+      from = fromPosition.clone();
+    } else {
+      const positions = this.characterManager.getCPUPositions();
+      if (!positions) return false;
+
+      from = new THREE.Vector3(
+        positions[index * 4],
+        positions[index * 4 + 1],
+        positions[index * 4 + 2],
+      );
+    }
 
     const path = this.navMesh.findPath(from, target);
 
@@ -99,7 +107,12 @@ export class CharacterController implements ICharacterDriver {
    * Walk a character to a POI by ID.
    * Occupies the POI immediately; releases existing ones first.
    */
-  public walkToPoi(index: number, poiId: string, onArrival?: (index: number) => void): boolean {
+  public walkToPoi(
+    index: number,
+    poiId: string,
+    onArrival?: (index: number) => void,
+    fromPosition?: THREE.Vector3,
+  ): boolean {
     const poi = this.poiManager.getPoi(poiId);
     if (!poi || (poi.occupiedBy !== null && poi.occupiedBy !== index)) return false;
 
@@ -133,7 +146,7 @@ export class CharacterController implements ICharacterDriver {
       }
 
       onArrival?.(i);
-    });
+    }, fromPosition);
 
     if (!moved) return false;
 

@@ -14,6 +14,7 @@ import { PLAYER_INDEX } from '../../data/agents';
  */
 export class PlayerInputDriver implements IAgentDriver {
   public readonly agentIndex = PLAYER_INDEX;
+  private lastPositions: Float32Array | null = null;
 
   constructor(private readonly controller: CharacterController) {}
 
@@ -21,9 +22,9 @@ export class PlayerInputDriver implements IAgentDriver {
 
   /** User clicked on the floor: walk the player to that position. */
   public onFloorClick(x: number, z: number): void {
-    // Cancel any pending chat walk
     const target = new THREE.Vector3(x, 0, z);
-    this.controller.moveTo(PLAYER_INDEX, target, 'idle');
+    const from = this._getCurrentPos();
+    this.controller.moveTo(PLAYER_INDEX, target, 'idle', undefined, from);
   }
 
   /**
@@ -35,7 +36,17 @@ export class PlayerInputDriver implements IAgentDriver {
     arrivalState: import('../../types').CharacterStateKey = 'idle',
     onArrival?: (index: number) => void,
   ): void {
-    this.controller.moveTo(PLAYER_INDEX, target, arrivalState, onArrival);
+    const from = this._getCurrentPos();
+    this.controller.moveTo(PLAYER_INDEX, target, arrivalState, onArrival, from);
+  }
+
+  private _getCurrentPos(): THREE.Vector3 | undefined {
+    if (!this.lastPositions) return undefined;
+    return new THREE.Vector3(
+      this.lastPositions[this.agentIndex * 4],
+      this.lastPositions[this.agentIndex * 4 + 1],
+      this.lastPositions[this.agentIndex * 4 + 2]
+    );
   }
 
   /** Cancel current movement (e.g. chat was aborted before arrival). */
@@ -45,10 +56,8 @@ export class PlayerInputDriver implements IAgentDriver {
 
   // ── IAgentDriver ─────────────────────────────────────────────
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public update(_positions: Float32Array, _delta: number): void {
-    // Player is driven by input events, not by per-frame autonomous logic.
-    // Reserved for future: keyboard/gamepad polling, etc.
+  public update(positions: Float32Array, _delta: number): void {
+    this.lastPositions = positions;
   }
 
   public dispose(): void {}

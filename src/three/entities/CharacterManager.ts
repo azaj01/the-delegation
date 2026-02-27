@@ -178,6 +178,8 @@ export class CharacterManager {
     try {
       const buffer = await renderer.getArrayBufferAsync(this.posAttribute);
       this.debugPosArray = new Float32Array(buffer);
+      // Keep the CPU-side attribute array in sync so setPosition doesn't upload stale data
+      (this.posAttribute.array as Float32Array).set(this.debugPosArray);
     } catch {
       // WebGPU readback not available – fall back to stale data
     }

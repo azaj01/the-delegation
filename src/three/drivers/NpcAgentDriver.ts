@@ -1,3 +1,4 @@
+import * as THREE from 'three/webgpu';
 import { IAgentDriver } from '../../types';
 import { CharacterController } from '../CharacterController';
 import { AgentData } from '../../data/agents';
@@ -30,7 +31,7 @@ export class NpcAgentDriver implements IAgentDriver {
 
   // ── IAgentDriver ─────────────────────────────────────────────
 
-  public update(_positions: Float32Array, delta: number): void {
+  public update(positions: Float32Array, delta: number): void {
     const currentState = this.controller.getState(this.agentIndex);
 
     // Only decide new actions if we are currently resting in a stable state
@@ -38,21 +39,29 @@ export class NpcAgentDriver implements IAgentDriver {
       this.behaviorTimer -= delta;
 
       if (this.behaviorTimer <= 0) {
-        this._decideNextAction();
+        this._decideNextAction(positions);
       }
     }
   }
 
-  private _decideNextAction(): void {
+  private _decideNextAction(positions: Float32Array): void {
     const rand = Math.random();
+
+    // Use current position from the synced buffer to avoid "snap back" to stale positions
+    const currentPos = new THREE.Vector3(
+      positions[this.agentIndex * 4],
+      positions[this.agentIndex * 4 + 1],
+      positions[this.agentIndex * 4 + 2]
+    );
+
 
     // 1. Probabilidad alta de ir a trabajar (sit_work)
     if (rand < 0.4) {
       const pois = this.controller.poiManager.getFreePois('sit_work', this.agentIndex);
       if (pois.length > 0) {
         const poi = pois[Math.floor(Math.random() * pois.length)];
-        this.controller.walkToPoi(this.agentIndex, poi.id);
-        this.behaviorTimer = Math.random() * 30 + 30; // Trabajar durante 30-60 segundos
+        this.controller.walkToPoi(this.agentIndex, poi.id, undefined, currentPos);
+        this.behaviorTimer = Math.random() * 15 + 15; // Trabajar durante 15-30 segundos
         return;
       }
     }
@@ -62,8 +71,8 @@ export class NpcAgentDriver implements IAgentDriver {
       const pois = this.controller.poiManager.getFreePois('sit_idle', this.agentIndex);
       if (pois.length > 0) {
         const poi = pois[Math.floor(Math.random() * pois.length)];
-        this.controller.walkToPoi(this.agentIndex, poi.id);
-        this.behaviorTimer = Math.random() * 20 + 10; // Estar sentado 10-30 seg
+        this.controller.walkToPoi(this.agentIndex, poi.id, undefined, currentPos);
+        this.behaviorTimer = Math.random() * 10 + 5; // Estar sentado 5-15 seg
         return;
       }
     }
@@ -72,7 +81,7 @@ export class NpcAgentDriver implements IAgentDriver {
     //    fallback path — only stand when actively finding a new POI (cases 1 & 2 above).
     const currentState = this.controller.getState(this.agentIndex);
     if (currentState === 'sit_idle' || currentState === 'sit_work') {
-      this.behaviorTimer = Math.random() * 15 + 10;
+      this.behaviorTimer = Math.random() * 7.5 + 5;
       return;
     }
 
@@ -83,9 +92,9 @@ export class NpcAgentDriver implements IAgentDriver {
         const areaPoi = areaPois[Math.floor(Math.random() * areaPois.length)];
         const target = this.controller.poiManager.getRandomPointNearPoi(areaPoi.id, 3);
         if (target) {
-          if (this.controller.moveTo(this.agentIndex, target, 'look_around')) {
+          if (this.controller.moveTo(this.agentIndex, target, 'look_around', undefined, currentPos)) {
             this.controller.poiManager.releaseAll(this.agentIndex);
-            this.behaviorTimer = Math.random() * 10 + 5;
+            this.behaviorTimer = Math.random() * 5 + 2.5;
             return;
           }
         }
@@ -96,7 +105,7 @@ export class NpcAgentDriver implements IAgentDriver {
     const expressions: ('look_around' | 'wave' | 'happy')[] = ['look_around', 'wave', 'happy'];
     const randomAnim = expressions[Math.floor(Math.random() * expressions.length)];
     this.controller.play(this.agentIndex, randomAnim);
-    this.behaviorTimer = Math.random() * 5 + 5;
+    this.behaviorTimer = Math.random() * 2.5 + 2.5;
   }
 
   public dispose(): void {}
