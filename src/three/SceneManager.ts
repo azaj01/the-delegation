@@ -91,7 +91,8 @@ export class SceneManager {
       },
       (x, z) => playerDriver.onFloorClick(x, z),
       (index, pos) => useStore.getState().setHoveredNpc(index, pos),
-      this.worldManager.getOffice() ?? undefined
+      this.worldManager.getOffice() ?? undefined,
+      (point) => this.navMesh.isPointOnNavMesh(point)
     );
 
     this.engine.renderer.setAnimationLoop(this.animate.bind(this));

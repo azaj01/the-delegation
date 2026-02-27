@@ -50,4 +50,10 @@ export class NavMeshManager {
   public isReady(): boolean {
     return this.ready;
   }
+
+  /** Checks if a point is within the navmesh boundaries. */
+  public isPointOnNavMesh(point: THREE.Vector3): boolean {
+    if (!this.ready) return false;
+    return this.pf.getGroup(NAVMESH_ZONE, point as any) !== null;
+  }
 }

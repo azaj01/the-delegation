@@ -26,6 +26,7 @@ export class InputManager {
     private onWaypoint: (x: number, z: number) => void,
     private onHover: (index: number | null, pos: { x: number; y: number } | null) => void,
     private raycastObject?: THREE.Object3D,
+    private isPointValid?: (point: THREE.Vector3) => boolean,
   ) {
     this.boundPointerDown = this.handlePointerDown.bind(this);
     this.boundPointerMove = this.handlePointerMove.bind(this);
@@ -47,50 +48,49 @@ export class InputManager {
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    if (event.buttons === 1) {
-      const dx = event.clientX - this.dragStartX;
-      const dy = event.clientY - this.dragStartY;
-      if ((dx * dx + dy * dy) > DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) {
-        this.isDragging = true;
+    // If any button is pressed, skip hover/cursor updates to avoid fighting with OrbitControls or dragging logic
+    if (event.buttons !== 0) {
+      if (event.buttons === 1) {
+        const dx = event.clientX - this.dragStartX;
+        const dy = event.clientY - this.dragStartY;
+        if ((dx * dx + dy * dy) > DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) {
+          this.isDragging = true;
+        }
       }
+      return;
     }
 
-    // Detect hover - only if not dragging
-    if (!this.isDragging) {
-      const hoveredIdx = this.getAgentAtPointer();
+    // Reset dragging state when no buttons are pressed
+    this.isDragging = false;
 
-      // If an NPC is selected, only allow hovering that specific NPC
-      const effectiveHoverIdx = (this.selectedIndex !== null && hoveredIdx !== this.selectedIndex)
-        ? null
-        : hoveredIdx;
+    // Detect hover
+    const hoveredIdx = this.getAgentAtPointer();
 
-      if (effectiveHoverIdx !== null) {
-        this.canvas.style.cursor = 'pointer';
+    // If an NPC is selected, only allow hovering that specific NPC
+    const effectiveHoverIdx = (this.selectedIndex !== null && hoveredIdx !== this.selectedIndex)
+      ? null
+      : hoveredIdx;
 
-        // Project 3D position to 2D for the bubble
-        const positions = this.getPositions();
-        if (positions) {
-          const worldPos = new THREE.Vector3(
-            positions[effectiveHoverIdx * 4],
-            positions[effectiveHoverIdx * 4 + 1] + CHARACTER_Y_OFFSET + 0.4, // Reduced bubble height
-            positions[effectiveHoverIdx * 4 + 2]
-          );
-          worldPos.project(this.camera);
-          const x = (worldPos.x * 0.5 + 0.5) * rect.width;
-          const y = (worldPos.y * -0.5 + 0.5) * rect.height;
-          this.onHover(effectiveHoverIdx, { x, y });
-        }
-      } else {
-        // Detect floor/world intersection for cursor feedback
-        const target = this.getWorldClickPosition();
-        if (target) {
-          this.canvas.style.cursor = 'pointer';
-        } else if (this.canvas.style.cursor === 'pointer') {
-          this.canvas.style.cursor = 'auto';
-        }
-        this.onHover(null, null);
+    if (effectiveHoverIdx !== null) {
+      this.canvas.style.cursor = 'pointer';
+
+      // Project 3D position to 2D for the bubble
+      const positions = this.getPositions();
+      if (positions) {
+        const worldPos = new THREE.Vector3(
+          positions[effectiveHoverIdx * 4],
+          positions[effectiveHoverIdx * 4 + 1] + CHARACTER_Y_OFFSET + 0.4,
+          positions[effectiveHoverIdx * 4 + 2]
+        );
+        worldPos.project(this.camera);
+        const x = (worldPos.x * 0.5 + 0.5) * rect.width;
+        const y = (worldPos.y * -0.5 + 0.5) * rect.height;
+        this.onHover(effectiveHoverIdx, { x, y });
       }
     } else {
+      // Not over an agent, check floor/navmesh
+      const target = this.getWorldClickPosition();
+      this.canvas.style.cursor = target ? 'pointer' : 'auto';
       this.onHover(null, null);
     }
   }
@@ -175,19 +175,28 @@ export class InputManager {
   private getWorldClickPosition(): THREE.Vector3 | null {
     this.raycaster.setFromCamera(this.pointer, this.camera);
 
+    let point: THREE.Vector3 | null = null;
+
     if (this.raycastObject) {
       const intersects = this.raycaster.intersectObject(this.raycastObject, true);
       if (intersects.length > 0) {
         // Find first mesh that is NOT a navmesh
         const validMatch = intersects.find(hit => !hit.object.name.toLowerCase().includes('navmesh'));
-        return validMatch ? validMatch.point : null;
+        if (validMatch) point = validMatch.point;
       }
-      return null;
+    } else {
+      // Fallback to infinite plane
+      const target = new THREE.Vector3();
+      if (this.raycaster.ray.intersectPlane(FLOOR_PLANE, target)) {
+        point = target;
+      }
     }
 
-    // Fallback to infinite plane
-    const target = new THREE.Vector3();
-    return this.raycaster.ray.intersectPlane(FLOOR_PLANE, target) ? target : null;
+    if (point && this.isPointValid) {
+      return this.isPointValid(point) ? point : null;
+    }
+
+    return point;
   }
 
   public dispose() {

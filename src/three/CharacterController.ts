@@ -77,6 +77,8 @@ export class CharacterController implements ICharacterDriver {
 
     const path = this.navMesh.findPath(from, target);
 
+    if (path.length === 0) return;
+
     this.pathAgents[index].setPath(path);
     this.arrivalCallbacks[index] = (i) => {
       this.play(i, arrivalState);
