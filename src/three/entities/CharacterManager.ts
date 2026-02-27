@@ -284,15 +284,7 @@ export class CharacterManager {
 
       }).Else(() => {
         // ── IDLE (0) ──────────────────────────────────────────
-        // Hold position. Use agentData.xz as facing direction if non-zero.
-        const facing = vec3(agentData.x, float(0), agentData.z);
-
-        If(facing.length().greaterThan(float(0.001)), () => {
-          velElement.assign(vec4(facing, 0.0));
-        }).Else(() => {
-          velElement.assign(vec4(0, 0, 0, 0));
-        });
-
+        // Hold position. Maintenance of velocity allows keeping rotation.
         posElement.assign(vec4(pos, 1.0));
       });
 
@@ -371,12 +363,6 @@ export class CharacterManager {
 
       If(isMoving, () => {
         facing.assign(rawVel);
-      }).Else(() => {
-        // If IDLE, use waypoint vector as facing if provided
-        const waypoint = vec3(agentState.x, 0, agentState.z);
-        If(waypoint.length().greaterThan(float(0.001)), () => {
-          facing.assign(waypoint);
-        });
       });
 
       const angle = atan(facing.z, facing.x).negate().add(float(Math.PI / 2));
