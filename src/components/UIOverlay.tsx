@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
+import { useSceneManager } from '../three/SceneContext';
 import HelpModal from './HelpModal';
 import ChatPanel from './ChatPanel';
 import { AGENTS } from '../data/agents';
@@ -14,10 +15,9 @@ const UIOverlay: React.FC = () => {
     selectedPosition,
     hoveredNpcIndex,
     hoverPosition,
-    startChat,
-    endChat,
     isChatting
   } = useStore();
+  const scene = useSceneManager();
   const [isHelpOpen, setHelpOpen] = useState(false);
 
   const selectedAgent = selectedNpcIndex != null ? AGENTS[selectedNpcIndex] ?? null : null;
@@ -25,13 +25,14 @@ const UIOverlay: React.FC = () => {
 
   const handleStartChat = () => {
     if (selectedNpcIndex !== null) {
-      startChat(selectedNpcIndex);
+      scene?.startChat(selectedNpcIndex);
     }
   };
 
   const handleEndChat = () => {
-    endChat();
+    scene?.endChat();
   };
+
 
   return (
     <div className="fixed inset-0 pointer-events-none flex flex-col justify-between p-8">

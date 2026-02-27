@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { storage } from 'three/tsl';
+import { AgentBehavior } from '../../types';
 
 /**
  * CPU/GPU buffer that stores per-instance physics mode and animation state.

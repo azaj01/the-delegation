@@ -1,18 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../store/useStore';
+import { useSceneManager } from '../three/SceneContext';
 import { AGENTS } from '../data/agents';
-import { Send, User } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const ChatPanel: React.FC = () => {
   const {
     isChatting,
     chatMessages,
-    sendMessage,
     isThinking,
     selectedNpcIndex,
     setIsTyping
   } = useStore();
+  const scene = useSceneManager();
 
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -66,7 +67,7 @@ const ChatPanel: React.FC = () => {
 
     const text = input;
     setInput('');
-    await sendMessage(text);
+    await scene?.sendMessage(text);
   };
 
   if (!isChatting || !agent) return null;

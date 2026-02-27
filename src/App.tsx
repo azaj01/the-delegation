@@ -3,37 +3,44 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SceneManager } from './three/SceneManager';
+import { SceneContext } from './three/SceneContext';
 import UIOverlay from './components/UIOverlay';
 
 const App: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const managerRef = useRef<SceneManager | null>(null);
+  const [sceneManager, setSceneManager] = useState<SceneManager | null>(null);
 
   useEffect(() => {
     if (canvasRef.current && !managerRef.current) {
-      managerRef.current = new SceneManager(canvasRef.current);
+      const manager = new SceneManager(canvasRef.current);
+      managerRef.current = manager;
+      setSceneManager(manager);
     }
 
     return () => {
       if (managerRef.current) {
         managerRef.current.dispose();
         managerRef.current = null;
+        setSceneManager(null);
       }
     };
   }, []);
 
   return (
-    <div className="relative w-screen h-screen bg-white overflow-hidden">
-      {/* Three.js Container */}
-      <div ref={canvasRef} className="absolute inset-0 w-full h-full" />
-      
-      {/* UI Layer */}
-      <UIOverlay />
-    </div>
+    <SceneContext.Provider value={sceneManager}>
+      <div className="relative w-screen h-screen bg-white overflow-hidden">
+        {/* Three.js Container */}
+        <div ref={canvasRef} className="absolute inset-0 w-full h-full" />
+
+        {/* UI Layer */}
+        <UIOverlay />
+      </div>
+    </SceneContext.Provider>
   );
 };
 
 export default App;
+

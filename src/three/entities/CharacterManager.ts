@@ -501,6 +501,11 @@ export class CharacterManager {
     return this.animationsMeta[name];
   }
 
+  /** Returns the baked clip duration in seconds. Returns 1.0 if the animation is not found. */
+  public getAnimationDuration(name: AnimationName): number {
+    return this.animationsMeta[name]?.duration ?? 1.0;
+  }
+
   public setExpression(index: number, name: ExpressionKey) {
     if (this.expressionBuffer) {
       this.expressionBuffer.setExpression(index, name);

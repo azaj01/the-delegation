@@ -1,6 +1,12 @@
 import * as THREE from 'three/webgpu';
 import { storage } from 'three/tsl';
 import { AtlasCoords, ExpressionKey } from '../../types';
+import {
+  ATLAS_COLS, ATLAS_ROWS,
+  BLINK_FRAME, BLINK_DURATION,
+  SPEAKING_FRAME_DURATION,
+  BLINK_INTERVAL_MIN, BLINK_INTERVAL_RANGE,
+} from '../constants';
 
 export const EXPRESSIONS: Record<ExpressionKey, { eyes: AtlasCoords; mouth: AtlasCoords }> = {
   idle: { eyes: { col: 0, row: 3 }, mouth: { col: 1, row: 3 } },
@@ -50,7 +56,7 @@ export class ExpressionBuffer {
       this.speakingStates[i] = false;
       this.speakingFrames[i] = 0;
       this.speakingTimers[i] = 0;
-      this.blinkTimers[i] = 2 + Math.random() * 3;
+      this.blinkTimers[i] = BLINK_INTERVAL_MIN + Math.random() * BLINK_INTERVAL_RANGE;
       this.isBlinking[i] = false;
       this.setExpression(i, 'idle');
     }
@@ -81,14 +87,14 @@ export class ExpressionBuffer {
   }
 
   private setEyeOffset(index: number, coords: AtlasCoords) {
-    this.array[index * 4 + 0] = coords.col * 0.5;
-    this.array[index * 4 + 1] = 1.0 - (coords.row + 1) * 0.25;
+    this.array[index * 4 + 0] = coords.col * (1 / ATLAS_COLS);
+    this.array[index * 4 + 1] = 1.0 - (coords.row + 1) * (1 / ATLAS_ROWS);
     this.attribute.needsUpdate = true;
   }
 
   private setMouthOffset(index: number, coords: AtlasCoords) {
-    this.array[index * 4 + 2] = coords.col * 0.5;
-    this.array[index * 4 + 3] = 1.0 - (coords.row + 1) * 0.25;
+    this.array[index * 4 + 2] = coords.col * (1 / ATLAS_COLS);
+    this.array[index * 4 + 3] = 1.0 - (coords.row + 1) * (1 / ATLAS_ROWS);
     this.attribute.needsUpdate = true;
   }
 
@@ -101,12 +107,12 @@ export class ExpressionBuffer {
       if (this.blinkTimers[i] <= 0) {
         if (!this.isBlinking[i]) {
           this.isBlinking[i] = true;
-          this.blinkTimers[i] = 0.15; // blink duration
-          this.setEyeOffset(i, { col: 1, row: 3 }); // blink frame
+          this.blinkTimers[i] = BLINK_DURATION;
+          this.setEyeOffset(i, BLINK_FRAME);
           needsUpdate = true;
         } else {
           this.isBlinking[i] = false;
-          this.blinkTimers[i] = 2 + Math.random() * 3; // next blink delay
+          this.blinkTimers[i] = BLINK_INTERVAL_MIN + Math.random() * BLINK_INTERVAL_RANGE;
           const config = EXPRESSIONS[this.currentExpressions[i]] || EXPRESSIONS.idle;
           this.setEyeOffset(i, config.eyes);
           needsUpdate = true;
@@ -117,7 +123,7 @@ export class ExpressionBuffer {
       if (this.speakingStates[i]) {
         this.speakingTimers[i] -= delta;
         if (this.speakingTimers[i] <= 0) {
-          this.speakingTimers[i] = 0.12; // frame duration
+          this.speakingTimers[i] = SPEAKING_FRAME_DURATION;
           this.speakingFrames[i] = (this.speakingFrames[i] + 1) % SPEAKING_MOUTH_FRAMES.length;
           this.setMouthOffset(i, SPEAKING_MOUTH_FRAMES[this.speakingFrames[i]]);
           needsUpdate = true;

@@ -117,4 +117,34 @@ export class Stage {
     this.controls.target.lerp(lerpTarget, 0.06);
     this.controls.update();
   }
+
+  /**
+   * Drive camera behavior based on chat state.
+   * Call every frame from the animation loop.
+   *
+   * @param isChatting  True while a conversation is active.
+   * @param playerMoving True while player is walking toward the NPC (GOTO state).
+   */
+  public setChatMode(isChatting: boolean, playerMoving: boolean): void {
+    if (!this.controls) return;
+
+    if (isChatting) {
+      if (playerMoving) {
+        // Lock controls and zoom in while walking
+        this.controls.enabled = false;
+        this.controls.minDistance = THREE.MathUtils.lerp(this.controls.minDistance, 4, 0.05);
+        this.controls.maxDistance = THREE.MathUtils.lerp(this.controls.maxDistance, 6, 0.05);
+      } else {
+        // Arrived — re-enable controls, stay slightly zoomed
+        this.controls.enabled = true;
+        this.controls.minDistance = THREE.MathUtils.lerp(this.controls.minDistance, 3, 0.05);
+        this.controls.maxDistance = THREE.MathUtils.lerp(this.controls.maxDistance, 10, 0.05);
+      }
+    } else {
+      // Free roam
+      this.controls.enabled = true;
+      this.controls.minDistance = THREE.MathUtils.lerp(this.controls.minDistance, 3, 0.05);
+      this.controls.maxDistance = THREE.MathUtils.lerp(this.controls.maxDistance, 50, 0.05);
+    }
+  }
 }

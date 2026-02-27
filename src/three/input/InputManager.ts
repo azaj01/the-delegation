@@ -1,9 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { PLAYER_INDEX } from '../../data/agents';
-import { useStore } from '../../store/useStore';
+import { CHARACTER_Y_OFFSET, PICK_RADIUS } from '../constants';
 
-const PICK_RADIUS = 0.65; // world-space sphere radius for hit testing
-const CHARACTER_Y_OFFSET = 0.9; // approximate center height of a character
 const DRAG_THRESHOLD_PX = 4;
 const FLOOR_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // y=0
 
@@ -24,6 +22,7 @@ export class InputManager {
     private camera: THREE.PerspectiveCamera,
     private getPositions: () => Float32Array | null,
     private getCount: () => number,
+    private getWorldSize: () => number,
     private onSelect: (index: number | null) => void,
     private onWaypoint: (x: number, z: number) => void,
     private onHover: (index: number | null, pos: { x: number; y: number } | null) => void,
@@ -59,15 +58,15 @@ export class InputManager {
     // Detect hover - only if not dragging
     if (!this.isDragging) {
       const hoveredIdx = this.getAgentAtPointer();
-      
+
       // If an NPC is selected, only allow hovering that specific NPC
-      const effectiveHoverIdx = (this.selectedIndex !== null && hoveredIdx !== this.selectedIndex) 
-        ? null 
+      const effectiveHoverIdx = (this.selectedIndex !== null && hoveredIdx !== this.selectedIndex)
+        ? null
         : hoveredIdx;
 
       if (effectiveHoverIdx !== null) {
         this.canvas.style.cursor = 'pointer';
-        
+
         // Project 3D position to 2D for the bubble
         const positions = this.getPositions();
         if (positions) {
@@ -88,7 +87,7 @@ export class InputManager {
         const intersectsFloor = this.raycaster.ray.intersectPlane(FLOOR_PLANE, target);
 
         if (intersectsFloor) {
-          const { worldSize } = useStore.getState();
+          const worldSize = this.getWorldSize();
           if (Math.abs(target.x) <= worldSize && Math.abs(target.z) <= worldSize) {
             this.canvas.style.cursor = 'pointer';
           } else if (this.canvas.style.cursor === 'pointer') {
