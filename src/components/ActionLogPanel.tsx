@@ -12,11 +12,11 @@ function formatTime(ts: number): string {
 
 export function ActionLogPanel() {
   const { setLogOpen, actionLog, logFilterAgentIndex, phase, setFinalOutputOpen } = useAgencyStore()
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const topRef = useRef<HTMLDivElement>(null)
 
-  // Auto-scroll to latest entry whenever a new log entry arrives
+  // Auto-scroll to top when a new log entry arrives (since order is reversed)
   useEffect(() => {
-    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
+    setTimeout(() => topRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
   }, [actionLog])
 
   const filterAgent =
@@ -24,8 +24,8 @@ export function ActionLogPanel() {
 
   const entries =
     logFilterAgentIndex !== null
-      ? actionLog.filter((e) => e.agentIndex === logFilterAgentIndex)
-      : actionLog
+      ? actionLog.filter((e) => e.agentIndex === logFilterAgentIndex).reverse()
+      : [...actionLog].reverse()
 
   const accentColor = filterAgent?.color ?? '#a1a1aa'
 
@@ -92,6 +92,7 @@ export function ActionLogPanel() {
 
           {/* Entries */}
           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:display-none">
+            <div ref={topRef} />
             {entries.length === 0 && (
               <p className="text-zinc-300 text-sm text-center py-16 font-medium">No actions yet.</p>
             )}
@@ -117,7 +118,6 @@ export function ActionLogPanel() {
                 </div>
               )
             })}
-            <div ref={bottomRef} />
           </div>
     </div>
   )

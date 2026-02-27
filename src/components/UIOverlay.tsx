@@ -199,7 +199,7 @@ const UIOverlay: React.FC = () => {
           >
             Log
             {actionLog.length > 0 && (
-              <span className={`${isLogOpen ? 'bg-white text-zinc-900' : 'bg-zinc-900 text-white'} text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center`}>
+              <span className={`${isLogOpen ? 'bg-white text-zinc-900' : 'bg-zinc-900 text-white'} text-[9px] font-black rounded-full min-w-4 h-4 px-1 flex items-center justify-center`}>
                 {actionLog.length}
               </span>
             )}
@@ -214,7 +214,7 @@ const UIOverlay: React.FC = () => {
           >
             Tasks
             {activeTasks.length > 0 && (
-              <span className={`${isKanbanOpen ? 'bg-white text-zinc-900' : 'bg-zinc-900 text-white'} text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center`}>
+              <span className={`${isKanbanOpen ? 'bg-white text-zinc-900' : 'bg-zinc-900 text-white'} text-[9px] font-black rounded-full min-w-4 h-4 px-1 flex items-center justify-center`}>
                 {activeTasks.length}
               </span>
             )}

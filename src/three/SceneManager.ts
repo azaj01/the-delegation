@@ -35,7 +35,6 @@ export class SceneManager {
   private unsubs: (() => void)[] = [];
   private isDisposed = false;
   private container: HTMLElement;
-  private resizeObserver: ResizeObserver;
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -105,8 +104,6 @@ export class SceneManager {
     );
 
     this.engine.renderer.setAnimationLoop(this.animate.bind(this));
-    this.resizeObserver = new ResizeObserver(() => this.onResize());
-    this.resizeObserver.observe(this.container);
 
     // React to store changes that affect the 3D world
     const unsub = useStore.subscribe((s, prev) => {
@@ -342,6 +339,15 @@ export class SceneManager {
   }
 
   private animate() {
+    // Check for container resize on every frame to handle panel transitions smoothly
+    const w = this.container.clientWidth;
+    const h = this.container.clientHeight;
+    if (w !== this.engine.renderer.domElement.clientWidth || h !== this.engine.renderer.domElement.clientHeight) {
+      if (w !== 0 && h !== 0) {
+        this.onResize();
+      }
+    }
+
     this.engine.timer.update();
     const delta = this.engine.timer.getDelta();
 
@@ -392,8 +398,7 @@ export class SceneManager {
   public dispose() {
     this.isDisposed = true;
     this.unsubs.forEach(u => u());
-    this.resizeObserver.disconnect();
-    this.inputManager?.dispose();
+    window.removeEventListener('resize', this.onResizeHandler);
     this.driverManager?.dispose();
     this.engine.dispose();
     this.stage.controls?.dispose();
