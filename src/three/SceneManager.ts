@@ -12,7 +12,6 @@ import { InputManager } from './input/InputManager';
 import { AGENTS, PLAYER_INDEX, NPC_START_INDEX } from '../data/agents';
 import { useStore } from '../store/useStore';
 import { AgentBehavior, ChatMessage } from '../types';
-import * as conversationService from '../services/conversationService';
 import { BUBBLE_Y_OFFSET } from './constants';
 
 export class SceneManager {
@@ -228,21 +227,20 @@ export class SceneManager {
     }));
 
     try {
-      // If an agency handler is registered, delegate to it first.
-      // The handler returns the response string or null to fall through to the default.
+      // Direct call to agency system. No more conversationService fallback.
       let responseText: string | null = null;
       if (this.agencyHandler) {
         responseText = await this.agencyHandler(npcIndex, text);
       }
+
+      // If agency system didn't handle it (unlikely with new strict focus),
+      // we can have a fallback but it should be operative.
       if (responseText === null) {
-        responseText = await conversationService.sendMessage(
-          agent,
-          useStore.getState().chatMessages.slice(0, -1),
-          text,
-        );
+        responseText = "I'm sorry, I'm currently focused on my tasks. Please give me an instruction related to our project.";
       }
+
       const modelMsg: ChatMessage = {
-        role: 'model',
+        role: 'assistant',
         text: responseText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
@@ -317,9 +315,10 @@ export class SceneManager {
     const agent = AGENTS[npcIndex];
     useStore.setState({ isThinking: true });
     try {
-      const text = await conversationService.getGreeting(agent);
+      // Simplified operational greeting
+      const text = `Hello. I am the ${agent.role}. How can I help you with our current objectives?`;
       const msg: ChatMessage = {
-        role: 'model',
+        role: 'assistant',
         text,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };

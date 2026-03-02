@@ -18,6 +18,12 @@ export const useStore = create<CharacterState>()(
     isTyping: false,
     chatMessages: [],
 
+    llmConfig: {
+      provider: 'gemini',
+      apiKey: process.env.GEMINI_API_KEY || '',
+      model: 'gemini-3-flash-preview'
+    },
+
     setThinking: (isThinking: boolean) => set({ isThinking }),
     setIsTyping: (isTyping: boolean) => set({ isTyping }),
     setInstanceCount: (count: number) => set({ instanceCount: count }),
@@ -36,5 +42,6 @@ export const useStore = create<CharacterState>()(
       hoverPosition: pos,
       hoveredNpcIndex: null,
     }),
+    setLlmConfig: (config) => set((s) => ({ llmConfig: { ...s.llmConfig, ...config } })),
   })
 );

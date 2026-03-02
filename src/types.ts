@@ -1,7 +1,9 @@
 import type * as THREE from 'three/webgpu';
 
+import { LLMConfig } from './services/llm/types';
+
 export interface ChatMessage {
-  role: 'user' | 'model';
+  role: 'user' | 'assistant' | 'system' | 'tool';
   text: string;
   timestamp: string;
 }
@@ -20,6 +22,9 @@ export interface CharacterState {
   isTyping: boolean;
   chatMessages: ChatMessage[];
 
+  // BYOK LLM Configuration
+  llmConfig: LLMConfig;
+
   setThinking: (isThinking: boolean) => void;
   setIsTyping: (isTyping: boolean) => void;
   setInstanceCount: (count: number) => void;
@@ -27,6 +32,7 @@ export interface CharacterState {
   setSelectedPosition: (pos: { x: number; y: number } | null) => void;
   setHoveredNpc: (index: number | null, pos: { x: number; y: number } | null) => void;
   setHoveredPoi: (id: string | null, label: string | null, pos: { x: number; y: number } | null) => void;
+  setLlmConfig: (config: Partial<LLMConfig>) => void;
 }
 
 export enum AnimationName {

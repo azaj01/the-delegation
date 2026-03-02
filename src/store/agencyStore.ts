@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { LLMMessage } from '../services/llm/types'
 
 export type TaskStatus = 'scheduled' | 'on_hold' | 'in_progress' | 'done'
 
@@ -37,9 +38,9 @@ interface AgencyState {
   // ── Log ──────────────────────────────────────────────────────
   actionLog: ActionLogEntry[]
 
-  // ── Conversation histories (replaces Interactions API) ────────
-  agentHistories: Record<number, Array<{ role: 'user' | 'model'; parts: { text: string }[] }>>
-  boardroomHistories: Record<string, Array<{ role: 'user' | 'model'; parts: { text: string }[] }>>
+  // ── Conversation histories (Agnostic standard) ───────────────
+  agentHistories: Record<number, LLMMessage[]>
+  boardroomHistories: Record<string, LLMMessage[]>
 
   // ── UI ───────────────────────────────────────────────────────
   isKanbanOpen: boolean

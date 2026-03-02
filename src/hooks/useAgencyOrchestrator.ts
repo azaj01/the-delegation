@@ -6,7 +6,7 @@ import {
   callAccountManager,
   callBoardroomAgent,
   type AgentFunctionCall,
-} from '../services/geminiAgencyService'
+} from '../services/agencyService'
 import { AGENTS } from '../data/agents'
 
 // ── Constants ─────────────────────────────────────────────────
