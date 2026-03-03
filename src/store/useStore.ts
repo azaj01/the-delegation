@@ -17,6 +17,7 @@ export const useStore = create<CharacterState>()(
     isChatting: false,
     isTyping: false,
     chatMessages: [],
+    inspectorTab: 'info',
 
     llmConfig: {
       provider: 'gemini',
@@ -26,9 +27,14 @@ export const useStore = create<CharacterState>()(
 
     setThinking: (isThinking: boolean) => set({ isThinking }),
     setIsTyping: (isTyping: boolean) => set({ isTyping }),
+    setInspectorTab: (tab: 'info' | 'chat') => set({ inspectorTab: tab }),
     setInstanceCount: (count: number) => set({ instanceCount: count }),
 
-    setSelectedNpc: (index: number | null) => set({ selectedNpcIndex: index, selectedPosition: null }),
+    setSelectedNpc: (index: number | null) => set({
+      selectedNpcIndex: index,
+      selectedPosition: null,
+      inspectorTab: index !== null ? 'info' : 'info' // Default to info when switching
+    }),
     setSelectedPosition: (pos: { x: number; y: number } | null) => set({ selectedPosition: pos }),
     setHoveredNpc: (index: number | null, pos: { x: number; y: number } | null) => set({
       hoveredNpcIndex: index,

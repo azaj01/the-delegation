@@ -21,12 +21,14 @@ export interface CharacterState {
   isChatting: boolean;
   isTyping: boolean;
   chatMessages: ChatMessage[];
+  inspectorTab: 'info' | 'chat';
 
   // BYOK LLM Configuration
   llmConfig: LLMConfig;
 
   setThinking: (isThinking: boolean) => void;
   setIsTyping: (isTyping: boolean) => void;
+  setInspectorTab: (tab: 'info' | 'chat') => void;
   setInstanceCount: (count: number) => void;
   setSelectedNpc: (index: number | null) => void;
   setSelectedPosition: (pos: { x: number; y: number } | null) => void;

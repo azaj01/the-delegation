@@ -10,6 +10,10 @@ const COLUMNS: { status: TaskStatus; label: string }[] = [
   { status: 'done',        label: 'Done'         },
 ]
 
+interface KanbanPanelProps {
+  height?: number;
+}
+
 function renderAgentTag(agentIndex: number) {
   const agent = AGENTS[agentIndex]
   if (!agent) return null
@@ -64,52 +68,53 @@ function TaskCard({ task }: { task: Task; key?: string }) {
   )
 }
 
-export function KanbanPanel() {
-  const { setKanbanOpen, tasks } = useAgencyStore()
+export function KanbanPanel({ height = 320 }: KanbanPanelProps) {
+  const { tasks } = useAgencyStore()
 
   return (
     <div
-      className="w-full bg-white border-t border-black/8 flex flex-col pointer-events-auto shrink-0"
-      style={{ height: 320 }}
+      className="w-full bg-white border-t border-black/8 flex flex-col pointer-events-auto shrink-0 relative"
+      style={{ height }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-black/5 shrink-0">
-        <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Task Board</h2>
-        <button
-          onClick={() => setKanbanOpen(false)}
-          className="text-zinc-300 hover:text-zinc-600 transition-colors text-base leading-none cursor-pointer"
-        >
-          ✕
-        </button>
+      <div className="flex items-center justify-between px-5 h-10 border-b border-black/5 shrink-0 bg-white sticky top-0 z-10">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Project Kanban</span>
+        </div>
       </div>
 
-      {/* Columns */}
-      <div className="flex gap-3 p-4 overflow-x-auto flex-1 min-h-0">
-        {COLUMNS.map(({ status, label }) => {
-          const colTasks = tasks.filter((t) => t.status === status)
-          return (
-            <div key={status} className="flex-1 min-w-40 flex flex-col">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400">
-                  {label}
-                </span>
-                <span className="text-[9px] font-bold bg-zinc-100 text-zinc-400 rounded-full w-3.5 h-3.5 flex items-center justify-center">
-                  {colTasks.length}
-                </span>
-              </div>
-              <div className="flex flex-col gap-2 overflow-y-auto">
-                {colTasks.map((t) => (
-                  <TaskCard key={t.id} task={t} />
-                ))}
-                {colTasks.length === 0 && (
-                  <div className="flex items-start pt-2 justify-center">
-                    <span className="text-zinc-200 text-xs">—</span>
+      {/* Columns Scroll Area */}
+      <div className="flex-1 overflow-x-auto overflow-y-hidden bg-zinc-50/20">
+        <div className="flex h-full min-w-max px-5 py-4 gap-4">
+          {COLUMNS.map(({ status, label }) => {
+            const colTasks = tasks.filter((t) => t.status === status)
+            return (
+              <div key={status} className="w-60 flex flex-col gap-3">
+                <div className="flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-none">
+                      {label}
+                    </span>
+                    <span className="px-1.5 py-0.5 bg-zinc-100 text-zinc-400 text-[9px] font-bold rounded-md min-w-4.5 text-center">
+                      {colTasks.length}
+                    </span>
                   </div>
-                )}
+                </div>
+
+                <div className="flex-1 flex flex-col gap-2 overflow-y-auto pr-1">
+                  {colTasks.map((t) => (
+                    <TaskCard key={t.id} task={t} />
+                  ))}
+                  {colTasks.length === 0 && (
+                    <div className="border border-dashed border-zinc-100 rounded-lg p-4 flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">Empty</span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
     </div>
   )

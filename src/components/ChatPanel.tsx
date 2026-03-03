@@ -73,37 +73,7 @@ const ChatPanel: React.FC = () => {
   if (!isChatting || !agent) return null;
 
   return (
-    <div className="w-[320px] h-full bg-white border-l border-zinc-100 shadow-2xl flex flex-col pointer-events-auto overflow-hidden shrink-0">
-      {/* Color accent bar */}
-      <div
-        className="absolute top-0 left-0 w-full h-1.5 z-20"
-        style={{ backgroundColor: agent.color }}
-      />
-      {/* Header */}
-      <div className="px-8 py-6 border-b border-zinc-100 flex justify-between items-start bg-white/80 backdrop-blur-md sticky top-0 z-10">
-        <button
-          onClick={() => scene?.endChat()}
-          className="text-zinc-300 hover:text-zinc-600 transition-colors text-base leading-none pt-1"
-        >
-          ✕
-        </button>
-
-        <div className="flex flex-col gap-1.5 items-end">
-          <h2 className="text-xl font-black text-zinc-900 tracking-tight">Chat</h2>
-          <div className="text-right flex flex-col items-end px-0.5">
-            <p
-              className="text-[9px] font-black uppercase tracking-widest leading-none mb-1"
-              style={{ color: agent.color }}
-            >
-              {agent.department}
-            </p>
-            <h3 className="text-sm font-black text-zinc-900 leading-tight">
-              {agent.role}
-            </h3>
-          </div>
-        </div>
-      </div>
-
+    <div className="flex flex-col h-full bg-white relative overflow-hidden shrink-0 pointer-events-auto shadow-2xl">
       {/* Messages */}
       <div
         ref={scrollRef}

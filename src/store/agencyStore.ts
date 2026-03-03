@@ -63,8 +63,8 @@ interface AgencyState {
   addLogEntry: (entry: Omit<ActionLogEntry, 'id' | 'timestamp'>) => void
 
   // ── Actions — History ───────────────────────────────────────
-  appendAgentHistory: (agentIndex: number, role: 'user' | 'model', parts: any[]) => void
-  appendBoardroomHistory: (taskId: string, role: 'user' | 'model', parts: any[]) => void
+  appendAgentHistory: (agentIndex: number, role: 'user' | 'assistant', parts: any[]) => void
+  appendBoardroomHistory: (taskId: string, role: 'user' | 'assistant', parts: any[]) => void
   clearAllHistories: () => void
 
   // ── Actions — UI ──────────────────────────────────────────────
@@ -84,8 +84,8 @@ export const useAgencyStore = create<AgencyState>((set) => ({
   actionLog: [],
   agentHistories: {},
   boardroomHistories: {},
-  isKanbanOpen: false,
-  isLogOpen: false,
+  isKanbanOpen: true,
+  isLogOpen: true,
   isFinalOutputOpen: false,
   pendingApprovalTaskId: null,
   logFilterAgentIndex: null,
@@ -133,7 +133,10 @@ export const useAgencyStore = create<AgencyState>((set) => ({
         ...s.agentHistories,
         [agentIndex]: [
           ...(s.agentHistories[agentIndex] ?? []),
-          { role, parts },
+          {
+            role,
+            content: Array.isArray(parts) ? parts.map(p => typeof p === 'string' ? p : JSON.stringify(p)).join(' ') : String(parts),
+          },
         ],
       },
     })),
@@ -144,7 +147,10 @@ export const useAgencyStore = create<AgencyState>((set) => ({
         ...s.boardroomHistories,
         [taskId]: [
           ...(s.boardroomHistories[taskId] ?? []),
-          { role, parts },
+          {
+            role,
+            content: Array.isArray(parts) ? parts.map(p => typeof p === 'string' ? p : JSON.stringify(p)).join(' ') : String(parts),
+          },
         ],
       },
     })),

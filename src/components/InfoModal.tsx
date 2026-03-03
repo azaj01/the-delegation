@@ -3,17 +3,15 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-interface HelpModalProps {
-  isOpen: boolean;
+interface InfoModalProps {
   onClose: () => void;
 }
 
-const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
+const InfoModal: React.FC<InfoModalProps> = ({ onClose }) => {
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-6 pointer-events-auto">
-          <motion.div
+    <AnimatePresence mode="wait">
+      <div className="fixed inset-0 z-100 flex items-center justify-center p-6 pointer-events-auto overflow-hidden">
+        <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -53,9 +51,8 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             </div>
           </motion.div>
         </div>
-      )}
     </AnimatePresence>
   );
 };
 
-export default HelpModal;
+export default InfoModal;

@@ -27,63 +27,40 @@ export function ActionLogPanel() {
       ? actionLog.filter((e) => e.agentIndex === logFilterAgentIndex).reverse()
       : [...actionLog].reverse()
 
-  const accentColor = filterAgent?.color ?? '#a1a1aa'
+  const accentColor = filterAgent?.color ?? '#e4e4e7'
 
   return (
-    <div className="w-[320px] h-full bg-white border-r border-zinc-100 shadow-2xl flex flex-col pointer-events-auto overflow-hidden shrink-0 relative">
-          {/* Color accent bar */}
-          <div
-            className="absolute top-0 left-0 w-full h-1.5 z-20 transition-colors duration-500"
-            style={{ backgroundColor: accentColor }}
-          />
-
+    <div className="w-[320px] h-full bg-white border-r border-zinc-100 flex flex-col pointer-events-auto overflow-hidden shrink-0 relative">
           {/* Header */}
-          <div className="px-8 py-6 border-b border-zinc-100 flex justify-between items-start bg-white/80 backdrop-blur-md sticky top-0 z-10">
-            <div className="flex flex-col gap-1.5">
-              <h2 className="text-xl font-black text-zinc-900 tracking-tight">Log</h2>
-
-              <div className="flex flex-col items-start px-0.5">
-                {filterAgent ? (
-                  <>
-                    <p
-                      className="text-[9px] font-black uppercase tracking-widest leading-none mb-1"
-                      style={{ color: accentColor }}
-                    >
-                      {filterAgent.department ?? 'Agent'}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-black text-zinc-900 leading-tight">{filterAgent.role}</h3>
-                      <button
-                        onClick={() => setLogOpen(true, null)}
-                        className="text-[8px] font-bold text-zinc-400 hover:text-zinc-700 transition-colors uppercase tracking-widest border border-zinc-200 rounded-full px-1.5 py-0.5 cursor-pointer"
-                      >
-                        All
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">All agents</p>
-                )}
-              </div>
+          <div className="h-10 px-5 border-b border-zinc-100 flex items-center justify-between bg-white shrink-0 z-10">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Activity Log</span>
+              {filterAgent && (
+                <div
+                  className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold text-white uppercase tracking-tighter"
+                  style={{ backgroundColor: filterAgent.color }}
+                >
+                  {filterAgent.role}
+                  <button
+                    onClick={() => setLogOpen(true, null)}
+                    className="hover:scale-110 transition-transform cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
             </div>
-
-            <button
-              onClick={() => setLogOpen(false)}
-              className="text-zinc-300 hover:text-zinc-600 transition-colors text-base leading-none pt-1 cursor-pointer"
-            >
-              ✕
-            </button>
           </div>
 
           {/* Project Done Action */}
           {phase === 'done' && (
-            <div className="px-8 py-4 bg-yellow-50 border-b border-yellow-100 flex flex-col gap-2">
-              <p className="text-[10px] font-black text-yellow-700 uppercase tracking-widest leading-none">
+            <div className="px-5 py-4 bg-amber-50 border-b border-amber-100 flex flex-col gap-2">
+              <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest leading-none">
                 Final Delivery Ready
               </p>
               <button
                 onClick={() => setFinalOutputOpen(true)}
-                className="w-full py-2.5 bg-yellow-400 text-black rounded-lg text-xs font-black uppercase tracking-widest hover:bg-yellow-500 active:scale-[0.98] transition-all shadow-sm cursor-pointer"
+                className="w-full py-2.5 bg-amber-400 text-black rounded-lg text-xs font-black uppercase tracking-widest hover:bg-amber-500 active:scale-[0.98] transition-all shadow-sm cursor-pointer"
               >
                 View Project Output
               </button>
@@ -91,33 +68,39 @@ export function ActionLogPanel() {
           )}
 
           {/* Entries */}
-          <div className="flex-1 overflow-y-auto px-8 py-6 space-y-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:display-none">
+          <div className="flex-1 overflow-y-auto p-5 space-y-4">
             <div ref={topRef} />
-            {entries.length === 0 && (
-              <p className="text-zinc-300 text-sm text-center py-16 font-medium">No actions yet.</p>
-            )}
-            {entries.map((entry) => {
-              const agent = AGENTS[entry.agentIndex]
-              return (
-                <div key={entry.id} className="flex items-start gap-3">
-                  <span className="text-zinc-300 text-[10px] shrink-0 font-mono pt-0.5">
-                    {formatTime(entry.timestamp)}
-                  </span>
-                  <div className="flex flex-col gap-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className="w-1.5 h-1.5 rounded-full shrink-0"
-                        style={{ backgroundColor: agent?.color ?? '#999' }}
-                      />
-                      <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                        {agent?.role ?? 'System'}
+            {entries.length === 0 ? (
+              <p className="text-zinc-300 text-[10px] font-bold uppercase tracking-widest text-center py-16">Awaiting actions...</p>
+            ) : (
+              entries.map((entry) => {
+                const agent = AGENTS[entry.agentIndex]
+                return (
+                  <div key={entry.id} className="flex flex-col gap-1.5 group">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-1.5 h-1.5 rounded-full shadow-sm"
+                          style={{ backgroundColor: agent?.color ?? '#e4e4e7' }}
+                        />
+                        <span className="text-[10px] font-black text-zinc-900 uppercase tracking-widest leading-none">
+                          {agent?.role ?? 'System'}
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-medium text-zinc-400 font-mono">
+                        {formatTime(entry.timestamp)}
                       </span>
                     </div>
-                    <p className="text-zinc-700 text-sm leading-relaxed">{entry.action}</p>
+
+                    <div className="pl-3.5 border-l border-zinc-50 group-hover:border-zinc-200 transition-colors">
+                      <p className="text-xs text-zinc-600 leading-relaxed font-medium">
+                        {entry.action}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })
+            )}
           </div>
     </div>
   )
