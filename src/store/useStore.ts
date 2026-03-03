@@ -19,11 +19,17 @@ export const useStore = create<CharacterState>()(
     chatMessages: [],
     inspectorTab: 'info',
 
-    llmConfig: {
-      provider: 'gemini',
-      apiKey: process.env.GEMINI_API_KEY || '',
-      model: 'gemini-3-flash-preview'
-    },
+    llmConfig: (() => {
+      try {
+        const saved = localStorage.getItem('byok-config');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+      return {
+        provider: 'gemini',
+        apiKey: '',
+        model: 'gemini-3-flash-preview'
+      };
+    })(),
 
     setThinking: (isThinking: boolean) => set({ isThinking }),
     setIsTyping: (isTyping: boolean) => set({ isTyping }),

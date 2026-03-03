@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { useAgencyStore } from '../store/agencyStore';
+import { useStore } from '../store/useStore';
 import { Maximize2, Key, Info } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import InfoModal from './InfoModal';
+import BYOKModal from './BYOKModal';
 
 const Header: React.FC = () => {
   const { phase } = useAgencyStore();
+  const { llmConfig } = useStore();
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isBYOKOpen, setIsBYOKOpen] = useState(false);
+  const hasKey = !!llmConfig.apiKey;
 
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -44,14 +50,22 @@ const Header: React.FC = () => {
           <Maximize2 size={18} />
         </button>
         <button
-          className="text-zinc-400 hover:text-zinc-900 transition-colors flex items-center gap-2"
-          title="BYOK"
+          onClick={() => setIsBYOKOpen(true)}
+          className="relative text-zinc-400 hover:text-zinc-900 transition-colors flex items-center gap-2"
+          title="API Key (BYOK)"
         >
-          <Key size={18} />
+          <Key size={18} className={hasKey ? 'text-emerald-500 hover:text-emerald-600' : ''} />
+          {hasKey && (
+            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          )}
         </button>
       </div>
 
       {isInfoOpen && <InfoModal onClose={() => setIsInfoOpen(false)} />}
+
+      <AnimatePresence>
+        {isBYOKOpen && <BYOKModal onClose={() => setIsBYOKOpen(false)} />}
+      </AnimatePresence>
     </header>
   );
 };
