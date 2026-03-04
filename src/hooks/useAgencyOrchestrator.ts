@@ -36,6 +36,8 @@ export function useAgencyOrchestrator() {
     // Additional side effects specific to the orchestrator hook
     if (handled && fn.name === 'complete_task') {
       runningAgents.current.delete(callerIndex)
+      // Kick the NPC driver so the agent immediately wanders away from the work desk
+      sceneRef.current?.kickNpcDriver(callerIndex)
       setTimeout(() => {
         checkAllTasksDone()
       }, 100)
@@ -90,6 +92,12 @@ export function useAgencyOrchestrator() {
   const runSingleAgentTask = async (task: Task, agentIndex: number) => {
     const store = useAgencyStore.getState()
 
+    /** Helper to check whether the task has been interrupted (on_hold or already done). */
+    const isTaskInterrupted = () => {
+      const status = useAgencyStore.getState().tasks.find((t) => t.id === task.id)?.status
+      return status === 'on_hold' || status === 'done'
+    }
+
     store.addLogEntry({
       agentIndex,
       action: `received task assignment — "${task.description}"`,
@@ -109,18 +117,20 @@ export function useAgencyOrchestrator() {
           processFunctionCall(fn, agentIndex)
         }
       }
+      if (isTaskInterrupted()) return
 
-      // If the agent went on hold (approval needed), stop here
-      if (useAgencyStore.getState().tasks.find((t) => t.id === task.id)?.status === 'on_hold') {
-        return
-      }
-
-      // Step 2: Reflection / Drafting phase (Replaces artificial WORK_DURATION_MS)
-      // This provides more "realistic" agent behavior as they actually process the request
-      await callAgent({
+      // Step 2: Reflection / Drafting phase
+      const draftResponse = await callAgent({
         agentIndex,
         userMessage: `Draft a preliminary version of your prompt for this task. Identify any challenges or missing information internally.`,
       })
+      // Process any tool calls from the draft (e.g. request_client_approval mid-draft)
+      if (draftResponse.functionCalls) {
+        for (const fn of draftResponse.functionCalls) {
+          processFunctionCall(fn, agentIndex)
+        }
+      }
+      if (isTaskInterrupted()) return
 
       // Step 3: Refinement and Completion
       const completeResponse = await callAgent({
@@ -308,7 +318,14 @@ export function useAgencyOrchestrator() {
       }
     }
 
-    return null // fall through to normal chat
+    // ---- Any other NPC: route through their LLM for a contextual response ----
+    try {
+      const response = await callAgent({ agentIndex: npcIndex, userMessage: text })
+      return response.text || null
+    } catch (err) {
+      console.error('[Orchestrator] NPC chat error:', err)
+      return null
+    }
   }
 
   // ── Register handler + subscribe to task changes ─────────────

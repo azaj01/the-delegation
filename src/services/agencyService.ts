@@ -117,8 +117,10 @@ export async function callAgent(params: {
   }
 
   // 4. Update history in store
+  // Store only the bare userMessage (without dynamic context prefix) so that history
+  // stays lean and the fresh dynamic context is injected only on the current turn.
   const newMessages: LLMMessage[] = [
-    { role: 'user', content: fullUserMessage },
+    { role: 'user', content: userMessage },
     {
       role: 'assistant',
       content: text,

@@ -131,8 +131,8 @@ const UIOverlay: React.FC = () => {
         return null;
       })()}
 
-      {/* Task Approval Needed Bubble */}
-      {pendingApprovalTaskId && (
+      {/* Task Approval Needed Bubble — hide once the project is done */}
+      {pendingApprovalTaskId && phase !== 'done' && (
         (() => {
           const task = tasks.find(t => t.id === pendingApprovalTaskId);
           const agentIndex = task?.assignedAgentIds[0];

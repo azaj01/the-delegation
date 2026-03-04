@@ -16,6 +16,7 @@ import { useStore } from '../../store/useStore';
 export class NpcAgentDriver implements IAgentDriver {
   public readonly agentIndex: number;
   private behaviorTimer: number = Math.random() * 5 + 2; // Initial wait before moving
+  private wasBusy: boolean = false;
 
   constructor(
     agentIndex: number,
@@ -23,6 +24,11 @@ export class NpcAgentDriver implements IAgentDriver {
     protected readonly data: AgentData,
   ) {
     this.agentIndex = agentIndex;
+  }
+
+  /** Force the agent to pick a new autonomous action immediately (e.g. after completing a task). */
+  public kick(): void {
+    this.behaviorTimer = 0;
   }
 
   // ── IAgentDriver ─────────────────────────────────────────────
@@ -42,6 +48,12 @@ export class NpcAgentDriver implements IAgentDriver {
     const isBusyWithAgency = agencyState.tasks.some(
       t => t.assignedAgentIds.includes(this.agentIndex) && (t.status === 'in_progress' || t.status === 'on_hold')
     );
+
+    // Detect busy→idle transition: kick the agent to move away immediately
+    if (this.wasBusy && !isBusyWithAgency) {
+      this.behaviorTimer = 0;
+    }
+    this.wasBusy = isBusyWithAgency;
 
     if (isBusyWithAgency) {
        // While busy with agency tasks, the driver suspends autonomous random behaviors.

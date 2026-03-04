@@ -208,7 +208,8 @@ export class SceneManager {
             text: `I've paused my work because I need your input: "${question}"\n\nHow should I proceed?`,
             timestamp
           };
-          useStore.setState({ chatMessages: [approvalMsg] });
+          // Switch Inspector to chat tab so the conversation is immediately visible
+          useStore.setState({ chatMessages: [approvalMsg], inspectorTab: 'chat' });
           return; // Skip default greeting
         }
       }
@@ -289,6 +290,11 @@ export class SceneManager {
     handler: ((npcIndex: number, text: string) => Promise<string | null>) | null,
   ): void {
     this.agencyHandler = handler;
+  }
+
+  /** Immediately trigger an NPC to pick a new autonomous action (e.g. wander away from work desk). */
+  public kickNpcDriver(index: number): void {
+    this.driverManager?.kickNpc(index);
   }
 
   /** Play or stop the working animation on an NPC. */

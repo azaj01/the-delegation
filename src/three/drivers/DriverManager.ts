@@ -58,6 +58,14 @@ export class DriverManager {
     return this.drivers.get(agentIndex);
   }
 
+  /** Immediately trigger the NPC to decide a new autonomous action (e.g. after task completion). */
+  public kickNpc(agentIndex: number): void {
+    const driver = this.drivers.get(agentIndex);
+    if (driver instanceof NpcAgentDriver) {
+      driver.kick();
+    }
+  }
+
   // ── Frame loop ───────────────────────────────────────────────
 
   /** Call every frame after positions are synced from GPU. */
