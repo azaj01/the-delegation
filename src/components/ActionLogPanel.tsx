@@ -329,14 +329,14 @@ ${entry.rawContent}
                 </div>
               )}
             </div>
-            
+
             <div className="flex items-center gap-2">
               <div className="relative">
                 <button
                   onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
                   className={`p-1.5 rounded transition-colors cursor-pointer ${
-                    isFilterMenuOpen || logFilterAgentIndex !== null 
-                      ? 'bg-zinc-900 text-white' 
+                    isFilterMenuOpen || logFilterAgentIndex !== null
+                      ? 'bg-zinc-900 text-white'
                       : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50'
                   }`}
                   title="Filter by agent"
@@ -346,9 +346,9 @@ ${entry.rawContent}
 
                 {isFilterMenuOpen && (
                   <>
-                    <div 
-                      className="fixed inset-0 z-20" 
-                      onClick={() => setIsFilterMenuOpen(false)} 
+                    <div
+                      className="fixed inset-0 z-20"
+                      onClick={() => setIsFilterMenuOpen(false)}
                     />
                     <div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-100 rounded-xl shadow-xl z-30 py-1.5 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                       <button
@@ -375,9 +375,9 @@ ${entry.rawContent}
                             logFilterAgentIndex === agent.index ? 'text-zinc-900' : 'text-zinc-400'
                           }`}
                         >
-                          <div 
-                            className="w-2 h-2 rounded-full" 
-                            style={{ backgroundColor: agent.color }} 
+                          <div
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: agent.color }}
                           />
                           {agent.role}
                         </button>

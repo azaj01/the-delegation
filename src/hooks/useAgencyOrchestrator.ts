@@ -337,7 +337,7 @@ export function useAgencyOrchestrator() {
 
     // ---- Any other NPC: route through their LLM for a contextual response ----
     try {
-      const response = await callAgent({ agentIndex: npcIndex, userMessage: text })
+      const response = await callAgent({ agentIndex: npcIndex, userMessage: text, chatMode: true })
       return response.text || null
     } catch (err) {
       console.error('[Orchestrator] NPC chat error:', err)
@@ -380,6 +380,14 @@ export function useAgencyOrchestrator() {
             prev.tasks.some((pt) => pt.id === t.id && pt.status === 'scheduled'),
         )
         if (justStarted) {
+          sceneRef.current?.endChat()
+        }
+      }
+
+      // When project reaches 'done', close chat if the user is talking to a non-AM agent
+      if (s.phase === 'done' && prev.phase !== 'done') {
+        const { isChatting: chatActive, selectedNpcIndex: selNpc } = useStore.getState()
+        if (chatActive && selNpc !== null && selNpc !== AM_INDEX) {
           sceneRef.current?.endChat()
         }
       }

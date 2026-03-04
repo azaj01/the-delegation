@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { useAgencyStore } from '../store/agencyStore';
 import { AGENTS } from '../data/agents';
 import { useSceneManager } from '../three/SceneContext';
+import { useChatAvailability } from '../hooks/useChatAvailability';
 
 interface AgentViewProps {
   agentIndex: number;
@@ -11,13 +12,15 @@ interface AgentViewProps {
 const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
   const { setInspectorTab, isChatting } = useStore();
   const scene = useSceneManager();
+  const { canChat, reason } = useChatAvailability(agentIndex);
   const {
     tasks,
     setLogOpen,
     addTask,
     updateTaskStatus,
     setTaskOutput,
-    setPendingApproval
+    setPendingApproval,
+    pendingApprovalTaskId
   } = useAgencyStore();
 
   const agent = AGENTS[agentIndex];
@@ -26,6 +29,14 @@ const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
   const activeTask = tasks.find(
     (t) => t.assignedAgentIds.includes(agentIndex) && t.status === 'in_progress'
   ) ?? null;
+
+  const isApprovalAgent =
+    pendingApprovalTaskId != null &&
+    tasks.some(
+      (t) =>
+        t.id === pendingApprovalTaskId &&
+        t.assignedAgentIds.includes(agentIndex),
+    );
 
   const handleStartChat = () => {
     scene?.startChat(agentIndex);
@@ -101,13 +112,29 @@ const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
           >
             End Chat
           </button>
-        ) : (
+        ) : canChat ? (
           <button
             onClick={handleStartChat}
-            className="w-full py-3 bg-zinc-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-zinc-200 pointer-events-auto cursor-pointer"
+            className={`w-full py-3 text-white rounded-xl text-xs font-black uppercase tracking-widest active:scale-[0.98] transition-all shadow-lg pointer-events-auto cursor-pointer ${
+              isApprovalAgent
+                ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200'
+                : 'bg-zinc-900 hover:bg-black shadow-zinc-200'
+            }`}
           >
-            Start Chat
+            {isApprovalAgent ? 'Review Approval' : 'Start Chat'}
           </button>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            <button
+              disabled
+              className="w-full py-3 bg-zinc-200 text-zinc-400 rounded-xl text-xs font-black uppercase tracking-widest cursor-not-allowed transition-all"
+            >
+              Busy
+            </button>
+            <p className="text-[10px] text-zinc-400 text-center font-medium italic">
+              {reason}
+            </p>
+          </div>
         )}
 
         {/* Debug Controls */}

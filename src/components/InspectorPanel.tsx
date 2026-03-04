@@ -1,19 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import { useSceneManager } from '../three/SceneContext';
 import { useAgencyStore } from '../store/agencyStore';
+import { useChatAvailability } from '../hooks/useChatAvailability';
 import AgentView from './AgentView';
 import ProjectView from './ProjectView';
 import ChatPanel from './ChatPanel';
 import { AGENTS } from '../data/agents';
-import { Info, MessageSquare } from 'lucide-react';
+import { Info, MessageSquare, Lock } from 'lucide-react';
 
 const AM_INDEX = 1;
 
 const InspectorPanel: React.FC = () => {
-  const { selectedNpcIndex, inspectorTab, setInspectorTab } = useStore();
+  const { selectedNpcIndex, inspectorTab, setInspectorTab, isChatting } = useStore();
   const scene = useSceneManager();
   const { phase, pendingApprovalTaskId, tasks } = useAgencyStore();
+  const { canChat, reason } = useChatAvailability(selectedNpcIndex);
+  const prevCanChat = useRef(canChat);
 
   const agent = selectedNpcIndex !== null ? AGENTS[selectedNpcIndex] : null;
 
@@ -36,6 +39,15 @@ const InspectorPanel: React.FC = () => {
     }
   }, [selectedNpcIndex]);
 
+  // When canChat transitions true → false, force back to Info and end any active chat
+  useEffect(() => {
+    if (prevCanChat.current && !canChat) {
+      if (inspectorTab === 'chat') setInspectorTab('info');
+      if (isChatting) scene?.endChat();
+    }
+    prevCanChat.current = canChat;
+  }, [canChat]);
+
   return (
     <div className="w-80 h-full bg-white border-l border-zinc-100 flex flex-col pointer-events-auto shrink-0 relative z-30">
       {!agent ? (
@@ -56,15 +68,24 @@ const InspectorPanel: React.FC = () => {
               Info
             </button>
             <button
-              onClick={() => setInspectorTab('chat')}
+              onClick={() => canChat && setInspectorTab('chat')}
+              disabled={!canChat}
+              title={!canChat ? reason : undefined}
               className={`flex-1 py-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                inspectorTab === 'chat'
+                !canChat
+                ? 'text-zinc-300 cursor-not-allowed opacity-50'
+                : inspectorTab === 'chat'
                 ? 'text-zinc-900 bg-white border-b-2 border-zinc-900'
                 : 'text-zinc-400 hover:text-zinc-600'
               }`}
             >
-              <MessageSquare size={14} />
+              {!canChat ? <Lock size={12} /> : <MessageSquare size={14} />}
               Chat
+              {!canChat && (
+                <span className="text-[8px] font-bold text-zinc-300 tracking-tight normal-case ml-1 max-w-20 truncate">
+                  ({reason})
+                </span>
+              )}
             </button>
           </div>
 

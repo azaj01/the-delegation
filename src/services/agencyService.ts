@@ -2,6 +2,7 @@ import { useAgencyStore } from '../store/agencyStore'
 import { useStore } from '../store/useStore'
 import {
   buildSystemPrompt,
+  buildChatSystemPrompt,
   buildDynamicContext,
 } from '../prompts/agentPrompts'
 import { LLMFactory } from './llm/LLMFactory'
@@ -35,14 +36,17 @@ export async function callAgent(params: {
   userMessage: string;
   isBoardroom?: boolean;
   boardroomTaskId?: string;
+  chatMode?: boolean;
 }): Promise<AgentResponse> {
-  const { agentIndex, userMessage, isBoardroom = false, boardroomTaskId } = params;
+  const { agentIndex, userMessage, isBoardroom = false, boardroomTaskId, chatMode = false } = params;
   const llmConfig = useStore.getState().llmConfig;
   const provider = LLMFactory.getProvider(llmConfig);
   const agentData = AGENTS.find(a => a.index === agentIndex);
 
   // 1. Build context
-  const systemInstruction = buildSystemPrompt(agentIndex, isBoardroom);
+  const systemInstruction = chatMode
+    ? buildChatSystemPrompt(agentIndex)
+    : buildSystemPrompt(agentIndex, isBoardroom);
 
   const store = useAgencyStore.getState();
   const currentTask = store.tasks.find(
@@ -55,7 +59,9 @@ export async function callAgent(params: {
     taskBoardSummary: store.tasks.map(t => `[${t.id}] ${t.status} - ${t.description}`).join('\n')
   });
 
-  const fullUserMessage = `${dynamicContext}\n\n---\nMESSAGE:\n${userMessage}`;
+  const fullUserMessage = chatMode
+    ? userMessage
+    : `${dynamicContext}\n\n---\nMESSAGE:\n${userMessage}`;
 
   // 2. Get history from store
   const history = isBoardroom && boardroomTaskId
@@ -86,9 +92,10 @@ export async function callAgent(params: {
   }
 
   // 3. Call LLM
+  const tools = chatMode ? [] : AGENCY_TOOLS;
   const response = await provider.generateCompletion(
     messages,
-    AGENCY_TOOLS,
+    tools,
     systemInstruction,
     llmConfig.model
   );

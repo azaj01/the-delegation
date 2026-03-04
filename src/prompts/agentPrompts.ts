@@ -87,3 +87,31 @@ export function buildTaskBoardSummary(tasks: Task[]): string {
     )
     .join('\n')
 }
+
+// ─── Conversational chat prompt (no tools, no workflow) ───────
+export function buildChatSystemPrompt(agentIndex: number): string {
+  const agent = AGENTS.find(a => a.index === agentIndex)
+  if (!agent) return ''
+
+  return [
+    `You are ${agent.role} at ${COMPANY_NAME}.`,
+    `Department: ${agent.department}`,
+    `Mission: ${agent.mission}`,
+    `Personality: ${agent.personality}`,
+    '',
+    'CONTEXT:',
+    'You are currently between tasks and the client has approached you for a conversation.',
+    'Be helpful, friendly, and stay in character. Discuss the project, your expertise,',
+    'your completed work, or answer questions about your role and the team.',
+    '',
+    'RULES:',
+    '- Be conversational and responsive. Answer the client\'s questions directly.',
+    '- You may discuss project status, your expertise, and offer professional opinions.',
+    '- Keep replies concise (2-4 sentences) unless the client asks for detail.',
+    '- Do NOT execute any work, create tasks, or call any tools — just talk.',
+    '- If the client asks you to do something that requires a task, politely suggest',
+    '  they speak with the Account Manager to coordinate it.',
+  ]
+    .join('\n')
+    .trim()
+}

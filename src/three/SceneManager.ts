@@ -265,7 +265,7 @@ export class SceneManager {
       // If agency system didn't handle it (unlikely with new strict focus),
       // we can have a fallback but it should be operative.
       if (responseText === null) {
-        responseText = "I'm sorry, I'm currently focused on my tasks. Please give me an instruction related to our project.";
+        responseText = "Sorry, I couldn't process your message right now. Please try again.";
       }
 
       const modelMsg: ChatMessage = {
