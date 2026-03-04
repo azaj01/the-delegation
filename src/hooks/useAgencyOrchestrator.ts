@@ -44,6 +44,12 @@ export function useAgencyOrchestrator() {
       }, 100)
     }
 
+    // When an agent requests approval, it stops working — release from runningAgents
+    // so it won't block re-dispatch once the user approves.
+    if (handled && fn.name === 'request_client_approval') {
+      runningAgents.current.delete(callerIndex)
+    }
+
     return handled
   }
 
@@ -145,6 +151,9 @@ export function useAgencyOrchestrator() {
       }
     } catch (err) {
       console.error(`[Orchestrator] agent ${agentIndex} task error:`, err)
+    } finally {
+      // Always clean up — handles early returns (on_hold/done) and errors.
+      // complete_task already deletes, but a Set delete is idempotent.
       runningAgents.current.delete(agentIndex)
     }
   }
@@ -279,6 +288,7 @@ export function useAgencyOrchestrator() {
           taskId: task.id,
         })
 
+        runningAgents.current.add(npcIndex)
         try {
           const response = await callAgent({
             agentIndex: npcIndex,
@@ -289,17 +299,21 @@ export function useAgencyOrchestrator() {
               processFunctionCall(fn, npcIndex)
             }
           }
-          // Restart the work loop for this agent
+
+          // Check if agent re-requested approval or already completed — bail out if so
+          const statusAfterFirst = useAgencyStore.getState().tasks.find((t) => t.id === task.id)?.status
+          if (statusAfterFirst !== 'in_progress') return response.text || null
+
           sceneRef.current?.setNpcWorking(npcIndex, true)
 
-          // Reflection / Designing phase - use the response pattern instead of hardcoded strings
+          // Reflection / Designing phase
           await callAgent({
             agentIndex: npcIndex,
             userMessage: `Client responded: "${text}". Draft an updated version of your result taking this feedback into account.`,
           })
 
-          const status = useAgencyStore.getState().tasks.find((t) => t.id === task.id)?.status
-          if (status !== 'in_progress') return
+          const statusAfterDraft = useAgencyStore.getState().tasks.find((t) => t.id === task.id)?.status
+          if (statusAfterDraft !== 'in_progress') return response.text || null
 
           const completeRes = await callAgent({
             agentIndex: npcIndex,
@@ -315,6 +329,8 @@ export function useAgencyOrchestrator() {
         } catch (err) {
           console.error('[Orchestrator] approval resume error:', err)
           return null
+        } finally {
+          runningAgents.current.delete(npcIndex)
         }
       }
     }
@@ -352,14 +368,16 @@ export function useAgencyOrchestrator() {
         }, 2000)
       }
 
-      // Exit chat mode if the chatted NPC just picked up a new in_progress task
+      // Exit chat mode only when a brand-new task (scheduled) starts for the chatted NPC.
+      // Do NOT close chat on on_hold → in_progress (approval resume) — the user should
+      // see the agent's acknowledgment reply before the chat closes naturally.
       const { isChatting, selectedNpcIndex } = useStore.getState()
       if (isChatting && selectedNpcIndex !== null) {
         const justStarted = s.tasks.find(
           (t) =>
             t.status === 'in_progress' &&
             t.assignedAgentIds.includes(selectedNpcIndex) &&
-            prev.tasks.some((pt) => pt.id === t.id && pt.status !== 'in_progress'),
+            prev.tasks.some((pt) => pt.id === t.id && pt.status === 'scheduled'),
         )
         if (justStarted) {
           sceneRef.current?.endChat()

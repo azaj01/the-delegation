@@ -67,19 +67,20 @@ export async function callAgent(params: {
     { role: 'user', content: fullUserMessage }
   ];
 
-  // PAUSE BEFORE CALL (OPTIONAL)
+  // Always log the request for the technical log panel
+  useAgencyStore.getState().addDebugLogEntry({
+      agentIndex,
+      agentName: agentData?.role || 'Unknown',
+      phase: 'request',
+      systemPrompt: systemInstruction,
+      dynamicContext,
+      messages,
+      rawContent: userMessage,
+      status: 'pending',
+      taskId: boardroomTaskId || currentTask?.id
+  });
+  // PAUSE BEFORE CALL (only when debug mode on)
   if (useAgencyStore.getState().pauseOnCall) {
-    useAgencyStore.getState().addDebugLogEntry({
-        agentIndex,
-        agentName: agentData?.role || 'Unknown',
-        phase: 'request',
-        systemPrompt: systemInstruction,
-        dynamicContext,
-        messages,
-        rawContent: userMessage,
-        status: 'pending',
-        taskId: boardroomTaskId || currentTask?.id
-    });
     useAgencyStore.getState().setPaused(true);
     await waitForResume();
   }
@@ -99,19 +100,20 @@ export async function callAgent(params: {
     args: JSON.parse(tc.function.arguments)
   }));
 
-  // PAUSE AFTER RESPONSE (OPTIONAL)
+  // Always log the response for the technical log panel
+  useAgencyStore.getState().addDebugLogEntry({
+      agentIndex,
+      agentName: agentData?.role || 'Unknown',
+      phase: 'response',
+      systemPrompt: systemInstruction,
+      dynamicContext,
+      messages,
+      rawContent: JSON.stringify({ text, toolCalls }, null, 2),
+      status: 'completed',
+      taskId: boardroomTaskId || currentTask?.id
+  });
+  // PAUSE AFTER RESPONSE (only when debug mode on)
   if (useAgencyStore.getState().pauseOnCall) {
-    useAgencyStore.getState().addDebugLogEntry({
-        agentIndex,
-        agentName: agentData?.role || 'Unknown',
-        phase: 'response',
-        systemPrompt: systemInstruction,
-        dynamicContext,
-        messages,
-        rawContent: JSON.stringify({ text, toolCalls }, null, 2),
-        status: 'completed',
-        taskId: boardroomTaskId || currentTask?.id
-    });
     useAgencyStore.getState().setPaused(true);
     await waitForResume();
   }
