@@ -1,27 +1,13 @@
 import React from 'react';
-import { useStore } from '../store/useStore';
 import { useAgencyStore } from '../store/agencyStore';
 import { AGENTS } from '../data/agents';
-import { useSceneManager } from '../three/SceneContext';
-import { useChatAvailability } from '../hooks/useChatAvailability';
 
 interface AgentViewProps {
   agentIndex: number;
 }
 
 const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
-  const { setInspectorTab, isChatting } = useStore();
-  const scene = useSceneManager();
-  const { canChat, reason } = useChatAvailability(agentIndex);
-  const {
-    tasks,
-    setLogOpen,
-    addTask,
-    updateTaskStatus,
-    setTaskOutput,
-    setPendingApproval,
-    pendingApprovalTaskId
-  } = useAgencyStore();
+  const { tasks } = useAgencyStore();
 
   const agent = AGENTS[agentIndex];
   if (!agent) return null;
@@ -30,23 +16,9 @@ const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
     (t) => t.assignedAgentIds.includes(agentIndex) && t.status === 'in_progress'
   ) ?? null;
 
-  const isApprovalAgent =
-    pendingApprovalTaskId != null &&
-    tasks.some(
-      (t) =>
-        t.id === pendingApprovalTaskId &&
-        t.assignedAgentIds.includes(agentIndex),
-    );
-
-  const handleStartChat = () => {
-    scene?.startChat(agentIndex);
-    setInspectorTab('chat');
-  };
-
-  const handleEndChat = () => {
-    scene?.endChat();
-    setInspectorTab('info');
-  };
+  const onHoldTask = tasks.find(
+    (t) => t.assignedAgentIds.includes(agentIndex) && t.status === 'on_hold'
+  ) ?? null;
 
   return (
     <div className="flex flex-col h-full p-6">
@@ -65,7 +37,7 @@ const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
 
       <div className="h-px bg-zinc-100 w-full mb-6" />
 
-      {/* Active task highlight */}
+      {/* Task Status */}
       {activeTask ? (
         <div className="mb-6">
           <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-2">
@@ -79,61 +51,34 @@ const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
             "{activeTask.description}"
           </p>
         </div>
+      ) : onHoldTask ? (
+        <div className="mb-6">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#7EACEA] mb-2 flex items-center gap-2">
+             <div className="flex -space-x-1.5">
+                <div className="w-4 h-4 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: agent.color }} />
+                <div className="w-4 h-4 rounded-full border-2 border-white shadow-sm bg-[#7EACEA] flex items-center justify-center">
+                  <span className="text-[6px] text-white font-black">YOU</span>
+                </div>
+             </div>
+            Needs Discussion
+          </p>
+          <p className="text-sm text-zinc-800 leading-snug font-bold">
+            "{onHoldTask.description}"
+          </p>
+          <p className="text-[10px] text-zinc-400 mt-2 italic font-medium">
+            Waiting for your input to proceed.
+          </p>
+        </div>
       ) : (
         <div className="mb-6">
-          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">
+          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2 text-zinc-400/50">
             Status
           </p>
-          <p className="text-sm text-zinc-400 leading-snug italic font-medium">
+          <p className="text-sm text-zinc-300 leading-snug italic font-medium">
             Waiting for next task...
           </p>
         </div>
       )}
-
-      {/* Debug Controls */}
-      <div className="mt-auto border-t border-zinc-100 pt-4 opacity-50 hover:opacity-100 transition-opacity">
-        <p className="text-[8px] font-black text-zinc-300 uppercase mb-2 tracking-tighter">Debug Simulation</p>
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            onClick={() => {
-              addTask({
-                title: `Work for ${agent.role}`,
-                description: "Manually triggered work",
-                assignedAgentIds: [agentIndex],
-                status: 'scheduled',
-                requiresClientApproval: false,
-              });
-            }}
-            className="px-2 py-1 bg-zinc-50 text-zinc-500 border border-zinc-200 text-[8px] font-bold rounded uppercase hover:bg-zinc-100 transition-colors"
-          >
-            + Task
-          </button>
-          {activeTask && (
-            <>
-              <button
-                onClick={() => {
-                  updateTaskStatus(activeTask.id, 'done');
-                  setTaskOutput(activeTask.id, "Simulated output");
-                  scene?.setNpcWorking(agentIndex, false);
-                }}
-                className="px-2 py-1 bg-green-50 text-green-600 border border-green-100 text-[8px] font-bold rounded uppercase hover:bg-green-100 transition-colors"
-              >
-                Set Done
-              </button>
-              <button
-                onClick={() => {
-                  updateTaskStatus(activeTask.id, 'on_hold');
-                  setPendingApproval(activeTask.id);
-                  scene?.setNpcWorking(agentIndex, false);
-                }}
-                className="px-2 py-1 bg-orange-50 text-orange-600 border border-orange-100 text-[8px] font-bold rounded uppercase hover:bg-orange-100 transition-colors"
-              >
-                Req Approval
-              </button>
-            </>
-          )}
-        </div>
-      </div>
     </div>
   );
 };

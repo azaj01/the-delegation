@@ -78,6 +78,24 @@ export class ToolHandlerService {
         return true;
       }
 
+      case 'receive_client_approval': {
+        const { taskId } = fn.args as { taskId: string };
+        store.updateTaskStatus(taskId, 'in_progress');
+        store.setPendingApproval(null);
+        store.addLogEntry({
+          agentIndex: callerIndex,
+          action: `received client approval - resuming work`,
+          taskId,
+        });
+        scene?.setNpcWorking(callerIndex, true);
+
+        // Auto-end chat from the agent side
+        if (scene && 'endChat' in scene) {
+          (scene as any).endChat();
+        }
+        return true;
+      }
+
       case 'complete_task': {
         const { taskId, output } = fn.args as { taskId: string; output: string };
         store.updateTaskStatus(taskId, 'done');

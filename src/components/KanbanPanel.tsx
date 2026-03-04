@@ -15,6 +15,16 @@ interface KanbanPanelProps {
 }
 
 function renderAgentTag(agentIndex: number) {
+  if (agentIndex === 0) { // Client / You
+     return (
+      <span key={agentIndex} className="flex items-center gap-1 text-[10px] text-[#7EACEA] font-bold">
+        <span
+          className="w-1.5 h-1.5 rounded-full shrink-0 bg-[#7EACEA]"
+        />
+        You
+      </span>
+    )
+  }
   const agent = AGENTS.find(a => a.index === agentIndex)
   if (!agent) return null
   return (
@@ -30,6 +40,11 @@ function renderAgentTag(agentIndex: number) {
 
 function TaskCard({ task }: { task: Task; key?: string }) {
   const [isExpanded, setIsExpanded] = useState(false)
+
+  // For visual representation, if on_hold, we "virtualize" the client being assigned
+  const effectiveAgentIds = task.status === 'on_hold'
+    ? [...new Set([0, ...task.assignedAgentIds])]
+    : task.assignedAgentIds
 
   return (
     <div key={task.id} className="bg-white rounded-lg border border-black/5 shadow-sm p-3 space-y-2 group">
@@ -51,14 +66,9 @@ function TaskCard({ task }: { task: Task; key?: string }) {
         </p>
       )}
 
-      <div className="flex flex-wrap gap-1.5 pt-1">
-        {task.assignedAgentIds.map(renderAgentTag)}
+      <div className="flex flex-wrap gap-x-2 gap-y-1 pt-1">
+        {effectiveAgentIds.map(renderAgentTag)}
       </div>
-      {task.status === 'on_hold' && (
-        <span className="inline-block text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
-          awaiting input
-        </span>
-      )}
       {task.status === 'in_progress' && (
         <span className="inline-block text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5">
           working

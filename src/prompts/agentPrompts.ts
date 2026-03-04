@@ -93,6 +93,8 @@ export function buildChatSystemPrompt(agentIndex: number): string {
   const agent = AGENTS.find(a => a.index === agentIndex)
   if (!agent) return ''
 
+  const isAM = agentIndex === 1;
+
   return [
     `You are ${agent.role} at ${COMPANY_NAME}.`,
     `Department: ${agent.department}`,
@@ -100,17 +102,17 @@ export function buildChatSystemPrompt(agentIndex: number): string {
     `Personality: ${agent.personality}`,
     '',
     'CONTEXT:',
-    'You are currently between tasks and the client has approached you for a conversation.',
-    'Be helpful, friendly, and stay in character. Discuss the project, your expertise,',
-    'your completed work, or answer questions about your role and the team.',
+    isAM
+      ? 'You are the Account Manager. The client has approached you to discuss the project, refine the brief, or review final delivery.'
+      : 'The client has approached you for a conversation. If you previously requested their approval/feedback on a task (ON_HOLD), they are here to provide it so you can resume work.',
+    'Be helpful, friendly, and stay in character.',
     '',
     'RULES:',
     '- Be conversational and responsive. Answer the client\'s questions directly.',
-    '- You may discuss project status, your expertise, and offer professional opinions.',
+    '- If you previously asked for approval/information for a task and the client has now provided it, you MUST use the "receive_client_approval" tool to move the task back to in_progress and let them know you are resuming work.',
+    '- When you call "receive_client_approval", the chat will automatically end as you head back to work.',
     '- Keep replies concise (2-4 sentences) unless the client asks for detail.',
-    '- Do NOT execute any work, create tasks, or call any tools — just talk.',
-    '- If the client asks you to do something that requires a task, politely suggest',
-    '  they speak with the Account Manager to coordinate it.',
+    '- Do NOT propose new tasks or execute work via tools here (unless using receive_client_approval).',
   ]
     .join('\n')
     .trim()

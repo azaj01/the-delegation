@@ -92,7 +92,8 @@ export async function callAgent(params: {
   }
 
   // 3. Call LLM
-  const tools = chatMode ? [] : AGENCY_TOOLS;
+  // We allow tools in chat mode if it's the specific approval tool we need
+  const tools = chatMode ? AGENCY_TOOLS.filter(t => t.function.name === 'receive_client_approval') : AGENCY_TOOLS;
   const response = await provider.generateCompletion(
     messages,
     tools,

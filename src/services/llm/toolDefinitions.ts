@@ -72,6 +72,23 @@ export const AGENCY_TOOLS: LLMToolDefinition[] = [
   {
     type: 'function',
     function: {
+      name: 'receive_client_approval',
+      description: 'Call this ONLY when you are in a chat with the client and they have given you the approval or information you needed. This will end the chat and move the task back to in_progress.',
+      parameters: {
+        type: 'object',
+        properties: {
+          taskId: {
+            type: 'string',
+            description: 'The ID of the task that has been approved.',
+          },
+        },
+        required: ['taskId'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'complete_task',
       description: 'When your work is done. output is the prompt you crafted (max 500 words).',
       parameters: {

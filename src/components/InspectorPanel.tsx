@@ -64,7 +64,7 @@ const InspectorPanel: React.FC = () => {
         <>
           {/* Header with Role and Department */}
           <div className="p-4 border-b border-zinc-100 bg-zinc-50/50">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-1.5">
               <span
                 className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full text-white"
                 style={{ backgroundColor: agent.color }}
@@ -74,8 +74,9 @@ const InspectorPanel: React.FC = () => {
               {isChatting && (
                 <button
                   onClick={handleEndChat}
-                  className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-600 transition-colors flex items-center gap-1"
+                  className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-white bg-red-500 hover:bg-red-600 active:scale-95 transition-all rounded-lg shadow-sm flex items-center gap-1.5"
                 >
+                  <span className="w-1.5 h-1.5 rounded-full bg-white opacity-80" />
                   End Chat
                 </button>
               )}
