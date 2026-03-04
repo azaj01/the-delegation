@@ -31,6 +31,7 @@ export class InputManager {
     private onPoiClick: (id: string) => void,
     private raycastObject?: THREE.Object3D,
     private isPointValid?: (point: THREE.Vector3) => boolean,
+    private getIsPaused?: () => boolean,
   ) {
     this.boundPointerDown = this.handlePointerDown.bind(this);
     this.boundPointerMove = this.handlePointerMove.bind(this);
@@ -42,12 +43,14 @@ export class InputManager {
 
   private handlePointerDown(event: PointerEvent) {
     if (event.button !== 0) return;
+    if (this.getIsPaused?.()) return;
     this.dragStartX = event.clientX;
     this.dragStartY = event.clientY;
     this.isDragging = false;
   }
 
   private handlePointerMove(event: PointerEvent) {
+    if (this.getIsPaused?.()) return;
     const rect = this.canvas.getBoundingClientRect();
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -184,6 +187,7 @@ export class InputManager {
 
   private handlePointerUp(event: PointerEvent) {
     if (event.button !== 0) return;
+    if (this.getIsPaused?.()) return;
     if (this.isDragging) return;
     this.handleClick(event as unknown as MouseEvent);
   }

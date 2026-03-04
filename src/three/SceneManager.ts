@@ -105,7 +105,8 @@ export class SceneManager {
       (id, label, pos) => useStore.getState().setHoveredPoi(id, label, pos),
       (id) => playerDriver.onPoiClick(id),
       this.worldManager.getOffice() ?? undefined,
-      (point) => this.navMesh.isPointOnNavMesh(point)
+      (point) => this.navMesh.isPointOnNavMesh(point),
+      () => useAgencyStore.getState().isPaused,
     );
 
     this.engine.renderer.setAnimationLoop(this.animate.bind(this));
@@ -383,9 +384,11 @@ export class SceneManager {
     this.engine.timer.update();
     const isPaused = useAgencyStore.getState().isPaused;
 
-    // When paused, we bypass the entire update/render logic
+    // When paused: update camera controls so orbiting still works, then render
+    // the frozen frame and bail — no GPU compute, no path/driver updates.
     if (isPaused) {
-      this.engine.renderer.render(this.stage.scene, this.stage.camera);
+      this.stage.update();
+      this.engine.render(this.stage.scene, this.stage.camera);
       return;
     }
 
@@ -399,6 +402,8 @@ export class SceneManager {
     // 2. GPU→CPU readback (async, 1-frame lag)
     this.controller?.syncFromGPU(this.engine.renderer).then((positions) => {
       if (!positions || !this.controller) return;
+      // Guard: if the scene was paused while the readback was in-flight, discard
+      if (useAgencyStore.getState().isPaused) return;
       this.controller.updatePaths(positions);
       this.driverManager?.update(positions, delta);
     });

@@ -17,7 +17,6 @@ import {
   atan,
   attribute,
   positionLocal,
-  time,
   texture,
   sin,
   cos,
@@ -50,8 +49,9 @@ export class CharacterManager {
   // CPU-side mirror of GPU positions (updated via GPU readback each frame)
   private debugPosArray: Float32Array | null = null;
 
-  // Track global time for animation resets
+  // Track global time for animation resets (also drives the paused-safe shader uTime uniform)
   private currentTime = 0;
+  private uTime = uniform(0);
 
   // Logic Nodes
   private computeNode: any;
@@ -187,6 +187,7 @@ export class CharacterManager {
 
   public update(delta: number, renderer: any) {
     this.currentTime += delta;
+    this.uTime.value = this.currentTime;
 
     if (this.expressionBuffer) {
       this.expressionBuffer.update(delta);
@@ -432,7 +433,7 @@ export class CharacterManager {
         const startTime = animParams.x;
         const loopMode = animParams.y;
 
-        const animTime = time.sub(startTime).max(0);
+        const animTime = this.uTime.sub(startTime).max(0);
         const t = loopMode.greaterThan(0.5) ? animTime.div(duration).fract() : animTime.div(duration).clamp(0, 1);
 
         const currentFrame = t.mul(numFrames.toFloat()).toUint();
