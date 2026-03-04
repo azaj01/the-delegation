@@ -76,33 +76,33 @@ const ChatPanel: React.FC = () => {
   };
 
   if (!isChatting || !agent) {
-    if (isProjectReady && agent) {
-      return (
-        <div className="flex flex-col h-full bg-white p-6 gap-4 pointer-events-auto">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 flex flex-col gap-3">
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col h-full bg-white relative overflow-hidden shrink-0 pointer-events-auto shadow-2xl">
+      {/* Project Ready Banner when applicable (only inside ChatPanel now) */}
+      {isProjectReady && (
+        <div className="flex flex-col p-6 pb-0 gap-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 flex flex-col gap-3 shadow-sm">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
               <span className="text-[10px] font-black uppercase tracking-widest text-yellow-700">Project Ready</span>
             </div>
-            <p className="text-sm text-zinc-600 leading-relaxed">
-              The team has finished working on your project. Your final deliverable is ready to review.
+            <p className="text-[13px] text-zinc-600 leading-snug">
+              The team has finished. Your final deliverable is ready to review.
             </p>
             <button
               onClick={() => setFinalOutputOpen(true)}
-              className="flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-black px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all w-full"
+              className="flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-black px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all w-full shadow-sm"
             >
               <FolderOpen size={14} strokeWidth={3} />
               View Final Output
             </button>
           </div>
         </div>
-      );
-    }
-    return null;
-  }
+      )}
 
-  return (
-    <div className="flex flex-col h-full bg-white relative overflow-hidden shrink-0 pointer-events-auto shadow-2xl">
       {/* Messages */}
       <div
         ref={scrollRef}
