@@ -1,15 +1,40 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useStore } from '../store/useStore';
+import { useSceneManager } from '../three/SceneContext';
+import { useAgencyStore } from '../store/agencyStore';
 import AgentView from './AgentView';
 import ProjectView from './ProjectView';
 import ChatPanel from './ChatPanel';
 import { AGENTS } from '../data/agents';
 import { Info, MessageSquare } from 'lucide-react';
 
+const AM_INDEX = 1;
+
 const InspectorPanel: React.FC = () => {
   const { selectedNpcIndex, inspectorTab, setInspectorTab } = useStore();
+  const scene = useSceneManager();
+  const { phase, pendingApprovalTaskId, tasks } = useAgencyStore();
 
   const agent = selectedNpcIndex !== null ? AGENTS[selectedNpcIndex] : null;
+
+  // Auto-switch to chat tab for special agents
+  useEffect(() => {
+    if (selectedNpcIndex === null) return;
+
+    if (selectedNpcIndex === AM_INDEX && phase === 'done') {
+      setInspectorTab('chat');
+      return;
+    }
+
+    if (pendingApprovalTaskId && phase !== 'done') {
+      const approvalTask = tasks.find(t => t.id === pendingApprovalTaskId);
+      const approvalAgentIndex = approvalTask?.assignedAgentIds[0];
+      if (approvalAgentIndex !== undefined && selectedNpcIndex === approvalAgentIndex) {
+        setInspectorTab('chat');
+        scene?.startChat(selectedNpcIndex);
+      }
+    }
+  }, [selectedNpcIndex]);
 
   return (
     <div className="w-80 h-full bg-white border-l border-zinc-100 flex flex-col pointer-events-auto shrink-0 relative z-30">

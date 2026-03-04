@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useSceneManager } from '../three/SceneContext'
 import { useAgencyStore, type Task } from '../store/agencyStore'
+import { useStore } from '../store/useStore'
 import {
   callAgent,
   callAccountManager,
@@ -349,6 +350,20 @@ export function useAgencyOrchestrator() {
             dispatchTask(task)
           }
         }, 2000)
+      }
+
+      // Exit chat mode if the chatted NPC just picked up a new in_progress task
+      const { isChatting, selectedNpcIndex } = useStore.getState()
+      if (isChatting && selectedNpcIndex !== null) {
+        const justStarted = s.tasks.find(
+          (t) =>
+            t.status === 'in_progress' &&
+            t.assignedAgentIds.includes(selectedNpcIndex) &&
+            prev.tasks.some((pt) => pt.id === t.id && pt.status !== 'in_progress'),
+        )
+        if (justStarted) {
+          sceneRef.current?.endChat()
+        }
       }
     })
 

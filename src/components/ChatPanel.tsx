@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { useSceneManager } from '../three/SceneContext';
+import { useAgencyStore } from '../store/agencyStore';
 import { AGENTS } from '../data/agents';
-import { Send } from 'lucide-react';
+import { Send, FolderOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+
+const AM_INDEX = 1;
 
 const ChatPanel: React.FC = () => {
   const {
@@ -14,6 +17,7 @@ const ChatPanel: React.FC = () => {
     setIsTyping
   } = useStore();
   const scene = useSceneManager();
+  const { phase, setFinalOutputOpen } = useAgencyStore();
 
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -21,6 +25,7 @@ const ChatPanel: React.FC = () => {
   const stopTypingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const agent = selectedNpcIndex !== null ? AGENTS[selectedNpcIndex] : null;
+  const isProjectReady = phase === 'done' && selectedNpcIndex === AM_INDEX;
 
   useEffect(() => {
     return () => {
@@ -70,7 +75,31 @@ const ChatPanel: React.FC = () => {
     await scene?.sendMessage(text);
   };
 
-  if (!isChatting || !agent) return null;
+  if (!isChatting || !agent) {
+    if (isProjectReady && agent) {
+      return (
+        <div className="flex flex-col h-full bg-white p-6 gap-4 pointer-events-auto">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-yellow-700">Project Ready</span>
+            </div>
+            <p className="text-sm text-zinc-600 leading-relaxed">
+              The team has finished working on your project. Your final deliverable is ready to review.
+            </p>
+            <button
+              onClick={() => setFinalOutputOpen(true)}
+              className="flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-black px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all w-full"
+            >
+              <FolderOpen size={14} strokeWidth={3} />
+              View Final Output
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-full bg-white relative overflow-hidden shrink-0 pointer-events-auto shadow-2xl">
