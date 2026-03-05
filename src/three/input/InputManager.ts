@@ -243,12 +243,17 @@ export class InputManager {
     if (this.raycastObject) {
       const intersects = this.raycaster.intersectObject(this.raycastObject, true);
       if (intersects.length > 0) {
-        // Find first mesh that is NOT a navmesh
-        const validMatch = intersects.find(hit => !hit.object.name.toLowerCase().includes('navmesh'));
-        if (validMatch) point = validMatch.point;
+        // Find first mesh that is a navmesh
+        const navMeshMatch = intersects.find(hit => hit.object.name.toLowerCase().includes('navmesh'));
+        if (navMeshMatch) {
+          point = navMeshMatch.point;
+        } else {
+          // Fallback: if no navmesh hit, don't allow movement on other meshes (like walls/props)
+          return null;
+        }
       }
     } else {
-      // Fallback to infinite plane
+      // Fallback to infinite plane (only if no raycastObject)
       const target = new THREE.Vector3();
       if (this.raycaster.ray.intersectPlane(FLOOR_PLANE, target)) {
         point = target;
