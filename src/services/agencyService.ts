@@ -8,7 +8,7 @@ import {
 import { LLMFactory } from './llm/LLMFactory'
 import { LLMMessage } from './llm/types'
 import { AGENCY_TOOLS } from './llm/toolDefinitions'
-import { AGENTS } from '../data/agents'
+import { getActiveAgentSet } from '../store/agencyStore'
 
 export interface AgentFunctionCall {
   name: string
@@ -70,7 +70,7 @@ export async function callAgent(params: {
   const { agentIndex, userMessage, isBoardroom = false, boardroomTaskId, chatMode = false } = params;
   const llmConfig = useStore.getState().llmConfig;
   const provider = LLMFactory.getProvider(llmConfig);
-  const agentData = AGENTS.find(a => a.index === agentIndex);
+  const agentData = getActiveAgentSet().agents.find(a => a.index === agentIndex);
 
   // 1. Build context
   const systemInstruction = chatMode

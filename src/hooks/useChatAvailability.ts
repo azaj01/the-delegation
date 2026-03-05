@@ -1,5 +1,5 @@
 import { useAgencyStore } from '../store/agencyStore'
-import { AGENTS } from '../data/agents'
+import { getAgentSet } from '../data/agents'
 
 const ORCHESTRATOR_INDEX = 1
 
@@ -13,11 +13,12 @@ export interface ChatAvailability {
  * the current project phase and the agent's task state.
  */
 export function useChatAvailability(agentIndex: number | null): ChatAvailability {
-  const { phase, tasks } = useAgencyStore()
+  const { phase, tasks, selectedAgentSetId } = useAgencyStore()
+  const agents = getAgentSet(selectedAgentSetId).agents
 
   if (agentIndex === null) return { canChat: false, reason: '' }
 
-  const agent = AGENTS[agentIndex]
+  const agent = agents.find(a => a.index === agentIndex)
   if (!agent || agent.isPlayer) return { canChat: false, reason: '' }
 
   const activeTask = tasks.find(

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { LLMMessage } from '../services/llm/types'
+import { AgentSet, DEFAULT_AGENT_SET_ID, getAgentSet } from '../data/agents'
 
 export type TaskStatus = 'scheduled' | 'on_hold' | 'in_progress' | 'done'
 
@@ -59,6 +60,9 @@ interface AgencyState {
   agentSummaries: Record<number, string>
   boardroomHistories: Record<string, LLMMessage[]>
 
+  // ── Agent Set ────────────────────────────────────────────────
+  selectedAgentSetId: string;
+
   // ── UI ───────────────────────────────────────────────────────
   isKanbanOpen: boolean
   isLogOpen: boolean
@@ -100,6 +104,7 @@ interface AgencyState {
   setPaused: (paused: boolean) => void;
   togglePauseOnCall: () => void;
   resetProject: () => void;
+  setAgentSet: (id: string) => void;
 }
 
 const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
@@ -107,6 +112,7 @@ const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 export const useAgencyStore = create<AgencyState>()(
   persist(
     (set) => ({
+      selectedAgentSetId: DEFAULT_AGENT_SET_ID,
       clientBrief: '',
       phase: 'idle',
       finalOutput: null,
@@ -271,14 +277,37 @@ export const useAgencyStore = create<AgencyState>()(
         }
         return { pauseOnCall: nextPauseOnCall };
       }),
+
+      setAgentSet: (id) => set({
+        selectedAgentSetId: id,
+        // Reset project state along with the agent set change
+        clientBrief: '',
+        phase: 'idle',
+        finalOutput: null,
+        tasks: [],
+        actionLog: [],
+        debugLog: [],
+        agentHistories: {},
+        agentSummaries: {},
+        boardroomHistories: {},
+        pendingApprovalTaskId: null,
+        isFinalOutputOpen: false,
+        isPaused: false,
+      }),
     }),
     {
       name: 'agency-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         pauseOnCall: state.pauseOnCall,
-        // Optional: you might want to persist other UI preferences here too
+        selectedAgentSetId: state.selectedAgentSetId,
       }),
     }
   )
 )
+
+/** Returns the currently active AgentSet. Safe to call from service/non-React contexts. */
+export function getActiveAgentSet(): AgentSet {
+  const { selectedAgentSetId } = useAgencyStore.getState()
+  return getAgentSet(selectedAgentSetId)
+}

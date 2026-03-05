@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { useSceneManager } from '../three/SceneContext';
 import { useAgencyStore } from '../store/agencyStore';
-import { AGENTS } from '../data/agents';
+import { getAgentSet } from '../data/agents';
 import { Send, FolderOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -16,14 +16,15 @@ const ChatPanel: React.FC = () => {
     setIsTyping
   } = useStore();
   const scene = useSceneManager();
-  const { phase, setFinalOutputOpen } = useAgencyStore();
+  const { phase, setFinalOutputOpen, selectedAgentSetId } = useAgencyStore();
+  const agents = getAgentSet(selectedAgentSetId).agents;
 
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const stopTypingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const agent = selectedNpcIndex !== null ? AGENTS[selectedNpcIndex] : null;
+  const agent = selectedNpcIndex !== null ? agents.find(a => a.index === selectedNpcIndex) ?? null : null;
 
   // Combine store messages with agency histories if needed,
   // but unified useAgencyStore is the source of truth for history.

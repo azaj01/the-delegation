@@ -6,7 +6,7 @@ import { useChatAvailability } from '../hooks/useChatAvailability';
 import AgentView from './AgentView';
 import ProjectView from './ProjectView';
 import ChatPanel from './ChatPanel';
-import { AGENTS } from '../data/agents';
+import { getAgentSet } from '../data/agents';
 import { MessageSquare, Lock, FolderOpen, Siren, MessageSquareWarning } from 'lucide-react';
 
 const ORCHESTRATOR_INDEX = 1;
@@ -18,11 +18,12 @@ interface InspectorPanelProps {
 const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
   const { selectedNpcIndex, isChatting } = useStore();
   const scene = useSceneManager();
-  const { phase, setFinalOutputOpen, tasks } = useAgencyStore();
+  const { phase, setFinalOutputOpen, tasks, selectedAgentSetId } = useAgencyStore();
+  const agents = getAgentSet(selectedAgentSetId).agents;
   const { canChat, reason } = useChatAvailability(selectedNpcIndex);
   const prevCanChat = useRef(canChat);
 
-  const agent = selectedNpcIndex !== null ? AGENTS[selectedNpcIndex] : null;
+  const agent = selectedNpcIndex !== null ? agents.find(a => a.index === selectedNpcIndex) ?? null : null;
   const isProjectReady = phase === 'done' && selectedNpcIndex === ORCHESTRATOR_INDEX;
 
   const isOrchestratorIdle = selectedNpcIndex === ORCHESTRATOR_INDEX && phase === 'idle';

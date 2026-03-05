@@ -28,7 +28,7 @@ const Header: React.FC = () => {
       {/* Left: Project Title */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-black text-zinc-900 tracking-tight">The Embodied Agency</span>
+          <span className="text-sm font-black text-zinc-900 tracking-tight">The Delegation</span>
           <button
             onClick={() => setIsInfoOpen(true)}
             className="text-zinc-300 hover:text-zinc-500 transition-colors cursor-pointer"

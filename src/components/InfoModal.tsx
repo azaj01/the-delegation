@@ -30,7 +30,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ onClose }) => {
 
               <div className="space-y-6 text-zinc-500 text-sm leading-relaxed font-medium">
                 <p>
-                  <strong>The Embodied Agency</strong> is an experimental 3D workspace where AI agents with physical presence collaborate autonomously. By replacing abstract logs and chat interfaces with human-centered metaphors, it makes complex AI processes more transparent and accessible. Users can not only see the final result, but also the collective intelligence behind it.
+                  <strong>The Delegation</strong> is an experimental 3D workspace where you stop prompting and start delegating to a team of AI agents with physical presence. Each agent lives and works in a living office, making complex AI processes transparent, collaborative, and human-centered — you see not just the result, but the collective intelligence behind it.
                 </p>
               </div>
 

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useAgencyStore } from '../store/agencyStore';
-import { ScrollText, RefreshCcw, FolderOpen } from 'lucide-react';
-import ResetModal from './ResetModal';
+import { ScrollText, RefreshCcw, Users } from 'lucide-react';
+import AgentSetPickerModal from './AgentSetPickerModal';
 import { useSceneManager } from '../three/SceneContext';
 import { abortAllCalls } from '../services/agencyService';
+import { getAgentSet } from '../data/agents';
 
 const ProjectView: React.FC = () => {
   const {
@@ -11,38 +12,39 @@ const ProjectView: React.FC = () => {
     phase,
     actionLog,
     resetProject,
-    setFinalOutputOpen
+    setFinalOutputOpen,
+    selectedAgentSetId,
   } = useAgencyStore();
   const scene = useSceneManager();
-  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const hasLogs = actionLog.length > 0;
-
-  const handleReset = () => {
-    // 1. Cancel all in-flight LLM calls so no stale response lands on the clean store.
-    abortAllCalls();
-    // 2. Reset the scene: cancels movements, ends chat, and clears useStore UI state.
-    scene?.resetScene();
-    // 3. Wipe the agency store; phase goes back to 'idle'.
-    resetProject();
-  };
+  const activeSet = getAgentSet(selectedAgentSetId);
 
   return (
     <div className="flex flex-col h-full overflow-y-auto p-6 bg-white/50">
       <div className="mb-6 flex items-center justify-between">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5">Project Overview</p>
-          <h2 className="text-xl font-black text-zinc-900 leading-tight">The Agency Mission</h2>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5">{activeSet.companyType}</p>
+          <h2 className="text-xl font-black text-zinc-900 leading-tight">{activeSet.companyName}</h2>
         </div>
+        <button
+          onClick={() => setIsPickerOpen(true)}
+          className="flex items-center gap-1.5 ml-3 px-2.5 py-1.5 bg-zinc-50 hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 rounded-lg transition-all border border-zinc-100 hover:border-zinc-200 shrink-0"
+          title="Change team"
+        >
+          <Users size={12} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Switch</span>
+        </button>
       </div>
 
       <div className="h-px bg-zinc-100 w-full mb-6" />
 
-      {/* Reset Project Button - More Subtle */}
+      {/* Reset Project Button */}
       {hasLogs && (
         <div className="mb-8 flex justify-end">
           <button
-            onClick={() => setIsResetModalOpen(true)}
+            onClick={() => setIsPickerOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100/50 hover:bg-zinc-100 text-zinc-400 hover:text-red-500 rounded-lg transition-all active:scale-95 group border border-transparent hover:border-red-100"
           >
             <RefreshCcw size={12} className="transition-transform group-hover:rotate-180 duration-500" />
@@ -81,10 +83,10 @@ const ProjectView: React.FC = () => {
         </div>
       </div>
 
-      <ResetModal
-        isOpen={isResetModalOpen}
-        onClose={() => setIsResetModalOpen(false)}
-        onConfirm={handleReset}
+      <AgentSetPickerModal
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        hasActiveProject={hasLogs}
       />
     </div>
   );

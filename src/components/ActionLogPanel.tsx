@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useAgencyStore, DebugLogEntry } from '../store/agencyStore'
-import { AGENTS } from '../data/agents'
+import { getAgentSet } from '../data/agents'
 import { ChevronDown, ChevronRight, MessageSquare, Terminal, Eye, Zap, Copy, Check, Download, Filter } from 'lucide-react'
 
 function formatTime(ts: number): string {
@@ -34,7 +34,9 @@ const CopyButton: React.FC<{ text: string }> = ({ text }) => {
 
 const DebugEntryView: React.FC<{ entry: DebugLogEntry }> = ({ entry }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const agent = AGENTS.find(a => a.index === entry.agentIndex);
+    const selectedAgentSetId = useAgencyStore((s) => s.selectedAgentSetId);
+    const agents = getAgentSet(selectedAgentSetId).agents;
+    const agent = agents.find(a => a.index === entry.agentIndex);
 
     // Parse tool calls from rawContent (only available in response entries)
     // Structure: { text: string, toolCalls: LLMToolCall[] }
@@ -252,14 +254,15 @@ ${entry.rawContent}
 };
 
 export function ActionLogPanel() {
-  const { setLogOpen, actionLog, debugLog, logFilterAgentIndex, phase, setFinalOutputOpen } = useAgencyStore()
+  const { setLogOpen, actionLog, debugLog, logFilterAgentIndex, phase, setFinalOutputOpen, selectedAgentSetId } = useAgencyStore()
+  const agents = getAgentSet(selectedAgentSetId).agents;
   const [activeTab, setActiveTab] = useState<'activity' | 'technical'>('technical')
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
   const topRef = useRef<HTMLDivElement>(null)
 
   const handleDownloadAll = () => {
     const content = debugLog.map(entry => {
-      const agent = AGENTS.find(a => a.index === entry.agentIndex);
+      const agent = agents.find(a => a.index === entry.agentIndex);
       return `
 =========================================
 AGENT: ${agent?.role} (${entry.phase})
@@ -285,7 +288,7 @@ ${entry.rawContent}
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `embodied-agency-technical-logs-${Date.now()}.txt`;
+    a.download = `the-delegation-technical-logs-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -296,7 +299,7 @@ ${entry.rawContent}
   }, [actionLog, debugLog, activeTab])
 
   const filterAgent =
-    logFilterAgentIndex !== null ? AGENTS.find(a => a.index === logFilterAgentIndex) ?? null : null
+    logFilterAgentIndex !== null ? agents.find(a => a.index === logFilterAgentIndex) ?? null : null
 
   const entries =
     logFilterAgentIndex !== null
@@ -364,7 +367,7 @@ ${entry.rawContent}
                         All Agents
                       </button>
                       <div className="h-px bg-zinc-50 my-1" />
-                      {AGENTS.map((agent) => (
+                      {agents.map((agent) => (
                         <button
                           key={agent.index}
                           onClick={() => {
@@ -428,7 +431,7 @@ ${entry.rawContent}
                 <p className="text-zinc-300 text-[10px] font-bold uppercase tracking-widest text-center py-16">Awaiting actions...</p>
               ) : (
                 entries.map((entry) => {
-                  const agent = AGENTS[entry.agentIndex]
+                  const agent = agents.find(a => a.index === entry.agentIndex)
                   return (
                     <div key={entry.id} className="flex flex-col gap-1.5 group">
                       <div className="flex items-center justify-between">

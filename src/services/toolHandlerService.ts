@@ -1,6 +1,6 @@
 import { useAgencyStore } from '../store/agencyStore';
 import { AgentFunctionCall } from './agencyService';
-import { AGENTS } from '../data/agents';
+import { getActiveAgentSet } from '../store/agencyStore';
 
 export class ToolHandlerService {
   /**
@@ -34,7 +34,7 @@ export class ToolHandlerService {
         });
 
         const assignedRoles = agentIds
-          .map(i => AGENTS.find(a => a.index === i)?.role || `Agent #${i}`)
+          .map(i => getActiveAgentSet().agents.find(a => a.index === i)?.role || `Agent #${i}`)
           .join(', ');
 
         store.addLogEntry({
@@ -139,7 +139,7 @@ export class ToolHandlerService {
           parentTaskId: parentTask?.id,
         });
 
-        const agentRole = AGENTS.find(a => a.index === agentId)?.role || `Agent #${agentId}`;
+        const agentRole = getActiveAgentSet().agents.find(a => a.index === agentId)?.role || `Agent #${agentId}`;
 
         store.addLogEntry({
           agentIndex: callerIndex,

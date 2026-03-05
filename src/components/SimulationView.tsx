@@ -4,7 +4,7 @@ import InspectorPanel from './InspectorPanel';
 import { Play, Pause, Maximize2, Minimize2 } from 'lucide-react';
 import { useAgencyStore } from '../store/agencyStore';
 import { useStore } from '../store/useStore';
-import { AGENTS } from '../data/agents';
+import { getAgentSet } from '../data/agents';
 
 interface SimulationViewProps {
   canvasRef: React.RefObject<HTMLDivElement>;
@@ -18,7 +18,8 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
   const pauseOnCall = useAgencyStore((s) => s.pauseOnCall);
   const selectedNpcIndex = useStore((s) => s.selectedNpcIndex);
   const isPlaying = !isPaused;
-  const agentCount = AGENTS.length - 1; // Exclude player agent from count
+  const selectedAgentSetId = useAgencyStore((s) => s.selectedAgentSetId);
+  const agentCount = getAgentSet(selectedAgentSetId).agents.length - 1; // Exclude player
 
   return (
     <div className="flex flex-col flex-1 min-w-0 min-h-0 relative">

@@ -10,6 +10,7 @@ import {
 } from '../services/agencyService'
 import { ToolHandlerService } from '../services/toolHandlerService'
 import { getAgent } from '../data/agents'
+import { getActiveAgentSet } from '../store/agencyStore'
 
 // ── Constants ─────────────────────────────────────────────────
 const ORCHESTRATOR_INDEX = 1 // Orchestrator
@@ -169,7 +170,7 @@ export function useAgencyOrchestrator() {
           task.id,
           `Boardroom meeting for task [${task.id}]: "${task.description}". ` +
           `Client brief: "${store.clientBrief}". ` +
-          `Your teammates in this meeting: ${agents.filter((i) => i !== agentIndex).map((i) => getAgent(i)?.role).join(', ')}. ` +
+          `Your teammates in this meeting: ${agents.filter((i) => i !== agentIndex).map((i) => getAgent(i, getActiveAgentSet().agents)?.role).join(', ')}. ` +
           `Propose a subtask for yourself or delegate. Use propose_subtask.`,
         )
 
@@ -274,7 +275,7 @@ export function useAgencyOrchestrator() {
       store.updateTaskStatus(pendingTask.id, 'in_progress')
       store.addLogEntry({
         agentIndex: 0,
-        action: `approved task for ${getAgent(npcIndex)?.role} — resuming work`,
+        action: `approved task for ${getAgent(npcIndex, getActiveAgentSet().agents)?.role} — resuming work`,
         taskId: pendingTask.id,
       })
 

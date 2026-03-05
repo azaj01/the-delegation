@@ -26,11 +26,12 @@ import { ExpressionKey, AnimationName, AgentBehavior } from '../../types';
 import { DRACO_LIB_PATH } from '../constants';
 import { AgentStateBuffer } from '../behavior/AgentStateBuffer';
 import { ExpressionBuffer } from '../behavior/ExpressionBuffer';
-import { AGENTS, PLAYER_INDEX } from '../../data/agents';
+import { PLAYER_INDEX } from '../../data/agents';
+import { getActiveAgentSet } from '../../store/agencyStore';
 import { PoiManager } from '../world/PoiManager';
 
 export class CharacterManager {
-  private instanceCount = AGENTS.length;
+  private instanceCount = getActiveAgentSet().agents.length;
   private poiManager: PoiManager | null = null;
 
   // Compute Buffers (GPU)
@@ -222,7 +223,8 @@ export class CharacterManager {
     const agentsBuffer = []; // Temporary to store POIs for orientation
 
     for (let i = 0; i < this.instanceCount; i++) {
-        const agent = AGENTS[i] || AGENTS[0];
+        const agents = getActiveAgentSet().agents;
+        const agent = agents[i] || agents[0];
         const colorOverride = this.colors && this.colors[i] ? this.colors[i] : agent.color;
 
         if (i === PLAYER_INDEX) {

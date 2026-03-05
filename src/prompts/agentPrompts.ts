@@ -1,4 +1,4 @@
-import { AGENTS, COMPANY_NAME } from '../data/agents'
+import { getActiveAgentSet } from '../store/agencyStore'
 import type { Task } from '../store/agencyStore'
 
 // ─── Scope constraint (fixed for all agents) ──────────────────
@@ -19,15 +19,16 @@ WORKFLOW RULES:
 - You can call multiple tools at once if needed (e.g., propose multiple tasks).
 `.trim()
 
-// ─── Team roster visible to all agents ────────────────────────
-const teamList = AGENTS.filter((a) => !a.isPlayer)
-  .map((a) => `  [ID: ${a.index}] ${a.role} (${a.department}) — ${a.mission}`)
-  .join('\n')
-
 // ─── Build system prompt for a given agent ────────────────────
 export function buildSystemPrompt(agentIndex: number, isBoardroom = false): string {
-  const agent = AGENTS.find(a => a.index === agentIndex)
+  const { agents, companyName } = getActiveAgentSet()
+  const agent = agents.find(a => a.index === agentIndex)
   if (!agent) return ''
+
+  const teamList = agents
+    .filter((a) => !a.isPlayer)
+    .map((a) => `  [ID: ${a.index}] ${a.role} (${a.department}) — ${a.mission}`)
+    .join('\n')
 
   const boardroomNote = isBoardroom
     ? `\nCONTEXT: You are in the BOARDROOM collaborating with other agents. ` +
@@ -36,7 +37,7 @@ export function buildSystemPrompt(agentIndex: number, isBoardroom = false): stri
     : ''
 
   return [
-    `You are ${agent.role} at ${COMPANY_NAME}.`,
+    `You are ${agent.role} at ${companyName}.`,
     `Department: ${agent.department}`,
     `Mission: ${agent.mission}`,
     `Personality: ${agent.personality}`,
@@ -91,13 +92,14 @@ export function buildTaskBoardSummary(tasks: Task[]): string {
 
 // ─── Conversational chat prompt (no tools, no workflow) ───────
 export function buildChatSystemPrompt(agentIndex: number): string {
-  const agent = AGENTS.find(a => a.index === agentIndex)
+  const { agents, companyName } = getActiveAgentSet()
+  const agent = agents.find(a => a.index === agentIndex)
   if (!agent) return ''
 
   const isAM = agentIndex === 1;
 
   return [
-    `You are ${agent.role} at ${COMPANY_NAME}.`,
+    `You are ${agent.role} at ${companyName}.`,
     `Department: ${agent.department}`,
     `Mission: ${agent.mission}`,
     `Personality: ${agent.personality}`,

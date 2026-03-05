@@ -1,12 +1,15 @@
 
 import { create } from 'zustand';
 import { CharacterState } from '../types';
-import { AGENTS } from '../data/agents';
+import { DEFAULT_AGENT_SET_ID, getAgentSet } from '../data/agents';
+import { useAgencyStore } from './agencyStore';
 
 export const useStore = create<CharacterState>()(
   (set) => ({
     isThinking: false,
-    instanceCount: AGENTS.length,
+    instanceCount: getAgentSet(
+      useAgencyStore.getState().selectedAgentSetId ?? DEFAULT_AGENT_SET_ID
+    ).agents.length,
 
     selectedNpcIndex: null,
     selectedPosition: null,
@@ -57,3 +60,10 @@ export const useStore = create<CharacterState>()(
     setLlmConfig: (config) => set((s) => ({ llmConfig: { ...s.llmConfig, ...config } })),
   })
 );
+
+// Keep instanceCount in sync whenever the active agent set changes
+useAgencyStore.subscribe((state, prevState) => {
+  if (state.selectedAgentSetId !== prevState.selectedAgentSetId) {
+    useStore.getState().setInstanceCount(getAgentSet(state.selectedAgentSetId).agents.length);
+  }
+});

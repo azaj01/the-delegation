@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useAgencyStore, type Task, type TaskStatus } from '../store/agencyStore'
-import { AGENTS } from '../data/agents'
+import { getActiveAgentSet } from '../store/agencyStore'
 import { ChevronDown, ChevronRight, Trash2, MessageSquareWarning } from 'lucide-react'
 import DeleteTaskModal from './DeleteTaskModal'
 import { useStore } from '../store/useStore'
@@ -27,7 +27,7 @@ function renderAgentTag(agentIndex: number) {
       </span>
     )
   }
-  const agent = AGENTS.find(a => a.index === agentIndex)
+  const agent = getActiveAgentSet().agents.find(a => a.index === agentIndex)
   if (!agent) return null
   return (
     <span key={agentIndex} className="flex items-center gap-1 text-[10px] text-zinc-500">

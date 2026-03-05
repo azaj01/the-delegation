@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import InfoModal from './InfoModal';
-import { AGENTS } from '../data/agents';
+import { getAgentSet } from '../data/agents';
 import { useAgencyStore, Task } from '../store/agencyStore';
 import { Siren, MessageSquareWarning, PartyPopper } from 'lucide-react';
 
@@ -84,15 +84,17 @@ const UIOverlay: React.FC = () => {
   const {
     tasks,
     phase,
+    selectedAgentSetId,
   } = useAgencyStore();
+  const agents = getAgentSet(selectedAgentSetId).agents;
 
-  const selectedAgent = selectedNpcIndex != null ? AGENTS.find(a => a.index === selectedNpcIndex) ?? null : null;
-  const hoveredAgent = hoveredNpcIndex != null ? AGENTS.find(a => a.index === hoveredNpcIndex) ?? null : null;
+  const selectedAgent = selectedNpcIndex != null ? agents.find(a => a.index === selectedNpcIndex) ?? null : null;
+  const hoveredAgent = hoveredNpcIndex != null ? agents.find(a => a.index === hoveredNpcIndex) ?? null : null;
 
   return (
     <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
       {/* 1. Parallel Alert Bubbles System */}
-      {AGENTS.map((agent) => {
+      {agents.map((agent) => {
         const pos = npcScreenPositions[agent.index];
         if (!pos) return null;
 

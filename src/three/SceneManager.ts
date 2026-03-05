@@ -9,9 +9,9 @@ import { PoiManager } from './world/PoiManager';
 import { WorldManager } from './world/WorldManager';
 import { DriverManager } from './drivers/DriverManager';
 import { InputManager } from './input/InputManager';
-import { AGENTS, PLAYER_INDEX, NPC_START_INDEX } from '../data/agents';
+import { PLAYER_INDEX, NPC_START_INDEX } from '../data/agents';
 import { useStore } from '../store/useStore';
-import { useAgencyStore } from '../store/agencyStore';
+import { useAgencyStore, getActiveAgentSet } from '../store/agencyStore';
 import { AgentBehavior, ChatMessage } from '../types';
 import { BUBBLE_Y_OFFSET } from './constants';
 
@@ -80,7 +80,7 @@ export class SceneManager {
     this.driverManager = new DriverManager(this.controller);
     const playerDriver = this.driverManager.registerPlayer();
 
-    AGENTS.forEach((agent) => {
+    getActiveAgentSet().agents.forEach((agent) => {
       if (agent.isPlayer) return;
       this.driverManager.registerNpc(agent.index, agent);
     });
@@ -351,7 +351,7 @@ export class SceneManager {
   // ── Private helpers ──────────────────────────────────────────
 
   private async _triggerNpcGreeting(npcIndex: number): Promise<void> {
-    const agent = AGENTS.find(a => a.index === npcIndex);
+    const agent = getActiveAgentSet().agents.find(a => a.index === npcIndex);
     if (!agent) return;
     useStore.setState({ isThinking: true });
     try {
@@ -521,10 +521,10 @@ export class SceneManager {
     this.endChat();
 
     // Stop all speech bubbles before teleporting
-    AGENTS.forEach((agent) => this.controller?.setSpeaking(agent.index, false));
+    getActiveAgentSet().agents.forEach((agent) => this.controller?.setSpeaking(agent.index, false));
 
     // Teleport every agent instantly to their original spawn POI — no walking
-    const npcIndices = AGENTS.filter(a => !a.isPlayer).map(a => a.index);
+    const npcIndices = getActiveAgentSet().agents.filter(a => !a.isPlayer).map(a => a.index);
     this.controller.warpAllToSpawn(PLAYER_INDEX, npcIndices);
 
     // Reset camera to default
