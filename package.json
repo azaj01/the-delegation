@@ -1,5 +1,12 @@
 {
-  "name": "autonomous-characters-lab",
+  "name": "the-delegation",
+  "description": "What if you could stop prompting & start delegating to a team of AI agents in a living 3D office?",
+  "license": "MIT",
+  "author": "Arturo Paracuellos <arturo@unboring.net>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arturitu/the-delegation.git"
+  },
   "private": true,
   "version": "0.0.0",
   "type": "module",
