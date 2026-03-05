@@ -146,7 +146,7 @@ export async function callAgent(params: {
   throwIfAborted(signal);
 
   // 3. Call LLM — phase-aware tool filtering
-  const AM_INDEX = 1;
+  const ORCHESTRATOR_INDEX = 1;
   let tools: typeof AGENCY_TOOLS;
   if (chatMode) {
     // Chat mode: only approval, completion, brief update, and task proposal tools
@@ -158,8 +158,8 @@ export async function callAgent(params: {
     tools = AGENCY_TOOLS.filter(t =>
       ['propose_subtask', 'request_client_approval', 'complete_task'].includes(t.function.name)
     );
-  } else if (agentIndex === AM_INDEX) {
-    // Account Manager (autonomous): orchestration tools only
+  } else if (agentIndex === ORCHESTRATOR_INDEX) {
+    // Orchestrator (autonomous): orchestration tools only
     tools = AGENCY_TOOLS.filter(t =>
       ['propose_task', 'update_client_brief', 'notify_client_project_ready'].includes(t.function.name)
     );
@@ -318,8 +318,8 @@ async function updateAgentSummary(agentIndex: number) {
 
 // ─── Convenience wrappers ─────────────────────────────────────
 
-/** Call the Account Manager (index 1) */
-export const callAccountManager = (userMessage: string) =>
+/** Call the Orchestrator (index 1) */
+export const callOrchestrator = (userMessage: string) =>
   callAgent({ agentIndex: 1, userMessage })
 
 /** Call an agent in the context of a boardroom session for a given task */

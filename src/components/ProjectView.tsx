@@ -59,7 +59,7 @@ const ProjectView: React.FC = () => {
         </p>
         <div className="bg-zinc-50 border border-zinc-100 rounded-xl p-4">
           <p className="text-xs text-zinc-600 leading-relaxed font-medium italic">
-            {clientBrief || "No active brief. Talk to the Account Manager to define your project."}
+            {clientBrief || "No active brief. Talk to the Orchestrator to define your project."}
           </p>
         </div>
       </div>

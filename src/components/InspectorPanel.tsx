@@ -9,7 +9,7 @@ import ChatPanel from './ChatPanel';
 import { AGENTS } from '../data/agents';
 import { MessageSquare, Lock, FolderOpen, Siren, MessageSquareWarning } from 'lucide-react';
 
-const AM_INDEX = 1;
+const ORCHESTRATOR_INDEX = 1;
 
 interface InspectorPanelProps {
   isFloating?: boolean;
@@ -23,15 +23,15 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
   const prevCanChat = useRef(canChat);
 
   const agent = selectedNpcIndex !== null ? AGENTS[selectedNpcIndex] : null;
-  const isProjectReady = phase === 'done' && selectedNpcIndex === AM_INDEX;
+  const isProjectReady = phase === 'done' && selectedNpcIndex === ORCHESTRATOR_INDEX;
 
-  const isAMIdle = selectedNpcIndex === AM_INDEX && phase === 'idle';
+  const isOrchestratorIdle = selectedNpcIndex === ORCHESTRATOR_INDEX && phase === 'idle';
   const tasksOnHold = agent ? tasks.filter(
     t => t.assignedAgentIds.includes(agent.index) && t.status === 'on_hold'
   ) : [];
   const hasTaskOnHold = tasksOnHold.length > 0;
 
-  const needsDiscussion = isAMIdle || hasTaskOnHold;
+  const needsDiscussion = isOrchestratorIdle || hasTaskOnHold;
 
   // When canChat transitions true → false, end any active chat
   useEffect(() => {
@@ -91,7 +91,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                     </div>
                   </div>
                   <p className="text-[12px] font-bold text-zinc-900 leading-tight mt-1.5">
-                    {isAMIdle
+                    {isOrchestratorIdle
                       ? "Waiting for project briefing."
                       : `${agent?.role} needs input.`}
                   </p>
@@ -107,7 +107,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                   </div>
                   <div className="flex flex-col gap-2">
                     <p className="text-[12px] font-bold text-zinc-900 leading-tight">
-                      {isAMIdle
+                      {isOrchestratorIdle
                         ? "Discuss the project briefing with the team."
                         : `"${tasks.find(t => t.assignedAgentIds.includes(agent.index) && t.status === 'on_hold')?.title || 'This task'} is waiting for your input to proceed."`}
                     </p>
@@ -118,7 +118,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                       className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 active:scale-95 disabled:opacity-50 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm mt-1"
                     >
                       <MessageSquareWarning size={14} strokeWidth={3} />
-                      Chat about {isAMIdle ? 'briefing' : 'approval'}
+                      Chat about {isOrchestratorIdle ? 'briefing' : 'approval'}
                     </button>
                   </div>
                 </div>

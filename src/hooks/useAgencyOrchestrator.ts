@@ -4,7 +4,7 @@ import { useAgencyStore, type Task } from '../store/agencyStore'
 import { useStore } from '../store/useStore'
 import {
   callAgent,
-  callAccountManager,
+  callOrchestrator,
   callBoardroomAgent,
   type AgentFunctionCall,
 } from '../services/agencyService'
@@ -12,7 +12,7 @@ import { ToolHandlerService } from '../services/toolHandlerService'
 import { getAgent } from '../data/agents'
 
 // ── Constants ─────────────────────────────────────────────────
-const AM_INDEX = 1 // Account Manager
+const ORCHESTRATOR_INDEX = 1 // Orchestrator
 
 const randomBetween = (min: number, max: number) =>
   Math.random() * (max - min) + min
@@ -69,8 +69,8 @@ export function useAgencyOrchestrator() {
     if (store.finalOutput) return
 
     // Check if AM is already processing something
-    if (runningAgents.current.has(AM_INDEX)) return
-    runningAgents.current.add(AM_INDEX)
+    if (runningAgents.current.has(ORCHESTRATOR_INDEX)) return
+    runningAgents.current.add(ORCHESTRATOR_INDEX)
 
     try {
       const outputs = store.tasks
@@ -78,18 +78,18 @@ export function useAgencyOrchestrator() {
         .map((t) => `[${t.description}]\n${t.output}`)
         .join('\n\n---\n\n')
 
-      const response = await callAccountManager(
+      const response = await callOrchestrator(
         `All tasks are completed. Team outputs:\n\n${outputs}\n\nNow assemble the final prompt for the client and call notify_client_project_ready.`
       )
       if (response.functionCalls) {
         for (const fn of response.functionCalls) {
-          processFunctionCall(fn, AM_INDEX)
+          processFunctionCall(fn, ORCHESTRATOR_INDEX)
         }
       }
     } catch (err) {
       if ((err as DOMException)?.name !== 'AbortError') console.error('[Orchestrator] final delivery error:', err)
     } finally {
-      runningAgents.current.delete(AM_INDEX)
+      runningAgents.current.delete(ORCHESTRATOR_INDEX)
     }
   }
 
@@ -219,26 +219,26 @@ export function useAgencyOrchestrator() {
   ): Promise<string | null> => {
     const store = useAgencyStore.getState()
 
-    // ---- Account Manager: always route through agency service ----
-    if (npcIndex === AM_INDEX) {
+    // ---- Orchestrator: always route through agency service ----
+    if (npcIndex === ORCHESTRATOR_INDEX) {
       if (store.phase === 'idle') {
         store.setPhase('briefing')
       }
 
       try {
-        runningAgents.current.add(AM_INDEX)
-        const response = await callAccountManager(text)
+        runningAgents.current.add(ORCHESTRATOR_INDEX)
+        const response = await callOrchestrator(text)
         if (response.functionCalls) {
           for (const fn of response.functionCalls) {
-            processFunctionCall(fn, AM_INDEX)
+            processFunctionCall(fn, ORCHESTRATOR_INDEX)
           }
         }
         return response.text || null
       } catch (err) {
-        if ((err as DOMException)?.name !== 'AbortError') console.error('[Orchestrator] AM message error:', err)
+        if ((err as DOMException)?.name !== 'AbortError') console.error('[Orchestrator] Orchestrator message error:', err)
         return null
       } finally {
-        runningAgents.current.delete(AM_INDEX)
+        runningAgents.current.delete(ORCHESTRATOR_INDEX)
       }
     }
 
@@ -337,10 +337,10 @@ export function useAgencyOrchestrator() {
         }
       }
 
-      // When project reaches 'done', close chat if the user is talking to a non-AM agent
+      // When project reaches 'done', close chat if the user is talking to a non-Orchestrator agent
       if (s.phase === 'done' && prev.phase !== 'done') {
         const { isChatting: chatActive, selectedNpcIndex: selNpc } = useStore.getState()
-        if (chatActive && selNpc !== null && selNpc !== AM_INDEX) {
+        if (chatActive && selNpc !== null && selNpc !== ORCHESTRATOR_INDEX) {
           sceneRef.current?.endChat()
         }
       }

@@ -1,7 +1,7 @@
 import { useAgencyStore } from '../store/agencyStore'
 import { AGENTS } from '../data/agents'
 
-const AM_INDEX = 1
+const ORCHESTRATOR_INDEX = 1
 
 export interface ChatAvailability {
   canChat: boolean
@@ -30,12 +30,12 @@ export function useChatAvailability(agentIndex: number | null): ChatAvailability
 
   switch (phase) {
     case 'idle':
-      // Only the AM accepts chat before a project starts
-      if (agentIndex === AM_INDEX) return { canChat: true, reason: '' }
+      // Only the Orchestrator accepts chat before a project starts
+      if (agentIndex === ORCHESTRATOR_INDEX) return { canChat: true, reason: '' }
       return { canChat: false, reason: 'Waiting for project brief' }
 
     case 'briefing':
-      if (agentIndex === AM_INDEX) return { canChat: true, reason: '' }
+      if (agentIndex === ORCHESTRATOR_INDEX) return { canChat: true, reason: '' }
       return { canChat: false, reason: 'Team is being briefed' }
 
     case 'working':
@@ -52,8 +52,8 @@ export function useChatAvailability(agentIndex: number | null): ChatAvailability
       return { canChat: true, reason: '' }
 
     case 'done':
-      // AM is locked for chat when project is ready
-      if (agentIndex === AM_INDEX) return { canChat: false, reason: 'Project ready for delivery' }
+      // Orchestrator is locked for chat when project is ready
+      if (agentIndex === ORCHESTRATOR_INDEX) return { canChat: false, reason: 'Project ready for delivery' }
       return { canChat: false, reason: 'Project completed' }
 
     default:

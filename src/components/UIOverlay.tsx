@@ -6,7 +6,7 @@ import { AGENTS } from '../data/agents';
 import { useAgencyStore, Task } from '../store/agencyStore';
 import { Siren, MessageSquareWarning, PartyPopper } from 'lucide-react';
 
-const AM_INDEX = 1;
+const ORCHESTRATOR_INDEX = 1;
 
 interface AlertBubbleProps {
   icon: React.ReactNode;
@@ -21,7 +21,7 @@ const AlertBubble: React.FC<AlertBubbleProps> = ({ icon, position, visible, colo
 
   return (
     <div
-      className={`absolute z-20 transition-all duration-300 ease-out animate-in fade-in zoom-in-95 ${onClick ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none'}`}
+      className={`absolute z-20 ${onClick ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none'}`}
       style={{
         left: position.x,
         top: position.y,
@@ -52,7 +52,7 @@ function getAgentPhaseLabel(
   phase: string,
   fallback: string,
 ): PhaseLabel {
-  if (agentIndex === AM_INDEX && phase === 'done') {
+  if (agentIndex === ORCHESTRATOR_INDEX && phase === 'done') {
     return { text: 'Project Ready!', className: 'text-yellow-400' };
   }
   const holdTask = tasks.find(
@@ -104,13 +104,13 @@ const UIOverlay: React.FC = () => {
         let alertColor = '#facc15'; // Default yellow
 
         // Check specific conditions
-        // - Agente 1 (AM) idle: siren
-        if (agent.index === AM_INDEX && phase === 'idle') {
+        // - Orchestrator (index 1) idle: siren
+        if (agent.index === ORCHESTRATOR_INDEX && phase === 'idle') {
           alertIcon = <Siren size={18} />;
           alertColor = '#ef4444'; // Red for siren
         }
-        // - Agente 1 (AM) project finished: party-popper
-        else if (agent.index === AM_INDEX && phase === 'done') {
+        // - Orchestrator (index 1) project finished: party-popper
+        else if (agent.index === ORCHESTRATOR_INDEX && phase === 'done') {
           alertIcon = <PartyPopper size={18} />;
           alertColor = '#facc15'; // Yellow
         }
@@ -143,7 +143,7 @@ const UIOverlay: React.FC = () => {
       {(() => {
         // Priority 1: Selected Agent
         if (selectedAgent && selectedPosition) {
-          const isAMProjectReady = selectedAgent.index === AM_INDEX && phase === 'done';
+          const isOrchestratorProjectReady = selectedAgent.index === ORCHESTRATOR_INDEX && phase === 'done';
           const label = getAgentPhaseLabel(selectedAgent.index, tasks, phase, selectedAgent.department);
 
           return (
@@ -163,7 +163,7 @@ const UIOverlay: React.FC = () => {
                 <div className="flex items-center gap-1.5">
                   {selectedAgent.isPlayer ? (
                     <span className="text-[10px] font-black uppercase tracking-widest text-white">{selectedAgent.role} (You)</span>
-                  ) : isAMProjectReady ? (
+                  ) : isOrchestratorProjectReady ? (
                     <span className={`text-[10px] font-black uppercase tracking-widest ${label.className}`}>
                       {label.text}
                     </span>
@@ -186,7 +186,7 @@ const UIOverlay: React.FC = () => {
 
         // Priority 2: Hovered Agent with dynamic phase label (only if not selected)
         if (hoveredAgent && hoverPosition && hoveredNpcIndex !== selectedNpcIndex) {
-          const isAMProjectReady = hoveredAgent.index === AM_INDEX && phase === 'done';
+          const isOrchestratorProjectReady = hoveredAgent.index === ORCHESTRATOR_INDEX && phase === 'done';
           const label = getAgentPhaseLabel(hoveredAgent.index, tasks, phase, hoveredAgent.department);
 
           return (
@@ -206,7 +206,7 @@ const UIOverlay: React.FC = () => {
                 <div className="flex items-center gap-1.5">
                   {hoveredAgent.isPlayer ? (
                     <span className="text-[10px] font-black uppercase tracking-widest text-white">{hoveredAgent.role} (You)</span>
-                  ) : isAMProjectReady ? (
+                  ) : isOrchestratorProjectReady ? (
                     <span className={`text-[10px] font-black uppercase tracking-widest ${label.className}`}>
                       {label.text}
                     </span>

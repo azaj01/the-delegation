@@ -6,7 +6,7 @@ import { AGENTS } from '../data/agents';
 import { Send, FolderOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-const AM_INDEX = 1;
+const ORCHESTRATOR_INDEX = 1;
 
 const ChatPanel: React.FC = () => {
   const {
@@ -32,7 +32,7 @@ const ChatPanel: React.FC = () => {
     ? (agencyStore.agentHistories[selectedNpcIndex] || [])
     : [];
 
-  const isProjectReady = phase === 'done' && selectedNpcIndex === AM_INDEX;
+  const isProjectReady = phase === 'done' && selectedNpcIndex === ORCHESTRATOR_INDEX;
 
   useEffect(() => {
     return () => {
