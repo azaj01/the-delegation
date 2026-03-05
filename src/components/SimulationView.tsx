@@ -21,7 +21,7 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
   const selectedNpcIndex = useStore((s) => s.selectedNpcIndex);
   const isPlaying = !isPaused;
   const selectedAgentSetId = useAgencyStore((s) => s.selectedAgentSetId);
-  
+
   const activeSet = getAgentSet(selectedAgentSetId);
   const agentCount = activeSet.agents.length - 1; // Exclude player
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -40,7 +40,7 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
               {activeSet.companyName}
             </span>
           </div>
-          
+
           <div className="h-6 w-px bg-zinc-100 mx-1" />
 
           <div className="flex items-center gap-2">

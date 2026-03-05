@@ -5,6 +5,8 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { DRACO_LIB_PATH } from '../constants';
 import { NavMeshManager } from '../pathfinding/NavMeshManager';
 import { PoiManager } from './PoiManager';
+import { getAgentSet } from '../../data/agents';
+import { useAgencyStore } from '../../store/agencyStore';
 
 export class WorldManager {
   private office: THREE.Group | null = null;
@@ -24,6 +26,11 @@ export class WorldManager {
     this.office = officeGltf.scene;
     this.scene.add(this.office);
 
+    // Get current AgentSet color
+    const selectedAgentSetId = useAgencyStore.getState().selectedAgentSetId;
+    const activeSet = getAgentSet(selectedAgentSetId);
+    const themeColor = new THREE.Color(activeSet.color);
+
     // Extract NavMesh and setup
     this.office.traverse((child) => {
       if ((child as any).isMesh) {
@@ -40,8 +47,12 @@ export class WorldManager {
           // Apply specific material for WebGPU shadow compatibility as requested
           if (mesh.material) {
             const oldMat = mesh.material as THREE.MeshStandardMaterial;
+
+            // Check if mesh name starts with "colored" to apply thematic color
+            const isColoredMesh = name.startsWith('colored');
+
             mesh.material = new THREE.MeshStandardNodeMaterial({
-              color: oldMat.color,
+              color: isColoredMesh ? themeColor : oldMat.color,
               map: oldMat.map,
               roughness: 1,
               metalness: 0.35,
@@ -53,6 +64,28 @@ export class WorldManager {
 
     // Extract Points of Interest
     this.poiManager.loadFromGlb(this.office);
+  }
+
+  public updateThemeColor(color: string): void {
+    if (!this.office) return;
+
+    const themeColor = new THREE.Color(color);
+
+    this.office.traverse((child) => {
+      if ((child as any).isMesh) {
+        const mesh = child as THREE.Mesh;
+        const name = mesh.name.toLowerCase();
+
+        if (name.startsWith('colored') && mesh.material) {
+          // Update existing material color if it's a NodeMaterial
+          // or replace it if needed. Since we already replaced them in load(),
+          // we can just update the color property.
+          if ((mesh.material as any).color) {
+            (mesh.material as any).color.copy(themeColor);
+          }
+        }
+      }
+    });
   }
 
   public getOffice(): THREE.Group | null {

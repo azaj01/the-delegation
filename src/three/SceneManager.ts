@@ -9,7 +9,7 @@ import { PoiManager } from './world/PoiManager';
 import { WorldManager } from './world/WorldManager';
 import { DriverManager } from './drivers/DriverManager';
 import { InputManager } from './input/InputManager';
-import { PLAYER_INDEX, NPC_START_INDEX } from '../data/agents';
+import { PLAYER_INDEX, NPC_START_INDEX, getAgentSet } from '../data/agents';
 import { useStore } from '../store/useStore';
 import { useAgencyStore, getActiveAgentSet } from '../store/agencyStore';
 import { AgentBehavior, ChatMessage } from '../types';
@@ -24,6 +24,8 @@ export class SceneManager {
   private poiManager: PoiManager;
   private worldManager: WorldManager;
   private driverManager: DriverManager | null = null;
+
+  private lastAgentSetId: string | null = null;
 
   // Track which NPC is selected for camera follow
   private selectedIndex: number | null = null;
@@ -116,7 +118,15 @@ export class SceneManager {
       if (s.instanceCount !== prev.instanceCount) {
         this.controller?.setInstanceCount(s.instanceCount);
       }
-      // worldSize removal — now using static office
+
+      // Update world color if agent set changes
+      const agencyState = useAgencyStore.getState();
+      const currentSetId = agencyState.selectedAgentSetId;
+      if (currentSetId !== this.lastAgentSetId) {
+        this.lastAgentSetId = currentSetId;
+        const activeSet = getAgentSet(currentSetId);
+        this.worldManager.updateThemeColor(activeSet.color);
+      }
 
       // isChatting/isThinking/isTyping → update character visuals
       const chatChanged = s.isChatting !== prev.isChatting
