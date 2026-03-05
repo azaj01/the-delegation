@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, AlertTriangle, Users, Sparkles, Code2, Rocket, Megaphone } from 'lucide-react';
+import { X, AlertTriangle, Users } from 'lucide-react';
 import { AGENT_SETS, AgentSet } from '../data/agents';
 import { useAgencyStore } from '../store/agencyStore';
 import { useSceneManager } from '../three/SceneContext';
@@ -12,27 +12,13 @@ interface AgentSetPickerModalProps {
   hasActiveProject?: boolean;
 }
 
-const SET_ICONS: Record<string, React.ReactNode> = {
-  'marketing-agency':    <Sparkles size={20} />,
-  'dev-studio':          <Code2 size={20} />,
-  'startup-consultancy': <Rocket size={20} />,
-  'content-studio':      <Megaphone size={20} />,
-};
-
-const SET_ACCENT: Record<string, string> = {
-  'marketing-agency':    '#EF52BA',
-  'dev-studio':          '#22c55e',
-  'startup-consultancy': '#8b5cf6',
-  'content-studio':      '#06b6d4',
-};
-
 const AgentSetCard: React.FC<{
   set: AgentSet;
   isSelected: boolean;
   onSelect: () => void;
 }> = ({ set, isSelected, onSelect }) => {
   const npcAgents = set.agents.filter((a) => !a.isPlayer);
-  const accent = SET_ACCENT[set.id] ?? '#eab308';
+  const accent = set.color;
 
   return (
     <button
@@ -43,15 +29,13 @@ const AgentSetCard: React.FC<{
           : 'border-zinc-100 bg-white hover:border-zinc-200 hover:shadow-sm'
       }`}
     >
-      {/* Top row: icon + name + type */}
+      {/* Top row: color square + name + type */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-2.5">
           <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-            style={{ backgroundColor: `${accent}20`, color: accent }}
-          >
-            {SET_ICONS[set.id] ?? <Users size={20} />}
-          </div>
+            className="w-8 h-8 rounded-lg shrink-0 shadow-sm"
+            style={{ backgroundColor: accent }}
+          />
           <div>
             <p className="text-xs font-black text-zinc-900 leading-tight">{set.companyName}</p>
             <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none mt-0.5">
@@ -163,7 +147,7 @@ const AgentSetPickerModal: React.FC<AgentSetPickerModalProps> = ({
 
             {/* Cards grid */}
             <div className="px-8 overflow-y-auto flex-1">
-              <div className="grid grid-cols-2 gap-3 pb-6">
+              <div className="flex flex-col gap-3 pb-6">
                 {AGENT_SETS.map((set) => (
                   <AgentSetCard
                     key={set.id}
