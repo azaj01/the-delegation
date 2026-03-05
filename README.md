@@ -1,53 +1,78 @@
-# The Embodied Agency
+# 🤖 The Delegation
 
-Three.js WebGPU simulation of autonomous characters and a player-controlled agent.
+<p align="center">
+  <img src="public/images/the-delegation-UI.png" alt="The Delegation Hero" width="100%">
+</p>
 
-## Tech Stack
+**The Delegation** is a high-performance 3D simulation built with **Three.js WebGPU** where autonomous LLM-powered characters collaborate in a shared physical workspace.
 
-- Vite + React + TypeScript
-- Three.js (WebGPU)
-- Zustand
+Unlike traditional "chat-only" agent frameworks, these characters are _embodied_: they navigate a 3D environment, claim workstations, express emotions through animations, and interact with the user and each other to fulfill complex project briefs.
 
-## Getting Started
+---
 
-1. Install dependencies:
+## ✨ Features
 
-```bash
-npm install
-```
+### 🧠 Advanced Agency System
 
-2. Run the dev server:
+- **Orchestrated Workflow:** A specialized agency service manages the project lifecycle from initial briefing to final delivery.
+- **Autonomous Task Management:** Agents propose their own tasks, request client approval when stuck, and update a real-time Kanban board.
+- **Tool-Augmented Intelligence:** Deep integration with LLM function calling, allowing agents to "act" (e.g., `propose_task`, `request_approval`) within the simulation.
 
-```bash
-npm run dev
-```
+### 🏃 Embodied Simulation
 
-3. Open the app at the local URL shown in your terminal.
+- **Hybrid GPU/CPU Architecture:** High-efficiency character instancing using WebGPU Compute Shaders.
+- **Intelligent Pathfinding:** NPCs utilize a NavMesh to navigate the office, finding and claiming specific "Points of Interest" (desks, seats, computers) based on their current task.
+- **Dynamic State Machine:** Characters transition naturally between walking, sitting, working, and talking, with sync'ed 3D speech bubbles and expressions.
 
-## Scripts
+### 🎮 Interactive UI
 
-- `npm run dev` - Start the development server.
-- `npm run build` - Build for production.
-- `npm run preview` - Preview the production build.
+- **Real-time 3D Overlay:** Status indicators and interaction menus projected from 3D space into a polished React UI.
+- **Agent Inspector:** Select any agent to view their current "thoughts", mission, and history.
+- **Kanban & Action Logs:** Complete transparency into the agency's progress and the "hidden" tool calls made by the LLMs.
 
-## License & IP
+---
 
-License & Intellectual Property
-This project follows a dual-licensing model to distinguish between the functional source code and the creative artistic assets:
+## 🛠 Tech Stack Deep Dive
 
-Source Code (MIT)
-All source code files (.js, .jsx, .css) are licensed under the MIT License.
-You are free to use, copy, modify, and distribute the code for both personal and commercial projects. See the LICENSE file for full details.
+- **Engine:** [Three.js](https://threejs.org/) (WebGPU & TSL) for cutting-edge rendering and compute.
+- **AI:** [Google Gemini 3 Flash](https://deepmind.google/technologies/gemini/) (Preview) for low-latency, high-context reasoning and tool use.
+- **State:** [Zustand](https://github.com/pmndrs/zustand) for a unified, reactive store bridging the 3D world and React UI.
+- **Animation:** Custom state machine handling GLTF instanced animations.
 
-3D Models & Assets (CC BY-NC 4.0)
-All 3D models (.glb, .gltf), textures, and custom environment maps located in the /public/models directory are Copyright © 2026 Arturo Paracuellos (unboring.net) and are licensed under Creative Commons Attribution-NonCommercial 4.0 International.
+---
 
-Attribution: You must give appropriate credit to Arturo Paracuellos (unboring.net).
+## 🚀 Roadmap
 
-Adaptation: You are free to remix, transform, and build upon these assets.
+We are moving towards a fully sandboxable agency experience:
 
-Non-Commercial: You may not use these assets or their derivatives for commercial purposes.
+- **🛠 Intelligence**
+  - [ ] **Multi-Model Support:** Integration for OpenAI, Anthropic, and local Ollama models.
+  - [ ] **Per-Agent LLM:** Assign different models/providers to specific roles.
+  - [ ] **Custom Teams:** Create your own expert sets with unique personalities and missions via UI.
+- **🎨 Creative Outputs**
+  - [ ] **Rich Deliverables:** Final project output including generated images, videos, code snippets, or synthesized music.
+- **🏠 World Building**
+  - [ ] **Office/3D Space Editor:** Drag-and-drop editor to customize the workspace layout and POIs.
 
-To view a copy of this license, visit: CC BY-NC 4.0
+---
 
-Developed with ❤️ by Arturo Paracuellos
+## 🤝 Supporting the Project
+
+The Delegation is an experiment in the future of human-AI collaboration. If you find this project inspiring or useful for your own research, consider supporting my work:
+
+👉 **[Sponsor on GitHub](https://github.com/sponsors/arturitu)**
+
+---
+
+## 📜 License & IP
+
+This project follows a dual-licensing model:
+
+- **Source Code (MIT):** All logic, shaders, and UI code are free to use, modify, and distribute.
+- **3D Models & Assets (CC BY-NC 4.0):** The custom 3D office and character models are Copyright © 2026 **Arturo Paracuellos (unboring.net)**. They are free for personal and educational use but _cannot_ be used for commercial purposes without permission.
+
+---
+
+<p align="center">
+  Developed with ❤️ by <a href="https://unboring.net">Arturo Paracuellos</a>
+</p>
