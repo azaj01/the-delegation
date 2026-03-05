@@ -383,11 +383,13 @@ export class CharacterManager {
           material.colorNode = vec4(instanceColor, instanceAlpha);
         }
       } else {
-        // Eyes / mouth: always render on top of the body, never write depth.
-        // depthTest = false prevents z-fighting with the coplanar head surface.
+        // Eyes / mouth: rendered on top of the body surface with polygon offset to avoid
+        // z-fighting, but still respect the depth buffer so they are occluded by walls etc.
         material.depthWrite = false;
-        material.depthTest = false;
-        material.polygonOffset = false;
+        material.depthTest = true;
+        material.polygonOffset = true;
+        material.polygonOffsetFactor = -1;
+        material.polygonOffsetUnits = -1;
         // Los otros respetan la transparencia original de su mapa PNG
         if (map) {
           const texColor = isEyes || isMouth ? texture(map, material.uvNode) : texture(map);
