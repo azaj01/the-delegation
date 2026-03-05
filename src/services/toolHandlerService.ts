@@ -64,9 +64,13 @@ export class ToolHandlerService {
            store.setPhase('working');
         }
 
-        // Auto-end chat to release the inspector and return camera focus to world
-        if (scene && 'endChat' in scene) {
-          (scene as any).endChat();
+        // Auto-end chat only for worker agents to release inspector.
+        // DO NOT end chat for Orquestrator (Manager) as they are the primary point of contact during briefing/management.
+        const ORCHESTRATOR_INDEX = 1;
+        if (callerIndex !== ORCHESTRATOR_INDEX) {
+          if (scene && 'endChat' in scene) {
+            (scene as any).endChat();
+          }
         }
 
         // Move agent to boardroom (waiting area) since they are on hold
@@ -100,8 +104,9 @@ export class ToolHandlerService {
           (scene as any).returnNpcFromBoardroom(callerIndex);
         }
 
-        // Auto-end chat from the agent side
-        if (scene && 'endChat' in scene) {
+        // Auto-end chat from the agent side (only for workers)
+        const ORCHESTRATOR_INDEX = 1;
+        if (callerIndex !== ORCHESTRATOR_INDEX && scene && 'endChat' in scene) {
           (scene as any).endChat();
         }
         return true;

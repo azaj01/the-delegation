@@ -337,7 +337,7 @@ export class SceneManager {
       : undefined;
     const boardroomPoi = this.poiManager.getPoi('idle-area-boardroom');
     if (boardroomPoi) {
-      const target = this.poiManager.getRandomPointNearPoi('idle-area-boardroom', 2)
+      const target = this.poiManager.getRandomPointNearPoi('idle-area-boardroom', 6)
         ?? boardroomPoi.position;
       this.controller.moveTo(index, target, 'idle', onArrival ? () => onArrival() : undefined, currentPos);
     } else if (onArrival) {

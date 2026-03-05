@@ -225,9 +225,31 @@ export function useAgencyOrchestrator() {
         store.setPhase('briefing')
       }
 
+      // Check if there's a pending approval task for the orchestrator
+      const orchestratorPendingTask = store.tasks.find(
+        (t) => t.status === 'on_hold' && t.assignedAgentIds.includes(ORCHESTRATOR_INDEX),
+      )
+
       try {
         runningAgents.current.add(ORCHESTRATOR_INDEX)
-        const response = await callOrchestrator(text)
+
+        let response;
+        if (orchestratorPendingTask) {
+          store.updateTaskStatus(orchestratorPendingTask.id, 'in_progress')
+          store.addLogEntry({
+            agentIndex: 0,
+            action: `approved task for Manager — resuming work`,
+            taskId: orchestratorPendingTask.id,
+          })
+
+          response = await callOrchestrator(
+            `Client responded to your approval request: "${text}". Incorporate their feedback. ` +
+            `Call request_client_approval if you still need more input, otherwise proceed with your management tools (propose_task, update_client_brief, etc.).`
+          )
+        } else {
+          response = await callOrchestrator(text)
+        }
+
         if (response.functionCalls) {
           for (const fn of response.functionCalls) {
             processFunctionCall(fn, ORCHESTRATOR_INDEX)

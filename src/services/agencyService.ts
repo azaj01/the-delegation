@@ -161,7 +161,7 @@ export async function callAgent(params: {
   } else if (agentIndex === ORCHESTRATOR_INDEX) {
     // Orchestrator (autonomous): orchestration tools only
     tools = AGENCY_TOOLS.filter(t =>
-      ['propose_task', 'update_client_brief', 'notify_client_project_ready'].includes(t.function.name)
+      ['propose_task', 'update_client_brief', 'notify_client_project_ready', 'request_client_approval'].includes(t.function.name)
     );
   } else {
     // Worker agents (autonomous): task execution tools only
