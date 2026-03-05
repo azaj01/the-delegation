@@ -11,7 +11,11 @@ import { MessageSquare, Lock, FolderOpen } from 'lucide-react';
 
 const AM_INDEX = 1;
 
-const InspectorPanel: React.FC = () => {
+interface InspectorPanelProps {
+  isFloating?: boolean;
+}
+
+const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
   const { selectedNpcIndex, isChatting } = useStore();
   const scene = useSceneManager();
   const { phase, setFinalOutputOpen } = useAgencyStore();
@@ -40,13 +44,13 @@ const InspectorPanel: React.FC = () => {
   };
 
   return (
-    <div className="w-80 h-full bg-white border-l border-zinc-100 flex flex-col pointer-events-auto shrink-0 relative z-30">
+    <div className={`${isFloating ? 'w-full h-full max-h-[85vh] self-end rounded-2xl shadow-2xl border border-white/20' : 'w-80 h-full border-l border-zinc-100'} bg-white flex flex-col pointer-events-auto shrink-0 relative z-30 overflow-hidden transition-all duration-300`}>
       {!agent ? (
-        <ProjectView />
+        !isFloating && <ProjectView />
       ) : (
         <>
           {/* Header with Role and Department */}
-          <div className="p-6 border-b border-zinc-50 bg-white">
+          <div className={`p-6 border-b border-zinc-50 bg-white ${isFloating ? 'bg-zinc-50/50' : ''}`}>
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -117,7 +121,7 @@ const InspectorPanel: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto relative min-h-0 bg-zinc-50/30">
+          <div className={`flex-1 overflow-y-auto relative min-h-0 ${isFloating ? 'bg-white' : 'bg-zinc-50/30'}`}>
             {isChatting ? (
               <ChatPanel />
             ) : (

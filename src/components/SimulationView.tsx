@@ -1,7 +1,9 @@
 import React from 'react';
 import UIOverlay from './UIOverlay';
+import InspectorPanel from './InspectorPanel';
 import { Play, Pause, Maximize2, Minimize2 } from 'lucide-react';
 import { useAgencyStore } from '../store/agencyStore';
+import { useStore } from '../store/useStore';
 import { AGENTS } from '../data/agents';
 
 interface SimulationViewProps {
@@ -14,6 +16,7 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
   const isPaused = useAgencyStore((s) => s.isPaused);
   const setPaused = useAgencyStore((s) => s.setPaused);
   const pauseOnCall = useAgencyStore((s) => s.pauseOnCall);
+  const selectedNpcIndex = useStore((s) => s.selectedNpcIndex);
   const isPlaying = !isPaused;
   const agentCount = AGENTS.length - 1; // Exclude player agent from count
 
@@ -69,6 +72,11 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
 
       <div ref={canvasRef} className="flex-1 min-h-0 relative overflow-hidden bg-black/5">
         <UIOverlay />
+        {isFullscreen && selectedNpcIndex !== null && (
+          <div className="absolute top-4 right-4 bottom-4 w-96 z-50 pointer-events-none flex flex-col gap-4">
+            <InspectorPanel isFloating />
+          </div>
+        )}
       </div>
     </div>
   );
