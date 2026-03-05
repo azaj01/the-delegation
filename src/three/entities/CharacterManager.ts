@@ -548,6 +548,19 @@ export class CharacterManager {
     }
   }
 
+  /** Teleport an agent and zero their current velocity to avoid sliding. */
+  public setPositionAndZeroVelocity(index: number, position: THREE.Vector3): void {
+    this.setPosition(index, position);
+    if (this.velAttribute && index >= 0 && index < this.instanceCount) {
+      const arr = this.velAttribute.array as Float32Array;
+      arr[index * 4 + 0] = 0;
+      arr[index * 4 + 1] = 0;
+      arr[index * 4 + 2] = 0;
+      arr[index * 4 + 3] = 0;
+      this.velAttribute.needsUpdate = true;
+    }
+  }
+
   /** Force a specific facing direction when IDLE. */
   public setFacing(index: number, x: number, z: number) {
     if (!this.agentStateBuffer || index < 0 || index >= this.instanceCount) return;
