@@ -333,7 +333,17 @@ export class CharacterManager {
   }
 
   private createInstancedMesh() {
-    for (const { name, geometry, material: baseMaterial } of this.meshData) {
+    // Reorder meshData: Body FIRST, then features (eyes/mouth)
+    // This ensures body writes to depth buffer before features are drawn over it.
+    const sortedMeshData = [...this.meshData].sort((a, b) => {
+      const aIsBody = a.name.toLowerCase().includes('body');
+      const bIsBody = b.name.toLowerCase().includes('body');
+      if (aIsBody && !bIsBody) return -1;
+      if (!aIsBody && bIsBody) return 1;
+      return 0;
+    });
+
+    for (const { name, geometry, material: baseMaterial } of sortedMeshData) {
       const instancedGeometry = new THREE.InstancedBufferGeometry();
       instancedGeometry.copy(geometry as any);
       instancedGeometry.instanceCount = this.instanceCount;
@@ -364,6 +374,8 @@ export class CharacterManager {
       // Solo coloreamos el mesh cuyo nombre sea 'body'
       material.transparent = true;
       if (name.toLowerCase().includes('body')) {
+        material.depthWrite = true;
+        material.depthTest = true;
         if (map) {
           const texColor = texture(map);
           material.colorNode = vec4(texColor.rgb.mul(instanceColor), texColor.a.mul(instanceAlpha));
@@ -371,6 +383,11 @@ export class CharacterManager {
           material.colorNode = vec4(instanceColor, instanceAlpha);
         }
       } else {
+        // Eyes / mouth: always render on top of the body, never write depth.
+        // depthTest = false prevents z-fighting with the coplanar head surface.
+        material.depthWrite = false;
+        material.depthTest = false;
+        material.polygonOffset = false;
         // Los otros respetan la transparencia original de su mapa PNG
         if (map) {
           const texColor = isEyes || isMouth ? texture(map, material.uvNode) : texture(map);
@@ -388,6 +405,8 @@ export class CharacterManager {
       instancedMesh.frustumCulled = false;
       instancedMesh.castShadow = true;
       instancedMesh.receiveShadow = true;
+      // Body renders first (renderOrder 0), features after (renderOrder 1)
+      instancedMesh.renderOrder = name.toLowerCase().includes('body') ? 0 : 1;
       this.scene.add(instancedMesh);
       this.instancedMeshes.push(instancedMesh);
     }
