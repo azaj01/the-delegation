@@ -407,6 +407,7 @@ export class SceneManager {
       if (useAgencyStore.getState().isPaused) return;
       this.controller.updatePaths(positions);
       this.driverManager?.update(positions, delta);
+      this.updateTransparency(positions, delta);
     });
 
     // 3. Camera follow
@@ -446,6 +447,44 @@ export class SceneManager {
     this.stage.setChatMode(isChatting, playerMoving);
 
     this.engine.render(this.stage.scene, this.stage.camera);
+  }
+
+  /** Update transparency based on proximity between characters. */
+  private updateTransparency(positions: Float32Array, delta: number) {
+    if (!this.controller) return;
+    const count = this.controller.getCount();
+    const stateBuffer = this.controller.getAgentStateBuffer();
+    if (!stateBuffer) return;
+
+    const MIN_DIST = 0.6; // Distance at which transparency starts
+    const TARGET_ALPHA = 0.4; // Alpha when fully overlapping
+    const FADE_SPEED = 2.0;
+
+    for (let i = 0; i < count; i++) {
+      let isOverlapping = false;
+      const x1 = positions[i * 4 + 0];
+      const z1 = positions[i * 4 + 2];
+
+      for (let j = 0; j < count; j++) {
+        if (i === j) continue;
+        const x2 = positions[j * 4 + 0];
+        const z2 = positions[j * 4 + 2];
+        const distSq = (x1 - x2) ** 2 + (z1 - z2) ** 2;
+
+        if (distSq < MIN_DIST * MIN_DIST) {
+          isOverlapping = true;
+          break;
+        }
+      }
+
+      const currentAlpha = stateBuffer.getAlpha(i);
+      const target = isOverlapping ? TARGET_ALPHA : 1.0;
+
+      if (Math.abs(currentAlpha - target) > 0.01) {
+        const nextAlpha = THREE.MathUtils.lerp(currentAlpha, target, Math.min(delta * FADE_SPEED, 1.0));
+        stateBuffer.setAlpha(i, nextAlpha);
+      }
+    }
   }
 
   public getNpcScreenPosition(index: number): { x: number; y: number } | null {

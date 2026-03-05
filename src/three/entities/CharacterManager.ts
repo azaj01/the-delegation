@@ -349,6 +349,9 @@ export class CharacterManager {
       const map = (baseMaterial as any).map;
 
       const expressionData = this.expressionBuffer!.storageNode.element(instanceIndex);
+      const animParams = this.agentStateBuffer!.storageNode.element(instanceIndex.mul(2).add(1));
+      const instanceAlpha = animParams.z;
+
       const isEyes = name.toLowerCase().includes('eyes');
       const isMouth = name.toLowerCase().includes('mouth');
 
@@ -359,19 +362,19 @@ export class CharacterManager {
       }
 
       // Solo coloreamos el mesh cuyo nombre sea 'body'
+      material.transparent = true;
       if (name.toLowerCase().includes('body')) {
         if (map) {
           const texColor = texture(map);
-          material.colorNode = vec4(texColor.rgb.mul(instanceColor), texColor.a);
+          material.colorNode = vec4(texColor.rgb.mul(instanceColor), texColor.a.mul(instanceAlpha));
         } else {
-          material.colorNode = vec4(instanceColor, 1.0);
+          material.colorNode = vec4(instanceColor, instanceAlpha);
         }
       } else {
         // Los otros respetan la transparencia original de su mapa PNG
-        material.transparent = true;
         if (map) {
           const texColor = isEyes || isMouth ? texture(map, material.uvNode) : texture(map);
-          material.colorNode = texColor; // Usa el color y el canal alfa original de la textura
+          material.colorNode = vec4(texColor.rgb, texColor.a.mul(instanceAlpha)); // Usa el color y el canal alfa original de la textura
         } else {
           material.opacityNode = float(0);
         }

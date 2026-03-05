@@ -16,7 +16,7 @@ import { AgentBehavior } from '../../types';
  * Buffer 1 (vec4):
  *   .x = startTime   (global time when animation started)
  *   .y = loopMode    (1.0 = loop, 0.0 = clamp)
- *   .z = (unused)
+ *   .z = alpha       (1.0 = opaque, <1.0 = transparent)
  *   .w = (unused)
  *
  * CPU writes metadata, GPU shader reads them.
@@ -33,6 +33,10 @@ export class AgentStateBuffer {
 
   constructor(private readonly count: number) {
     this.array = new Float32Array(count * 8);
+    // Initialize alpha to 1.0 (opaque)
+    for (let i = 0; i < count; i++) {
+      this.array[i * 8 + 6] = 1.0;
+    }
     this.attribute = new THREE.StorageInstancedBufferAttribute(this.array, 8);
     this.storageNode = storage(this.attribute, 'vec4', count * 2);
   }
@@ -59,6 +63,17 @@ export class AgentStateBuffer {
     this.array[index * 8 + 4] = startTime;
     this.array[index * 8 + 5] = loop ? 1.0 : 0.0;
     this.attribute.needsUpdate = true;
+  }
+
+  // ── Transparency ─────────────────────────────────────────────
+
+  public setAlpha(index: number, alpha: number): void {
+    this.array[index * 8 + 6] = alpha;
+    this.attribute.needsUpdate = true;
+  }
+
+  public getAlpha(index: number): number {
+    return this.array[index * 8 + 6];
   }
 
   // ── Waypoint / Orientation ──────────────────────────────────
