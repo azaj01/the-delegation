@@ -1,6 +1,6 @@
 # The Delegation
 
-What if you could stop prompting & start delegating to a team of AI agents in a living 3D office?
+### What if you could stop prompting & start delegating to a team of AI agents in a living 3D office?
 
 <p align="center">
   <img src="public/images/the-delegation-UI.png" alt="The Delegation Hero" width="100%">
