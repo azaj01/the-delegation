@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  Corporate config
 // ─────────────────────────────────────────────────────────────
-export const COMPANY_NAME = 'FakeClaw Lab';
+export const COMPANY_NAME = 'The Embodied Agency';
 export const PLAYER_INDEX = 0;
 export const NPC_START_INDEX = 1;
 
@@ -27,7 +27,7 @@ export interface AgentData {
  * Agents Definition
  */
 
-// const ALL_AGENTS: AgentData[] = [
+// export const AGENTS: AgentData[] = [
 //   {
 //     index: 0,
 //     department: 'Client',
