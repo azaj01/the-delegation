@@ -90,7 +90,7 @@ export class NpcAgentDriver implements IAgentDriver {
   }
 
   private _updateProjectReadyBehavior(positions: Float32Array, delta: number, currentState: string): void {
-    const targetPoi = this.controller.poiManager.getPoi('idle-spawn-1');
+    const targetPoi = this.controller.poiManager.getPoi('idle-spawn-1'); // Correct ID for Account Manager spawn
     if (!targetPoi) return;
 
     const currentPos = new THREE.Vector3(
@@ -101,14 +101,23 @@ export class NpcAgentDriver implements IAgentDriver {
 
     // If not near spawn area, go there
     const dist = currentPos.distanceTo(targetPoi.position);
-    if (dist > 1 && currentState !== 'walk') {
-      this.controller.moveTo(this.agentIndex, targetPoi.position, 'happy_loop', undefined, currentPos);
+    if (dist > 1.5) { // Slightly larger threshold to avoid oscillation
+      if (currentState !== 'walk') {
+        this.controller.moveTo(this.agentIndex, targetPoi.position, 'happy_loop', undefined, currentPos, targetPoi.quaternion);
+      }
       return;
     }
 
     // If arrived or idling near spawn, switch to the looping happy state.
-    const isHappy = currentState === 'happy_loop' || currentState === 'happy';
-    if (!isHappy) {
+    const isHappy = currentState === 'happy_loop';
+    if (!isHappy && currentState !== 'walk') {
+      // Snap to target orientation if we are already close but not in the final state
+      this.controller.characterManager.setOrientation(this.agentIndex, targetPoi.quaternion);
+
+      // Don't cancel movement if we're naturally arriving via moveTo's arrivalState
+      if (currentState !== 'idle') {
+        this.controller.cancelMovement(this.agentIndex);
+      }
       this.controller.play(this.agentIndex, 'happy_loop');
     }
   }

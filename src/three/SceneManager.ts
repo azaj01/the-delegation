@@ -464,6 +464,22 @@ export class SceneManager {
     };
   }
 
+  public resetScene() {
+    if (!this.controller) return;
+    this.endChat();
+
+    // Stop all speech bubbles before teleporting
+    AGENTS.forEach((agent) => this.controller?.setSpeaking(agent.index, false));
+
+    // Teleport every agent instantly to their original spawn POI — no walking
+    const npcIndices = AGENTS.filter(a => !a.isPlayer).map(a => a.index);
+    this.controller.warpAllToSpawn(PLAYER_INDEX, npcIndices);
+
+    // Reset camera to default
+    this.stage.setFollowTarget(null);
+    this.stage.setChatMode(false, false);
+  }
+
   public dispose() {
     this.isDisposed = true;
     this.resizeObserver.disconnect();

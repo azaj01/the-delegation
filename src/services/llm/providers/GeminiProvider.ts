@@ -12,7 +12,8 @@ export class GeminiProvider implements LLMProvider {
     messages: LLMMessage[],
     tools?: LLMToolDefinition[],
     systemInstruction?: string,
-    modelName: string = 'gemini-3-flash-preview'
+    modelName: string = 'gemini-3-flash-preview',
+    signal?: AbortSignal
   ): Promise<LLMResponse> {
     const contents = this.mapMessagesToGemini(messages);
 
@@ -43,6 +44,7 @@ export class GeminiProvider implements LLMProvider {
       config: {
         systemInstruction: systemInstruction,
         tools: agencyTools,
+        abortSignal: signal,
       }
     });
 

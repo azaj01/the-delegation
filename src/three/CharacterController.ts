@@ -29,7 +29,7 @@ export class CharacterController implements ICharacterDriver {
   private arrivalCallbacks: ((index: number) => void)[] = [];
 
   constructor(
-    private readonly characterManager: CharacterManager,
+    public readonly characterManager: CharacterManager,
     private readonly navMesh: NavMeshManager,
     public readonly poiManager: PoiManager,
   ) {
@@ -69,6 +69,7 @@ export class CharacterController implements ICharacterDriver {
    * @param arrivalState State to enter upon reaching the destination (default: 'idle')
    * @param onArrival    Optional callback fired when the destination is reached
    * @param fromPosition Optional start position (defaults to current CPU position)
+   * @param targetOrientation Optional orientation to snap to upon arrival
    */
   public moveTo(
     index: number,
@@ -76,6 +77,7 @@ export class CharacterController implements ICharacterDriver {
     arrivalState: CharacterStateKey = 'idle',
     onArrival?: (index: number) => void,
     fromPosition?: THREE.Vector3,
+    targetOrientation?: THREE.Quaternion,
   ): boolean {
     let from: THREE.Vector3;
 
@@ -102,6 +104,9 @@ export class CharacterController implements ICharacterDriver {
 
     this.pathAgents[index].setPath(path, from);
     this.arrivalCallbacks[index] = (i) => {
+      if (targetOrientation) {
+        this.characterManager.setOrientation(i, targetOrientation);
+      }
       this.play(i, arrivalState);
       onArrival?.(i);
     };
@@ -226,6 +231,40 @@ export class CharacterController implements ICharacterDriver {
   public cancelMovement(index: number): void {
     this.pathAgents[index].cancel();
     this.setPhysicsMode(index, AgentBehavior.IDLE);
+  }
+
+  /**
+   * Instantly teleport every agent to their original spawn POI — no pathfinding,
+   * no arrival callbacks. Spawn POIs are reassigned in sorted ID order, mirroring
+   * the order used during initialisation.
+   *
+   * @param playerIndex  Index of the player character (teleported to world origin).
+   * @param npcIndices   Indices of all NPC agents, in the desired spawn-assignment order.
+   */
+  public warpAllToSpawn(playerIndex: number, npcIndices: number[]): void {
+    // 1. Release all POIs so spawn slots are free
+    this.poiManager.releaseAll(playerIndex);
+    npcIndices.forEach(i => this.poiManager.releaseAll(i));
+
+    // 2. Cancel in-flight paths and snap physics to IDLE
+    this.cancelMovement(playerIndex);
+    npcIndices.forEach(i => this.cancelMovement(i));
+
+    // 3. Teleport player to world origin
+    this.characterManager.setPosition(playerIndex, new THREE.Vector3(0, 0, 0));
+    this.play(playerIndex, 'idle');
+
+    // 4. Reassign spawn POIs in sorted order (same as initInstances)
+    const spawnPois = this.poiManager.getPoisByPrefix('spawn');
+    npcIndices.forEach((agentIndex, order) => {
+      const poi = spawnPois[order % spawnPois.length];
+      if (poi) {
+        this.characterManager.setPosition(agentIndex, poi.position);
+        this.characterManager.setOrientation(agentIndex, poi.quaternion);
+        this.poiManager.occupy(poi.id, agentIndex);
+      }
+      this.play(agentIndex, 'idle');
+    });
   }
 
   // ── Forwarded accessors ──────────────────────────────────────

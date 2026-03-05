@@ -87,7 +87,7 @@ export function useAgencyOrchestrator() {
         }
       }
     } catch (err) {
-      console.error('[Orchestrator] final delivery error:', err)
+      if ((err as DOMException)?.name !== 'AbortError') console.error('[Orchestrator] final delivery error:', err)
     } finally {
       runningAgents.current.delete(AM_INDEX)
     }
@@ -142,7 +142,7 @@ export function useAgencyOrchestrator() {
         }
       }
     } catch (err) {
-      console.error(`[Orchestrator] agent ${agentIndex} task error:`, err)
+      if ((err as DOMException)?.name !== 'AbortError') console.error(`[Orchestrator] agent ${agentIndex} task error:`, err)
     } finally {
       // Always clean up — handles early returns (on_hold/done) and errors.
       // complete_task already deletes, but a Set delete is idempotent.
@@ -209,7 +209,7 @@ export function useAgencyOrchestrator() {
         taskId: task.id,
       })
     } catch (err) {
-      console.error('[Orchestrator] boardroom error:', err)
+      if ((err as DOMException)?.name !== 'AbortError') console.error('[Orchestrator] boardroom error:', err)
     } finally {
       agents.forEach((idx) => runningAgents.current.delete(idx))
     }
@@ -256,7 +256,7 @@ export function useAgencyOrchestrator() {
         }
         return response.text || null
       } catch (err) {
-        console.error('[Orchestrator] AM message error:', err)
+        if ((err as DOMException)?.name !== 'AbortError') console.error('[Orchestrator] AM message error:', err)
         return null
       } finally {
         runningAgents.current.delete(AM_INDEX)
@@ -317,7 +317,7 @@ export function useAgencyOrchestrator() {
           }
           return response.text || null
         } catch (err) {
-          console.error('[Orchestrator] approval resume error:', err)
+          if ((err as DOMException)?.name !== 'AbortError') console.error('[Orchestrator] approval resume error:', err)
           return null
         } finally {
           runningAgents.current.delete(npcIndex)
@@ -330,7 +330,7 @@ export function useAgencyOrchestrator() {
       const response = await callAgent({ agentIndex: npcIndex, userMessage: text, chatMode: true })
       return response.text || null
     } catch (err) {
-      console.error('[Orchestrator] NPC chat error:', err)
+      if ((err as DOMException)?.name !== 'AbortError') console.error('[Orchestrator] NPC chat error:', err)
       return null
     }
   }
@@ -343,19 +343,28 @@ export function useAgencyOrchestrator() {
 
     // Watch for new scheduled tasks and dispatch them
     const unsub = useAgencyStore.subscribe((s, prev) => {
+      // Find tasks that just became 'scheduled' (were not present or not scheduled before)
       const newScheduled = s.tasks.filter(
         (t) =>
           t.status === 'scheduled' &&
           !prev.tasks.some((pt) => pt.id === t.id && pt.status === 'scheduled'),
       )
 
-      // Small delay so the AM has time to finish speaking before agents start
+      // Guard: only dispatch unique newly scheduled tasks
       if (newScheduled.length > 0) {
         setTimeout(() => {
+          // Re-verify status before dispatching to ensure idempotency after the delay
+          const currentStore = useAgencyStore.getState();
           for (const task of newScheduled) {
-            dispatchTask(task)
+            const currentTask = currentStore.tasks.find(t => t.id === task.id);
+            const agentIndex = task.assignedAgentIds[0];
+
+            // Dispatch only if still scheduled AND agent isn't already busy
+            if (currentTask?.status === 'scheduled' && !runningAgents.current.has(agentIndex)) {
+              dispatchTask(task);
+            }
           }
-        }, 2000)
+        }, 2000);
       }
 
       // Exit chat mode only when a brand-new task (scheduled) starts for the chatted NPC.

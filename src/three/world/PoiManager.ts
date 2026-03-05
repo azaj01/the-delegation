@@ -158,4 +158,13 @@ export class PoiManager {
   public getAllPois(): PoiDef[] {
     return Array.from(this.pois.values());
   }
+
+  /** Returns ALL POIs whose ID contains the given prefix, regardless of occupancy.
+   * Results are sorted by ID for a consistent, repeatable order.
+   */
+  public getPoisByPrefix(prefix: string): PoiDef[] {
+    return Array.from(this.pois.values())
+      .filter(p => p.id.includes(prefix))
+      .sort((a, b) => a.id.localeCompare(b.id));
+  }
 }

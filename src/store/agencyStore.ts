@@ -136,6 +136,7 @@ export const useAgencyStore = create<AgencyState>()(
         boardroomHistories: {},
         pendingApprovalTaskId: null,
         isFinalOutputOpen: false,
+        isPaused: false,
       }),
 
       // ... other actions stay as they are ...

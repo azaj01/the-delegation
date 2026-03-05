@@ -1,13 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAgencyStore } from '../store/agencyStore';
 import { ScrollText, RefreshCcw } from 'lucide-react';
+import ResetModal from './ResetModal';
+import { useSceneManager } from '../three/SceneContext';
+import { abortAllCalls } from '../services/agencyService';
 
 const ProjectView: React.FC = () => {
   const {
     clientBrief,
     phase,
+    actionLog,
     resetProject
   } = useAgencyStore();
+  const scene = useSceneManager();
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+
+  const hasLogs = actionLog.length > 0;
+
+  const handleReset = () => {
+    // 1. Cancel all in-flight LLM calls so no stale response lands on the clean store.
+    abortAllCalls();
+    // 2. Reset the scene: cancels movements, ends chat, and clears useStore UI state.
+    scene?.resetScene();
+    // 3. Wipe the agency store; phase goes back to 'idle'.
+    resetProject();
+  };
 
   return (
     <div className="flex flex-col h-full overflow-y-auto p-6 bg-white/50">
@@ -16,23 +33,22 @@ const ProjectView: React.FC = () => {
           <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5">Project Overview</p>
           <h2 className="text-xl font-black text-zinc-900 leading-tight">The Agency Mission</h2>
         </div>
-
-        {phase === 'done' && (
-          <button
-            onClick={() => {
-              if (confirm('Are you sure you want to reset the project? All progress and logs will be cleared.')) {
-                resetProject();
-              }
-            }}
-            className="p-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest"
-          >
-            <RefreshCcw size={12} />
-            Reset
-          </button>
-        )}
       </div>
 
       <div className="h-px bg-zinc-100 w-full mb-6" />
+
+      {/* Reset Project Button - More Subtle */}
+      {hasLogs && (
+        <div className="mb-8 flex justify-end">
+          <button
+            onClick={() => setIsResetModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100/50 hover:bg-zinc-100 text-zinc-400 hover:text-red-500 rounded-lg transition-all active:scale-95 group border border-transparent hover:border-red-100"
+          >
+            <RefreshCcw size={12} className="transition-transform group-hover:rotate-180 duration-500" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Reset Project</span>
+          </button>
+        </div>
+      )}
 
       {/* Brief */}
       <div className="mb-8">
@@ -47,7 +63,6 @@ const ProjectView: React.FC = () => {
         </div>
       </div>
 
-      {/* Phase status */}
       <div className="mb-8">
         <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Stage</p>
         <div className="flex items-center gap-2">
@@ -62,6 +77,12 @@ const ProjectView: React.FC = () => {
            </div>
         </div>
       </div>
+
+      <ResetModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirm={handleReset}
+      />
     </div>
   );
 };

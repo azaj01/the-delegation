@@ -20,14 +20,40 @@ export interface AgentResponse {
   functionCalls: AgentFunctionCall[]
 }
 
-const waitForResume = () => {
-    return new Promise<void>((resolve) => {
+// ── Reset abort controller ────────────────────────────────────
+// Replaced on every reset so all in-flight callAgent promises reject immediately.
+let _resetController = new AbortController();
+
+/** Cancel every in-flight LLM call and arm a fresh signal for the next run. */
+export function abortAllCalls(): void {
+  _resetController.abort();
+  _resetController = new AbortController();
+}
+
+/** Rejects if the current reset signal has been aborted. */
+function throwIfAborted(signal: AbortSignal): void {
+  if (signal.aborted) throw new DOMException('LLM call aborted by reset', 'AbortError');
+}
+
+/** Returns a promise that rejects as soon as the signal is aborted. */
+function abortRace(signal: AbortSignal): Promise<never> {
+  return new Promise((_, reject) => {
+    if (signal.aborted) { reject(new DOMException('LLM call aborted by reset', 'AbortError')); return; }
+    signal.addEventListener('abort', () => reject(new DOMException('LLM call aborted by reset', 'AbortError')), { once: true });
+  });
+}
+
+const waitForResume = (signal: AbortSignal) => {
+    return new Promise<void>((resolve, reject) => {
+      if (signal.aborted) { reject(new DOMException('LLM call aborted by reset', 'AbortError')); return; }
       const unsub = useAgencyStore.subscribe((state, prevState) => {
         if (prevState.isPaused && !state.isPaused) {
           unsub();
-          resolve();
+          if (signal.aborted) reject(new DOMException('LLM call aborted by reset', 'AbortError'));
+          else resolve();
         }
       });
+      signal.addEventListener('abort', () => { unsub(); reject(new DOMException('LLM call aborted by reset', 'AbortError')); }, { once: true });
     });
   };
 
@@ -38,6 +64,9 @@ export async function callAgent(params: {
   boardroomTaskId?: string;
   chatMode?: boolean;
 }): Promise<AgentResponse> {
+  // Capture the reset signal at call-time — if reset fires mid-call this will abort.
+  const signal = _resetController.signal;
+  throwIfAborted(signal);
   const { agentIndex, userMessage, isBoardroom = false, boardroomTaskId, chatMode = false } = params;
   const llmConfig = useStore.getState().llmConfig;
   const provider = LLMFactory.getProvider(llmConfig);
@@ -104,20 +133,19 @@ export async function callAgent(params: {
   // PAUSE BEFORE CALL (only when debug mode on)
   if (useAgencyStore.getState().pauseOnCall) {
     useAgencyStore.getState().setPaused(true);
-    await waitForResume();
+    await waitForResume(signal);
   }
+  throwIfAborted(signal);
 
   // 3. Call LLM
   // We allow tools in chat mode if it's the specific approval or completion tools we need
   const tools = chatMode
     ? AGENCY_TOOLS.filter(t => ['receive_client_approval', 'complete_task', 'update_client_brief', 'propose_task'].includes(t.function.name))
     : AGENCY_TOOLS;
-  const response = await provider.generateCompletion(
-    messages,
-    tools,
-    systemInstruction,
-    llmConfig.model
-  );
+  const response = await Promise.race([
+    provider.generateCompletion(messages, tools, systemInstruction, llmConfig.model, signal),
+    abortRace(signal),
+  ]);
 
   const text = response.content || '';
   let toolCalls = response.tool_calls || [];
@@ -168,8 +196,9 @@ export async function callAgent(params: {
   // PAUSE AFTER RESPONSE (only when debug mode on)
   if (useAgencyStore.getState().pauseOnCall) {
     useAgencyStore.getState().setPaused(true);
-    await waitForResume();
+    await waitForResume(signal);
   }
+  throwIfAborted(signal);
 
   // 4. Update history in store
   // In CHAT MODE, we only want to store the message if it's actual conversation or relevant feedback

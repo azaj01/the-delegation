@@ -71,7 +71,18 @@ export class ToolHandlerService {
           taskId,
         });
         scene?.setNpcWorking(callerIndex, false);
-        // Move agent to boardroom and stop working
+
+        // Transition to working phase if not already there (prevents UI being stuck in briefing or idle)
+        if (store.phase !== 'working' && store.phase !== 'done') {
+           store.setPhase('working');
+        }
+
+        // Auto-end chat to release the inspector and return camera focus to world
+        if (scene && 'endChat' in scene) {
+          (scene as any).endChat();
+        }
+
+        // Move agent to boardroom (waiting area) since they are on hold
         if (scene && 'moveNpcToBoardroom' in scene) {
           (scene as any).moveNpcToBoardroom(callerIndex);
         }
