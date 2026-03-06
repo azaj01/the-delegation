@@ -131,13 +131,6 @@ export function KanbanPanel({ height = 320 }: KanbanPanelProps) {
       className="w-full bg-white border-t border-black/8 flex flex-col pointer-events-auto shrink-0 relative"
       style={{ height }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 h-10 border-b border-black/5 shrink-0 bg-white sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Project Kanban</span>
-        </div>
-      </div>
-
       {/* Columns Scroll Area */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden bg-zinc-50/20">
         <div className="flex h-full min-w-max px-5 py-4 gap-4">
@@ -145,7 +138,7 @@ export function KanbanPanel({ height = 320 }: KanbanPanelProps) {
             const colTasks = tasks.filter((t) => t.status === status)
             return (
               <div key={status} className="w-60 flex flex-col gap-3">
-                <div className="flex items-center justify-between shrink-0">
+                <div className="flex items-center justify-between shrink-0 select-none">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-none">
                       {label}
@@ -161,7 +154,7 @@ export function KanbanPanel({ height = 320 }: KanbanPanelProps) {
                     <TaskCard key={t.id} task={t} />
                   ))}
                   {colTasks.length === 0 && (
-                    <div className="border border-dashed border-zinc-100 rounded-lg p-4 flex items-center justify-center">
+                    <div className="border border-dashed border-zinc-100 rounded-lg p-4 flex items-center justify-center select-none">
                       <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">Empty</span>
                     </div>
                   )}

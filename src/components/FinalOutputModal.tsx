@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { useAgencyStore } from '../store/agencyStore'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 export function FinalOutputModal() {
   const { isFinalOutputOpen, setFinalOutputOpen, finalOutput } = useAgencyStore()
@@ -42,9 +44,11 @@ export function FinalOutputModal() {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          <pre className="text-xs text-zinc-700 leading-relaxed whitespace-pre-wrap font-sans">
-            {finalOutput}
-          </pre>
+          <div className="markdown-content text-sm text-zinc-700 leading-relaxed font-sans">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {finalOutput}
+            </ReactMarkdown>
+          </div>
         </div>
 
         {/* Footer */}

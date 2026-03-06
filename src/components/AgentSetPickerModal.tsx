@@ -26,17 +26,23 @@ const AgentSetCard: React.FC<{
       onClick={onSelect}
       className={`relative w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 ${
         isSelected
-          ? 'border-zinc-900 bg-zinc-50 shadow-lg'
+          ? 'bg-zinc-50 shadow-lg'
           : 'border-zinc-100 bg-white hover:border-zinc-200 hover:shadow-sm'
       }`}
+      style={isSelected ? { borderColor: accent } : {}}
     >
-      {/* Top row: color square + name + type */}
+      {/* Top row: agent count indicator + name + type */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-2.5">
           <div
-            className="w-8 h-8 rounded-lg shrink-0 shadow-sm"
+            className="h-5 px-1.5 rounded-lg shrink-0 shadow-sm flex items-center justify-center gap-1.5"
             style={{ backgroundColor: accent }}
-          />
+          >
+            <Users size={10} className="text-white opacity-90" strokeWidth={3} />
+            <span className="text-[10px] font-black text-white leading-none">
+              {set.agents.length - 1}
+            </span>
+          </div>
           <div>
             <p className="text-xs font-black text-zinc-900 leading-tight">{set.companyName}</p>
             <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none mt-0.5">
@@ -46,8 +52,9 @@ const AgentSetCard: React.FC<{
         </div>
         <div
           className={`w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 transition-all ${
-            isSelected ? 'border-zinc-900 bg-zinc-900' : 'border-zinc-200 bg-white'
+            isSelected ? '' : 'border-zinc-200 bg-white'
           }`}
+          style={isSelected ? { borderColor: accent, backgroundColor: accent } : {}}
         />
       </div>
 
@@ -175,7 +182,8 @@ const AgentSetPickerModal: React.FC<AgentSetPickerModalProps> = ({
             <div className="px-8 pb-8 shrink-0 border-t border-zinc-100 pt-5">
               <button
                 onClick={handleConfirm}
-                className="w-full py-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-4 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                style={{ backgroundColor: selectedSet.color }}
               >
                 <Users size={14} />
                 {isChangingSet

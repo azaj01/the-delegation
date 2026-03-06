@@ -28,7 +28,7 @@ const App: React.FC = () => {
   const { isLogOpen, isKanbanOpen, setIsResizing } = useAgencyStore();
 
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [kanbanHeight, setKanbanHeight] = useState(320);
+  const [kanbanHeight, setKanbanHeight] = useState(220);
 
   const startResizing = useCallback(() => {
     setIsResizing(true);
@@ -42,8 +42,8 @@ const App: React.FC = () => {
     if (useAgencyStore.getState().isResizing) {
       const windowHeight = window.innerHeight;
       const newHeight = windowHeight - e.clientY;
-      const minHeight = windowHeight * 0.3;
-      const maxHeight = windowHeight * 0.7;
+      const minHeight = windowHeight * 0.2;
+      const maxHeight = windowHeight * 0.5;
       if (newHeight >= minHeight && newHeight <= maxHeight) {
         setKanbanHeight(newHeight);
       }

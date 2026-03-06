@@ -106,7 +106,7 @@ export const AGENT_SETS: AgentSet[] = [
   // ── 2. Game Studio ──────────────────────────────────────────
   {
     id: 'game-studio',
-    companyName: 'PixelCraft Games',
+    companyName: 'Pixxel AI Games',
     companyType: 'Indie Game Studio',
     companyDescription: 'A specialized game development studio focused on creating the next viral hit. Our goal is to craft the perfect prompt for a groundbreaking game.',
     color: '#22c55e',
@@ -150,7 +150,7 @@ export const AGENT_SETS: AgentSet[] = [
     companyName: 'Sonic Bloom Records',
     companyType: 'Music Promotion & Production',
     companyDescription: 'A boutique musical agency dedicated to composing the perfect song prompt by harmonizing rhythm, melody, and lyrics.',
-    color: '#D8E550',
+    color: '#E97B21',
     agents: [
       {
         index: 0,

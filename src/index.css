@@ -24,3 +24,51 @@ a {
 .font-sans {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
+
+/* Base styles for Markdown content */
+.markdown-content p {
+  @apply mb-3 last:mb-0;
+}
+.markdown-content ul,
+.markdown-content ol {
+  @apply mb-3 ml-4 last:mb-0;
+}
+.markdown-content ul {
+  @apply list-disc;
+}
+.markdown-content ol {
+  @apply list-decimal;
+}
+.markdown-content li {
+  @apply mb-1;
+}
+.markdown-content strong {
+  @apply font-bold text-zinc-700/90;
+}
+.markdown-content em {
+  @apply italic;
+}
+
+/* Base styles for Markdown content */
+.markdown-content p {
+  @apply mb-3 last:mb-0;
+}
+.markdown-content ul,
+.markdown-content ol {
+  @apply mb-3 ml-4 last:mb-0;
+}
+.markdown-content ul {
+  @apply list-disc;
+}
+.markdown-content ol {
+  @apply list-decimal;
+}
+.markdown-content li {
+  @apply mb-1;
+}
+.markdown-content strong {
+  @apply font-bold text-zinc-700/90;
+}
+.markdown-content em {
+  @apply italic;
+}

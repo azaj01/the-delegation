@@ -5,6 +5,8 @@ import { useAgencyStore } from '../store/agencyStore';
 import { getAgentSet } from '../data/agents';
 import { Send, FolderOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const ORCHESTRATOR_INDEX = 1;
 
@@ -128,12 +130,20 @@ const ChatPanel: React.FC = () => {
                 </div>
 
                 <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                  <div className={`px-4 py-2.5 rounded-[20px] text-[14px] leading-relaxed shadow-sm whitespace-pre-wrap ${
+                  <div className={`px-4 py-2.5 rounded-[20px] text-[14px] leading-relaxed shadow-sm ${
                     msg.role === 'user'
                     ? 'bg-blue-50/50 text-zinc-800 rounded-tr-none border border-blue-100/50'
                     : 'bg-zinc-50 text-zinc-800 rounded-tl-none border border-zinc-100'
                   }`}>
-                    {msg.content}
+                    {msg.role === 'assistant' ? (
+                      <div className="markdown-content">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                    )}
                   </div>
 
                   <div className={`flex items-center gap-2 mt-2 px-1`}>
