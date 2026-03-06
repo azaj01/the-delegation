@@ -22,7 +22,7 @@ export class WorldManager {
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath(DRACO_LIB_PATH);
     loader.setDRACOLoader(dracoLoader);
-    const officeGltf = await loader.loadAsync('/models/office.glb');
+    const officeGltf = await loader.loadAsync(`${import.meta.env.BASE_URL}models/office.glb`);
     this.office = officeGltf.scene;
     this.scene.add(this.office);
 

@@ -12,7 +12,7 @@ export const POI_PICK_RADIUS = 0.4;
 
 // ── Resource Loading ──────────────────────────────────────────
 /** Path to Draco decoders (hosted in public/vendor/). */
-export const DRACO_LIB_PATH = '/vendor/draco/';
+export const DRACO_LIB_PATH = `${import.meta.env.BASE_URL}vendor/draco/`;
 
 // ── Expression Atlas ─────────────────────────────────────────
 export const ATLAS_COLS = 2;

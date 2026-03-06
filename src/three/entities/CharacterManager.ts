@@ -85,7 +85,7 @@ export class CharacterManager {
     dracoLoader.setDecoderPath(DRACO_LIB_PATH);
     loader.setDRACOLoader(dracoLoader);
     try {
-      const gltf = await loader.loadAsync('/models/character.glb');
+      const gltf = await loader.loadAsync(`${import.meta.env.BASE_URL}models/character.glb`);
       const model = gltf.scene;
 
       const skinnedMeshes: THREE.SkinnedMesh[] = [];
