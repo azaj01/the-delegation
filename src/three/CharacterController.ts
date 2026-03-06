@@ -302,6 +302,18 @@ export class CharacterController implements ICharacterDriver {
     return this.characterManager.getAgentStateBuffer();
   }
 
+  public setColors(colors: string[]): void {
+    this.characterManager.setColors(colors);
+    // Re-sync components after recreation
+    const newCount = this.characterManager.getCount();
+    const stateBuffer = this.characterManager.getAgentStateBuffer()!;
+    this.pathAgents = [];
+    for (let i = 0; i < newCount; i++) {
+      this.pathAgents.push(new PathAgent(i, stateBuffer));
+    }
+    this.stateMachine = new CharacterStateMachine(newCount);
+  }
+
   public setInstanceCount(count: number): void {
     this.characterManager.setInstanceCount(count);
     // Re-sync path agents and state machine after resize

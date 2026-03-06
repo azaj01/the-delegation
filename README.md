@@ -22,7 +22,7 @@ npm install
 npm run dev
 ```
 
-3. **Open the app:** Navigate to the local URL shown in your terminal (usually `http://localhost:3000`).
+3. **Open the app:** Navigate to the local URL shown in your terminal (usually `http://localhost:3000/the-delegation`).
 
 ## About the Project
 

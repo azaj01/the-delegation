@@ -127,8 +127,9 @@ export class SceneManager {
         const activeSet = getAgentSet(currentSetId);
         this.worldManager.updateThemeColor(activeSet.color);
 
-        // Force agents to their spawn points when the team changes
+        // Force agents to their spawn points and update colors when the team changes
         if (this.controller) {
+          this.controller.setColors(activeSet.agents.map(a => a.color));
           const npcIndices = activeSet.agents.filter(a => !a.isPlayer).map(a => a.index);
           this.controller.warpAllToSpawn(PLAYER_INDEX, npcIndices);
         }
