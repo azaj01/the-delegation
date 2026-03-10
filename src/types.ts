@@ -50,7 +50,6 @@ export enum AnimationName {
   SIT_DOWN = 'Sit',      // one-shot sit-down entry animation
   SIT_IDLE = 'Sit_Idle', // loop: seated idle
   SIT_WORK = 'Sit_Work', // loop: seated working
-
   LOOK_AROUND = 'LookAround',
   HAPPY = 'Happy',
   SAD = 'Sad',

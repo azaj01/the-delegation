@@ -73,12 +73,6 @@ My goal is to move towards a fully sandboxable agency experience:
 - **World Building**
   - [ ] **Office/3D Space Editor:** Drag-and-drop editor to customize the workspace layout and POIs.
 
-## Supporting the Project
-
-The Delegation is an experiment in the future of human-AI collaboration. If you find this project inspiring or useful for your own research, consider supporting my work:
-
-[![Sponsor GitHub](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?logo=github)](https://github.com/sponsors/arturitu)
-
 ## License & IP
 
 This project follows a dual-licensing model:
