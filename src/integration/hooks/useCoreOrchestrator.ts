@@ -222,7 +222,7 @@ export function useCoreOrchestrator() {
   ): Promise<string | null> => {
     const store = useCoreStore.getState()
 
-    // ---- Orchestrator: always route through agency service ----
+    // ---- Orchestrator: always route through agentic service ----
     if (npcIndex === ORCHESTRATOR_INDEX) {
       if (store.phase === 'idle') {
         store.setPhase('briefing')

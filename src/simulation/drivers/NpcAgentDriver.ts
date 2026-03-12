@@ -11,7 +11,7 @@ import { useCoreStore } from '../../integration/store/coreStore';
  * Each NPC in the scene has its own instance of this class.
  * The update() method is the entry point for all NPC autonomous behavior.
  *
- * It respects the global Agency phase and individual task status to determine behavior.
+ * It respects the global Core phase and individual task status to determine behavior.
  */
 export class NpcAgentDriver implements IAgentDriver {
   public readonly agentIndex: number;

@@ -43,7 +43,7 @@ export class GeminiProvider implements LLMProvider {
       contents,
       config: {
         systemInstruction: systemInstruction,
-        tools: agencyTools,
+        tools: systemTools,
         abortSignal: signal,
       }
     });
