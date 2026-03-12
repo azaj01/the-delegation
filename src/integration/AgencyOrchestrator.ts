@@ -1,5 +1,4 @@
 import { useAgencyStore, type Task } from './store/agencyStore';
-import { useStore } from './store/useStore';
 import {
   callAgent,
   callOrchestrator,
@@ -7,8 +6,6 @@ import {
   type AgentFunctionCall,
 } from './agencyService';
 import { ToolHandlerService } from './toolHandlerService';
-import { getAgent } from '../data/agents';
-import { getActiveAgentSet } from './store/agencyStore';
 
 const ORCHESTRATOR_INDEX = 1;
 
