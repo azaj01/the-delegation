@@ -32,7 +32,7 @@ export function buildSystemPrompt(agentIndex: number, isBoardroom = false): stri
 
   const boardroomNote = isBoardroom
     ? `\nCONTEXT: You are in the BOARDROOM collaborating with other agents. ` +
-      `Divide the work clearly using propose_subtask, one per teammate. ` +
+      `Divide the work clearly using propose_task, one per teammate. ` +
       `Then each agent will execute their own sub-task independently.`
     : ''
 
@@ -118,6 +118,7 @@ export function buildChatSystemPrompt(agentIndex: number): string {
     '',
     'RULES:',
     '- Be conversational and responsive. Answer the client\'s questions directly.',
+    '- If you use a tool, always provide a conversational response in your message text as well.',
     '- IF the client provides the feedback or approval you needed to CONTINUE (the task stays in progress): call "receive_client_approval". The chat session will terminate and you will return to your workstation.',
     '- IF the client provides the final sign-off or enough info that your work is actually DONE: call "complete_task" with your final output (max 500 words). The chat session will also terminate.',
     '- Keep replies concise (2-4 sentences) unless the client asks for detail.',

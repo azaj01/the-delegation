@@ -5,7 +5,7 @@ export const CORE_TOOLS: LLMToolDefinition[] = [
     type: 'function',
     function: {
       name: 'propose_task',
-      description: 'Orchestrator only. Create a new task for one or more agents.',
+      description: 'Create a new task for one or more agents.',
       parameters: {
         type: 'object',
         properties: {
@@ -57,7 +57,7 @@ export const CORE_TOOLS: LLMToolDefinition[] = [
     type: 'function',
     function: {
       name: 'receive_client_approval',
-      description: 'Call this ONLY when you are in a chat with the client and they have given you the approval or information you needed. This will end the chat and move the task back to in_progress.',
+      description: 'Call this when the client provides the approval or information needed to resume a task that was ON_HOLD.',
       parameters: {
         type: 'object',
         properties: {
@@ -74,45 +74,20 @@ export const CORE_TOOLS: LLMToolDefinition[] = [
     type: 'function',
     function: {
       name: 'complete_task',
-      description: 'When your work is done. output is the prompt you crafted (max 500 words).',
+      description: 'When your work is done OR the task is no longer necessary. If cancelled, use output to explain why.',
       parameters: {
         type: 'object',
         properties: {
           taskId: {
             type: 'string',
-            description: 'The ID of the task you completed.',
+            description: 'The ID of the task you are closing.',
           },
           output: {
             type: 'string',
-            description: 'The prompt you crafted (max 500 words).',
+            description: 'The final prompt (max 300 words) OR an explanation of why the task was finished/cancelled.',
           },
         },
         required: ['taskId', 'output'],
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'propose_subtask',
-      description: 'Boardroom only. Assign a specific sub-task to a teammate.',
-      parameters: {
-        type: 'object',
-        properties: {
-          agentId: {
-            type: 'integer',
-            description: 'The ID of the agent to assign the sub-task to.',
-          },
-          title: {
-            type: 'string',
-            description: 'A very brief 2-4 word summary of the sub-task.',
-          },
-          description: {
-            type: 'string',
-            description: 'A short 10-20 word instruction for the sub-task.',
-          },
-        },
-        required: ['agentId', 'title', 'description'],
       },
     },
   },
@@ -137,7 +112,7 @@ export const CORE_TOOLS: LLMToolDefinition[] = [
     type: 'function',
     function: {
       name: 'update_client_brief',
-      description: 'Orchestrator only. Call this to update or refine the official client brief based on the conversation. This does NOT start the working phase; use propose_task for that.',
+      description: 'Call this to update or refine the official client brief based on the conversation. This does NOT start the working phase; use propose_task for that.',
       parameters: {
         type: 'object',
         properties: {

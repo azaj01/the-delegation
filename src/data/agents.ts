@@ -17,6 +17,7 @@ export interface AgentData {
   personality: string;
   isPlayer: boolean;
   color: string;
+  allowedTools?: string[];
 }
 
 export interface AgentSet {
@@ -49,6 +50,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Demanding but open to professional suggestions.',
         isPlayer: true,
         color: '#7EACEA',
+        allowedTools: [],
       },
       {
         index: 1,
@@ -59,6 +61,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Organized, efficient, and central orchestrator.',
         isPlayer: false,
         color: '#4387E2',
+        allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
       },
       {
         index: 2,
@@ -69,6 +72,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Creative, detail-oriented, and focused on visual harmony.',
         isPlayer: false,
         color: '#eab308',
+        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
       },
       {
         index: 3,
@@ -79,6 +83,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Pragmatic, technical, and focused on robustness.',
         isPlayer: false,
         color: '#22c55e',
+        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
       },
       {
         index: 4,
@@ -89,6 +94,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Strategic, persuasive, and market-savvy.',
         isPlayer: false,
         color: '#EF52BA',
+        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
       },
       {
         index: 5,
@@ -99,6 +105,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Critical, realistic, and focused on return on investment.',
         isPlayer: false,
         color: '#ef4444',
+        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
       },
     ],
   },
@@ -120,6 +127,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Passionate gamer, imaginative, and focused on "fun factor".',
         isPlayer: true,
         color: '#7EACEA',
+        allowedTools: [],
       },
       {
         index: 1,
@@ -130,6 +138,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Analytical, visionary, and balanced.',
         isPlayer: false,
         color: '#22c55e',
+        allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
       },
       {
         index: 2,
@@ -161,6 +170,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Expressive, emotional, and creatively driven.',
         isPlayer: true,
         color: '#7EACEA',
+        allowedTools: [],
       },
       {
         index: 1,
@@ -171,6 +181,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Experienced, visionary, and a natural leader.',
         isPlayer: false,
         color: '#E97B21',
+        allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
       },
       {
         index: 2,
@@ -181,6 +192,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'High-energy, focused on the "feel" and timing.',
         isPlayer: false,
         color: '#BFE543',
+        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
       },
       {
         index: 3,
@@ -191,6 +203,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Sophisticated, attentive to detail, and atmospheric.',
         isPlayer: false,
         color: '#F7E77C',
+        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
       },
       {
         index: 4,
@@ -201,6 +214,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Creative, intuitive, and focused on catchiness.',
         isPlayer: false,
         color: '#DDC733',
+        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
       },
       {
         index: 5,
@@ -232,6 +246,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Sophisticated palate, curious about new flavors.',
         isPlayer: true,
         color: '#7EACEA',
+        allowedTools: [],
       },
       {
         index: 1,
@@ -242,6 +257,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Passionate, slightly temperamental, but a genius with ingredients.',
         isPlayer: false,
         color: '#EF52BA',
+        allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
       },
       {
         index: 2,
@@ -252,6 +268,7 @@ export const AGENT_SETS: AgentSet[] = [
         personality: 'Refined, eloquent, and obsessed with vintage.',
         isPlayer: false,
         color: '#F7A4EA',
+        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
       },
       {
         index: 3,

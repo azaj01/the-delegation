@@ -156,29 +156,12 @@ export async function callAgent(params: {
   }
   throwIfAborted(signal);
 
-  // 3. Call LLM — phase-aware tool filtering
-  const ORCHESTRATOR_INDEX = 1;
-  let tools: typeof CORE_TOOLS;
-  if (chatMode) {
-    // Chat mode: only approval, completion, brief update, and task proposal tools
-    tools = CORE_TOOLS.filter(t =>
-      ['receive_client_approval', 'complete_task', 'update_client_brief', 'propose_task'].includes(t.function.name)
-    );
-  } else if (isBoardroom) {
-    // Boardroom: subtask delegation + approval tools
-    tools = CORE_TOOLS.filter(t =>
-      ['propose_subtask', 'request_client_approval', 'complete_task'].includes(t.function.name)
-    );
-  } else if (agentIndex === ORCHESTRATOR_INDEX) {
-    // Orchestrator (autonomous): orchestration tools only
-    tools = CORE_TOOLS.filter(t =>
-      ['propose_task', 'update_client_brief', 'notify_client_project_ready', 'request_client_approval'].includes(t.function.name)
-    );
-  } else {
-    // Worker agents (autonomous): task execution tools only
-    tools = CORE_TOOLS.filter(t =>
-      ['complete_task', 'request_client_approval'].includes(t.function.name)
-    );
+  // 3. Call LLM — using declarative tool permissions
+  let tools = CORE_TOOLS;
+  if (agentData?.allowedTools) {
+    tools = CORE_TOOLS.filter((t) => agentData.allowedTools!.includes(t.function.name));
+  } else if (agentData?.isPlayer) {
+    tools = [];
   }
 
   let response;
@@ -243,20 +226,6 @@ export async function callAgent(params: {
       }
     } catch (e) {
       console.error("Failed to parse tool arguments for chat history", e);
-    }
-  }
-
-  // Special case: if there's a propose_task tool call, show a feedback message in the chat
-  const proposeCall = response.tool_calls?.find(tc => tc.function.name === 'propose_task');
-  if (proposeCall && !assistantContent) {
-    try {
-      const args = JSON.parse(proposeCall.function.arguments);
-      assistantContent = `Understood. I'm scheduling the following task: "${args.title}". `;
-      if (args.requiresApproval) {
-        assistantContent += "I'll ask for your confirmation before the team starts working on it.";
-      }
-    } catch (e) {
-      assistantContent = "Understood. I'm scheduling a task for the team.";
     }
   }
 

@@ -12,6 +12,7 @@ import { InputManager } from './input/InputManager';
 import { PLAYER_INDEX, NPC_START_INDEX, getAgentSet } from '../data/agents';
 import { useUiStore } from '../integration/store/uiStore';
 import { useCoreStore, getActiveAgentSet } from '../integration/store/coreStore';
+import { CoreOrchestrator } from '../integration/CoreOrchestrator';
 import { AgentBehavior, ChatMessage } from '../types';
 import { BUBBLE_Y_OFFSET } from './constants';
 
@@ -51,7 +52,35 @@ export class SceneManager {
     this.resizeObserver = new ResizeObserver(() => this.onResize());
     this.resizeObserver.observe(container);
 
+    // Initialize the core orchestrator and wire up the handler
+    const orchestrator = CoreOrchestrator.getInstance();
+    this.setCoreHandler((idx, text) => orchestrator.handleCoreMessage(idx, text));
+
     this.init();
+    this.startWatchingCoreStore();
+  }
+
+  private startWatchingCoreStore() {
+    this.unsubs.push(
+      useCoreStore.subscribe((state, prevState) => {
+        state.tasks.forEach(task => {
+          const prevTask = prevState.tasks.find(t => t.id === task.id);
+          if (task.status === 'in_progress' && prevTask?.status !== 'in_progress') {
+             task.assignedAgentIds.forEach(id => {
+                 this.setNpcWorking(id, true);
+             });
+          }
+          if ((task.status === 'done' || task.status === 'on_hold') && prevTask?.status === 'in_progress') {
+             task.assignedAgentIds.forEach(id => {
+                 if (task.status === 'on_hold') {
+                   this.moveNpcToSpawn(id);
+                 }
+                 this.setNpcWorking(id, false);
+             });
+          }
+        });
+      })
+    );
   }
 
   private async init() {

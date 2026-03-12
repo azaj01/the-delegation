@@ -9,49 +9,57 @@ import { ToolHandlerService } from './toolHandlerService';
 
 const ORCHESTRATOR_INDEX = 1;
 
-const randomBetween = (min: number, max: number) =>
-  Math.random() * (max - min) + min;
-
+const randomBetween = (min: number, max: number) => Math.random() * (max - min) + min;
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-/**
- * CoreOrchestrator - Pure logic class for managing agent tasks and project lifecycle.
- * Part of the 'Integration' pillar.
- */
 export class CoreOrchestrator {
   private runningAgents = new Set<number>();
-  private sceneManager: any = null;
+  private unsubscribe: (() => void) | null = null;
+  private static instance: CoreOrchestrator;
 
-  constructor() {}
-
-  /** Sets the scene manager reference for visual feedback. */
-  public setSceneManager(scene: any) {
-    this.sceneManager = scene;
+  private constructor() {
+    this.startWatchingTasks();
   }
 
-  /**
-   * Main work loop - Checks state and dispatches new work.
-   * Should be called periodically or on state changes.
-   */
-  public async tick() {
-    const store = useCoreStore.getState();
+  public static getInstance(): CoreOrchestrator {
+    if (!CoreOrchestrator.instance) {
+      CoreOrchestrator.instance = new CoreOrchestrator();
+    }
+    return CoreOrchestrator.instance;
+  }
 
-    // 1. Check if all tasks done or project is empty
-    await this.checkAllTasksDone();
-
-    // 2. Dispatch scheduled tasks
-    const scheduledTasks = store.tasks.filter((t) => t.status === 'scheduled');
-    for (const task of scheduledTasks) {
-      this.dispatchTask(task);
+  public destroy() {
+    if (this.unsubscribe) {
+      this.unsubscribe();
+      this.unsubscribe = null;
     }
   }
 
+  private startWatchingTasks() {
+    this.unsubscribe = useCoreStore.subscribe((state, prevState) => {
+      const tasksChanged = state.tasks.some((t, i) => t.status !== prevState.tasks[i]?.status) ||
+                           state.tasks.length !== prevState.tasks.length;
+
+      if (tasksChanged) {
+        this.checkAllTasksDone();
+      }
+
+      const newScheduled = state.tasks.filter(
+        (t) => t.status === 'scheduled' &&
+               !prevState.tasks.some((pt) => pt.id === t.id && pt.status === 'scheduled')
+      );
+
+      for (const task of newScheduled) {
+        this.dispatchTask(task);
+      }
+    });
+  }
+
   private processFunctionCall(fn: AgentFunctionCall, callerIndex: number): boolean {
-    const handled = ToolHandlerService.process(fn, callerIndex, this.sceneManager);
+    const handled = ToolHandlerService.process(fn, callerIndex);
 
     if (handled && fn.name === 'complete_task') {
       this.runningAgents.delete(callerIndex);
-      this.sceneManager?.kickNpcDriver(callerIndex);
       setTimeout(() => this.checkAllTasksDone(), 100);
     }
 
@@ -100,16 +108,18 @@ export class CoreOrchestrator {
   }
 
   private async dispatchTask(task: Task) {
-    const agents = task.assignedAgentIds;
-    if (agents.some((id) => this.runningAgents.has(id))) return;
+    const isBoardroom = task.assignedAgentIds.length > 1;
 
-    if (agents.length === 1) {
-      const agentIndex = agents[0];
+    if (isBoardroom) {
+      const anyBusy = task.assignedAgentIds.some((i) => this.runningAgents.has(i));
+      if (anyBusy) return;
+      task.assignedAgentIds.forEach((i) => this.runningAgents.add(i));
+      this.runBoardroomTask(task);
+    } else {
+      const agentIndex = task.assignedAgentIds[0];
+      if (this.runningAgents.has(agentIndex)) return;
       this.runningAgents.add(agentIndex);
       this.runSingleAgentTask(task, agentIndex);
-    } else if (agents.length > 1) {
-      agents.forEach((id) => this.runningAgents.add(id));
-      this.runBoardroomTask(task);
     }
   }
 
@@ -117,12 +127,18 @@ export class CoreOrchestrator {
     await sleep(randomBetween(1500, 3000));
     const store = useCoreStore.getState();
     store.updateTaskStatus(task.id, 'in_progress');
-    this.sceneManager?.setNpcWorking(agentIndex, true);
+    store.addLogEntry({
+      agentIndex,
+      action: `started work on task`,
+      taskId: task.id,
+    });
 
     try {
       const response = await callAgent({
         agentIndex,
-        userMessage: `Task [${task.id}]: "${task.description}". Propose plan then complete_task.`,
+        userMessage: `You have been assigned task [${task.id}]: "${task.description}". ` +
+          `First, analyze the task and call request_client_approval to discuss your plan with the client. ` +
+          `If the client approves, call complete_task with your final output.`,
       });
       if (response.functionCalls) {
         for (const fn of response.functionCalls) {
@@ -140,19 +156,19 @@ export class CoreOrchestrator {
     const store = useCoreStore.getState();
     const agents = task.assignedAgentIds;
 
-    // Arrival logic
-    await new Promise<void>((resolve) => {
-      let arrived = 0;
-      agents.forEach((idx) => this.sceneManager?.moveNpcToSpawn(idx, () => {
-        arrived++;
-        if (arrived >= agents.length) resolve();
-      }));
+    store.addLogEntry({
+      agentIndex: agents[0],
+      action: `gathering team in boardroom for "${task.description}"`,
+      taskId: task.id,
     });
 
+    await sleep(2000);
+
     store.updateTaskStatus(task.id, 'in_progress');
+
     try {
       for (const agentIndex of agents) {
-        const response = await callBoardroomAgent(agentIndex, task.id, `Boardroom session for ${task.description}.`);
+        const response = await callBoardroomAgent(agentIndex, task.id, `Boardroom session for ${task.description}. Propose subtasks or discuss.`);
         if (response.functionCalls) {
           for (const fn of response.functionCalls) {
             this.processFunctionCall(fn, agentIndex);
@@ -161,10 +177,84 @@ export class CoreOrchestrator {
         await sleep(1500);
       }
       store.updateTaskStatus(task.id, 'done');
+      store.addLogEntry({
+        agentIndex: agents[0],
+        action: `boardroom session concluded — subtasks distributed`,
+        taskId: task.id,
+      });
     } catch (err) {
       if ((err as DOMException)?.name !== 'AbortError') console.error('[Orchestrator] boardroom error:', err);
     } finally {
       agents.forEach((idx) => this.runningAgents.delete(idx));
+    }
+  }
+
+  public async handleCoreMessage(npcIndex: number, text: string): Promise<string | null> {
+    const store = useCoreStore.getState();
+
+    if (npcIndex === ORCHESTRATOR_INDEX) {
+      if (store.phase === 'idle') {
+        store.setPhase('briefing');
+      }
+
+      const orchestratorPendingTask = store.tasks.find(
+        (t) => t.status === 'on_hold' && t.assignedAgentIds.includes(ORCHESTRATOR_INDEX)
+      );
+
+      try {
+        if (orchestratorPendingTask) {
+          store.updateTaskStatus(orchestratorPendingTask.id, 'in_progress');
+        }
+        this.runningAgents.add(npcIndex);
+        const response = await callAgent({ agentIndex: npcIndex, userMessage: text, chatMode: true });
+        if (response.functionCalls) {
+          for (const fn of response.functionCalls) {
+            this.processFunctionCall(fn, npcIndex);
+          }
+        }
+        return response.text || null;
+      } catch (err) {
+        console.error('[Orchestrator] HM error:', err);
+        return null;
+      } finally {
+        this.runningAgents.delete(npcIndex);
+      }
+    }
+
+    const pendingTask = store.tasks.find(
+      (t) => t.status === 'on_hold' && t.assignedAgentIds.includes(npcIndex)
+    );
+    if (pendingTask) {
+      store.updateTaskStatus(pendingTask.id, 'in_progress');
+      store.addLogEntry({
+        agentIndex: 0,
+        action: `approved task`,
+        taskId: pendingTask.id,
+      });
+
+      this.runningAgents.add(npcIndex);
+      try {
+        const response = await callAgent({ agentIndex: npcIndex, userMessage: text, chatMode: true });
+        if (response.functionCalls) {
+          for (const fn of response.functionCalls) {
+            this.processFunctionCall(fn, npcIndex);
+          }
+        }
+        return response.text || null;
+      } catch (err) {
+        console.error('[Orchestrator] NPC HM error:', err);
+        return null;
+      } finally {
+        this.runningAgents.delete(npcIndex);
+      }
+    }
+
+    try {
+      const response = await callAgent({ agentIndex: npcIndex, userMessage: text, chatMode: true });
+      return response.text || null;
+    } catch (err) {
+      console.error('[Orchestrator] generic chat error:', err);
+      return null;
     }
   }
 }

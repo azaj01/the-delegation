@@ -6,7 +6,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { SceneManager } from './simulation/SceneManager';
 import { SceneContext } from './simulation/SceneContext';
-import { useCoreOrchestrator } from './integration/hooks/useCoreOrchestrator';
+import { CoreOrchestrator } from './integration/CoreOrchestrator';
 import { useCoreStore } from './integration/store/coreStore';
 import Header from './interface/Header';
 import InspectorPanel from './interface/InspectorPanel';
@@ -15,11 +15,6 @@ import { KanbanPanel } from './interface/KanbanPanel';
 import { FinalOutputModal } from './interface/FinalOutputModal';
 import SimulationView from './interface/SimulationView';
 
-/** Mounts inside SceneContext so useSceneManager() is available. */
-function CoreOrchestrator() {
-  useCoreOrchestrator();
-  return null;
-}
 
 const App: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -77,7 +72,6 @@ const App: React.FC = () => {
 
   return (
     <SceneContext.Provider value={sceneManager}>
-      <CoreOrchestrator />
       <div className="w-screen h-screen bg-white overflow-hidden flex flex-col">
         {/* Top: Header */}
         {!isFullscreen && <Header />}
