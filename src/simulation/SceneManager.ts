@@ -9,7 +9,7 @@ import { PoiManager } from './world/PoiManager';
 import { WorldManager } from './world/WorldManager';
 import { DriverManager } from './drivers/DriverManager';
 import { InputManager } from './input/InputManager';
-import { PLAYER_INDEX, NPC_START_INDEX, getAgentSet } from '../data/agents';
+import { PLAYER_INDEX, NPC_START_INDEX, getAgentSet, getAllAgents } from '../data/agents';
 import { useUiStore } from '../integration/store/uiStore';
 import { useCoreStore, getActiveAgentSet } from '../integration/store/coreStore';
 import { CoreOrchestrator } from '../integration/CoreOrchestrator';
@@ -111,8 +111,9 @@ export class SceneManager {
     this.driverManager = new DriverManager(this.controller);
     const playerDriver = this.driverManager.registerPlayer();
 
-    getActiveAgentSet().agents.forEach((agent) => {
-      if (agent.isPlayer) return;
+    const activeSet = getActiveAgentSet();
+    getAllAgents(activeSet).forEach((agent) => {
+      if (agent.index === 0) return; // Assuming index 0 is player
       this.driverManager.registerNpc(agent.index, agent);
     });
 
@@ -158,8 +159,9 @@ export class SceneManager {
 
         // Force agents to their spawn points and update colors when the team changes
         if (this.controller) {
-          this.controller.setColors(activeSet.agents.map(a => a.color));
-          const npcIndices = activeSet.agents.filter(a => !a.isPlayer).map(a => a.index);
+          const system = getActiveAgentSet();
+    this.controller.setColors(getAllAgents(system).map(a => a.color));
+          const npcIndices = getAllAgents(activeSet).map((a) => a.index);
           this.controller.warpAllToSpawn(PLAYER_INDEX, npcIndices);
         }
       }
@@ -406,7 +408,8 @@ export class SceneManager {
   // ── Private helpers ──────────────────────────────────────────
 
   private async _triggerNpcGreeting(npcIndex: number): Promise<void> {
-    const agent = getActiveAgentSet().agents.find(a => a.index === npcIndex);
+    const system = getActiveAgentSet();
+    const agent = getAllAgents(system).find(a => a.index === npcIndex);
     if (!agent) return;
     useUiStore.setState({ isThinking: true });
     try {
@@ -576,10 +579,11 @@ export class SceneManager {
     this.endChat();
 
     // Stop all speech bubbles before teleporting
-    getActiveAgentSet().agents.forEach((agent) => this.controller?.setSpeaking(agent.index, false));
+    const system = getActiveAgentSet();
+    getAllAgents(system).forEach((agent) => this.controller?.setSpeaking(agent.index, false));
 
     // Teleport every agent instantly to their original spawn POI — no walking
-    const npcIndices = getActiveAgentSet().agents.filter(a => !a.isPlayer).map(a => a.index);
+    const npcIndices = getAllAgents(getActiveAgentSet()).map((a) => a.index);
     this.controller.warpAllToSpawn(PLAYER_INDEX, npcIndices);
 
     // Reset camera to default

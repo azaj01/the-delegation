@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { LLMMessage } from '../../core/llm/types'
-import { AgentSet, DEFAULT_AGENT_SET_ID, getAgentSet } from '../../data/agents'
+import { AgenticSystem, DEFAULT_AGENT_SET_ID, getAgentSet } from '../../data/agents'
+
+export type AgentSet = AgenticSystem;
 
 export type TaskStatus = 'scheduled' | 'on_hold' | 'in_progress' | 'done'
 

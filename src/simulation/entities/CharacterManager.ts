@@ -26,12 +26,12 @@ import { ExpressionKey, AnimationName, AgentBehavior } from '../../types';
 import { DRACO_LIB_PATH } from '../constants';
 import { AgentStateBuffer } from '../behavior/AgentStateBuffer';
 import { ExpressionBuffer } from '../behavior/ExpressionBuffer';
-import { PLAYER_INDEX } from '../../data/agents';
+import { PLAYER_INDEX, getAllAgents } from '../../data/agents';
 import { getActiveAgentSet } from '../../integration/store/coreStore';
 import { PoiManager } from '../world/PoiManager';
 
 export class CharacterManager {
-  private instanceCount = getActiveAgentSet().agents.length;
+  private instanceCount = getAllAgents(getActiveAgentSet()).length + 1;
   private poiManager: PoiManager | null = null;
 
   // Compute Buffers (GPU)
@@ -222,12 +222,13 @@ export class CharacterManager {
 
     const agentsBuffer = []; // Temporary to store POIs for orientation
 
-    for (let i = 0; i < this.instanceCount; i++) {
-        const agents = getActiveAgentSet().agents;
-        const agent = agents[i] || agents[0];
-        const colorOverride = this.colors && this.colors[i] ? this.colors[i] : agent.color;
+    const system = getActiveAgentSet();
+    const allAgents = getAllAgents(system);
 
+    for (let i = 0; i < this.instanceCount; i++) {
+        let colorOverride: string;
         if (i === PLAYER_INDEX) {
+            colorOverride = system.user.color;
             // Player spawns slightly offset from center so they're clearly visible
             posArray[i * 4 + 0] = 0;
             posArray[i * 4 + 2] = 0;
@@ -235,6 +236,9 @@ export class CharacterManager {
             tempColor.set(colorOverride);
             agentsBuffer[i] = null;
         } else {
+            const agentNode = allAgents.find(a => a.index === i) || system.leadAgent;
+            colorOverride = agentNode.color;
+
             const poi = spawnPois[spawnIndex % spawnPois.length];
             if (poi) {
                 this.poiManager?.occupy(poi.id, i);

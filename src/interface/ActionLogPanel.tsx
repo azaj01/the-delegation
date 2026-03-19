@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useCoreStore, DebugLogEntry } from '../integration/store/coreStore'
-import { getAgentSet } from '../data/agents'
+import { getAgentSet, getAllAgents } from '../data/agents'
 import { ChevronDown, ChevronRight, MessageSquare, Terminal, Eye, Zap, Copy, Check, Download, Filter } from 'lucide-react'
 
 function formatTime(ts: number): string {
@@ -35,7 +35,7 @@ const CopyButton: React.FC<{ text: string }> = ({ text }) => {
 const DebugEntryView: React.FC<{ entry: DebugLogEntry }> = ({ entry }) => {
     const [isOpen, setIsOpen] = useState(false);
     const selectedAgentSetId = useCoreStore((s) => s.selectedAgentSetId);
-    const agents = getAgentSet(selectedAgentSetId).agents;
+    const agents = getAllAgents(getAgentSet(selectedAgentSetId));
     const agent = agents.find(a => a.index === entry.agentIndex);
 
     // Parse tool calls from rawContent (only available in response entries)
@@ -255,7 +255,7 @@ ${entry.rawContent}
 
 export function ActionLogPanel() {
   const { setLogOpen, actionLog, debugLog, logFilterAgentIndex, phase, setFinalOutputOpen, selectedAgentSetId } = useCoreStore()
-  const agents = getAgentSet(selectedAgentSetId).agents;
+  const agents = getAllAgents(getAgentSet(selectedAgentSetId));
   const [activeTab, setActiveTab] = useState<'activity' | 'technical'>('technical')
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
   const topRef = useRef<HTMLDivElement>(null)

@@ -1,4 +1,4 @@
-import { useCoreStore, type Task } from './store/coreStore';
+import { getActiveAgentSet, useCoreStore, type Task } from './store/coreStore';
 import {
   callAgent,
   callOrchestrator,
@@ -6,8 +6,6 @@ import {
   type AgentFunctionCall,
 } from './coreService';
 import { ToolHandlerService } from './toolHandlerService';
-
-const ORCHESTRATOR_INDEX = 1;
 
 const randomBetween = (min: number, max: number) => Math.random() * (max - min) + min;
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -80,9 +78,11 @@ export class CoreOrchestrator {
 
     if (!allDone && !isEmptyWorking) return;
     if (store.finalOutput) return;
-    if (this.runningAgents.has(ORCHESTRATOR_INDEX)) return;
 
-    this.runningAgents.add(ORCHESTRATOR_INDEX);
+    const leadAgentIndex = getActiveAgentSet().leadAgent.index;
+    if (this.runningAgents.has(leadAgentIndex)) return;
+
+    this.runningAgents.add(leadAgentIndex);
 
     try {
       const outputs = store.tasks
@@ -97,13 +97,13 @@ export class CoreOrchestrator {
       const response = await callOrchestrator(prompt);
       if (response.functionCalls) {
         for (const fn of response.functionCalls) {
-          this.processFunctionCall(fn, ORCHESTRATOR_INDEX);
+          this.processFunctionCall(fn, leadAgentIndex);
         }
       }
     } catch (err) {
       if ((err as DOMException)?.name !== 'AbortError') console.error('[Orchestrator] final delivery error:', err);
     } finally {
-      this.runningAgents.delete(ORCHESTRATOR_INDEX);
+      this.runningAgents.delete(leadAgentIndex);
     }
   }
 
@@ -191,14 +191,15 @@ export class CoreOrchestrator {
 
   public async handleCoreMessage(npcIndex: number, text: string): Promise<string | null> {
     const store = useCoreStore.getState();
+    const leadAgentIndex = getActiveAgentSet().leadAgent.index;
 
-    if (npcIndex === ORCHESTRATOR_INDEX) {
+    if (npcIndex === leadAgentIndex) {
       if (store.phase === 'idle') {
         store.setPhase('briefing');
       }
 
       const orchestratorPendingTask = store.tasks.find(
-        (t) => t.status === 'on_hold' && t.assignedAgentIds.includes(ORCHESTRATOR_INDEX)
+        (t) => t.status === 'on_hold' && t.assignedAgentIds.includes(leadAgentIndex)
       );
 
       try {

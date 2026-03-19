@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useCoreStore, type Task, type TaskStatus } from '../integration/store/coreStore'
 import { getActiveAgentSet } from '../integration/store/coreStore'
+import { getAllAgents } from '../data/agents'
 import { ChevronDown, ChevronRight, Trash2, MessageSquareWarning } from 'lucide-react'
 import DeleteTaskModal from './DeleteTaskModal'
 import { useUiStore } from '../integration/store/uiStore'
@@ -17,17 +18,19 @@ interface KanbanPanelProps {
 }
 
 function renderAgentTag(agentIndex: number) {
+  const system = getActiveAgentSet();
   if (agentIndex === 0) { // Client / You
      return (
-      <span key={agentIndex} className="flex items-center gap-1 text-[10px] text-[#7EACEA] font-bold">
+      <span key={agentIndex} className="flex items-center gap-1 text-[10px] font-bold" style={{ color: system.user.color }}>
         <span
-          className="w-1.5 h-1.5 rounded-full shrink-0 bg-[#7EACEA]"
+          className="w-1.5 h-1.5 rounded-full shrink-0"
+          style={{ backgroundColor: system.user.color }}
         />
         You
       </span>
     )
   }
-  const agent = getActiveAgentSet().agents.find(a => a.index === agentIndex)
+  const agent = getAllAgents(system).find(a => a.index === agentIndex)
   if (!agent) return null
   return (
     <span key={agentIndex} className="flex items-center gap-1 text-[10px] text-zinc-500">
@@ -35,7 +38,7 @@ function renderAgentTag(agentIndex: number) {
         className="w-1.5 h-1.5 rounded-full shrink-0"
         style={{ backgroundColor: agent.color }}
       />
-      {agent.role}
+      {agent.name}
     </span>
   )
 }

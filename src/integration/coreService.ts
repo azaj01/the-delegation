@@ -9,6 +9,7 @@ import { LLMFactory } from '../core/llm/LLMFactory'
 import { LLMMessage } from '../core/llm/types'
 import { CORE_TOOLS } from '../core/llm/toolDefinitions'
 import { getActiveAgentSet } from './store/coreStore'
+import { getAllAgents } from '../data/agents'
 import { MemoryService } from '../context/MemoryService'
 
 export interface AgentFunctionCall {
@@ -81,12 +82,18 @@ export async function callAgent(params: {
     throw e;
   }
 
-  const agentData = getActiveAgentSet().agents.find(a => a.index === agentIndex);
+  const activeSet = getActiveAgentSet();
+  const agentData = getAllAgents(activeSet).find((a) => a.index === agentIndex);
 
   // 1. Build context
   const systemInstruction = chatMode
     ? buildChatSystemPrompt(agentIndex)
     : buildSystemPrompt(agentIndex, isBoardroom);
+
+  // Inject agent.instructions if present
+  const fullSystemPrompt = agentData?.instructions
+    ? `${systemInstruction}\n\nSPECIFIC INSTRUCTIONS FOR THIS AGENT:\n${agentData.instructions}`
+    : systemInstruction;
 
   const store = useCoreStore.getState();
   const currentTask = store.tasks.find(
@@ -142,7 +149,7 @@ export async function callAgent(params: {
       agentIndex,
       agentName: agentData?.role || 'Unknown',
       phase: 'request',
-      systemPrompt: systemInstruction,
+      systemPrompt: fullSystemPrompt,
       dynamicContext,
       messages,
       rawContent: userMessage,
@@ -160,14 +167,15 @@ export async function callAgent(params: {
   let tools = CORE_TOOLS;
   if (agentData?.allowedTools) {
     tools = CORE_TOOLS.filter((t) => agentData.allowedTools!.includes(t.function.name));
-  } else if (agentData?.isPlayer) {
-    tools = [];
   }
+
+  // Use agent.model if available, else fallback to llmConfig.model
+  const modelToUse = agentData?.model || llmConfig.model;
 
   let response;
   try {
     response = await Promise.race([
-      provider.generateCompletion(messages, tools, systemInstruction, llmConfig.model, signal),
+      provider.generateCompletion(messages, tools, fullSystemPrompt, modelToUse, signal),
       abortRace(signal),
     ]);
   } catch (e) {
@@ -197,7 +205,7 @@ export async function callAgent(params: {
       agentIndex,
       agentName: agentData?.role || 'Unknown',
       phase: 'response',
-      systemPrompt: systemInstruction,
+      systemPrompt: fullSystemPrompt,
       dynamicContext,
       messages,
       rawContent: JSON.stringify({ text, toolCalls }, null, 2),
@@ -281,9 +289,11 @@ export async function callAgent(params: {
 
 // ─── Convenience wrappers ─────────────────────────────────────
 
-/** Call the Orchestrator (index 1) */
-export const callOrchestrator = (userMessage: string) =>
-  callAgent({ agentIndex: 1, userMessage })
+/** Call the Orchestrator (Lead Agent) */
+export const callOrchestrator = (userMessage: string) => {
+  const leadAgentIndex = getActiveAgentSet().leadAgent.index;
+  return callAgent({ agentIndex: leadAgentIndex, userMessage });
+}
 
 /** Call an agent in the context of a boardroom session for a given task */
 export const callBoardroomAgent = (

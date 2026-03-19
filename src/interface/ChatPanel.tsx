@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useUiStore } from '../integration/store/uiStore';
 import { useSceneManager } from '../simulation/SceneContext';
 import { useCoreStore } from '../integration/store/coreStore';
-import { getAgentSet } from '../data/agents';
+import { getAgentSet, getAllAgents } from '../data/agents';
 import { Send, FolderOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -19,7 +19,7 @@ const ChatPanel: React.FC = () => {
   } = useUiStore();
   const scene = useSceneManager();
   const { phase, setFinalOutputOpen, selectedAgentSetId } = useCoreStore();
-  const agents = getAgentSet(selectedAgentSetId).agents;
+  const agents = getAllAgents(getAgentSet(selectedAgentSetId));
 
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -148,7 +148,7 @@ const ChatPanel: React.FC = () => {
 
                   <div className={`flex items-center gap-2 mt-2 px-1`}>
                     <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                      {msg.role === 'user' ? 'You' : agent.role.split(' ')[0]}
+                      {msg.role === 'user' ? 'You' : (agent?.name?.split(' ')[0] || 'AI')}
                     </span>
                   </div>
                 </div>

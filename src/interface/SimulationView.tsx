@@ -4,7 +4,7 @@ import InspectorPanel from './InspectorPanel';
 import { Play, Pause, Maximize2, Minimize2, Users } from 'lucide-react';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useUiStore } from '../integration/store/uiStore';
-import { getAgentSet } from '../data/agents';
+import { getAgentSet, getAllAgents } from '../data/agents';
 import AgentSetPickerModal from './AgentSetPickerModal';
 
 interface SimulationViewProps {
@@ -23,7 +23,7 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
   const selectedAgentSetId = useCoreStore((s) => s.selectedAgentSetId);
 
   const activeSet = getAgentSet(selectedAgentSetId);
-  const agentCount = activeSet.agents.length - 1; // Exclude player
+  const agentCount = getAllAgents(activeSet).length;
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const hasLogs = actionLog.length > 0;
 

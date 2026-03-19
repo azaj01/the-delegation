@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, AlertTriangle, Users } from 'lucide-react';
-import { AGENT_SETS, AgentSet } from '../data/agents';
+import { X, AlertTriangle, Users, ChevronRight, HardDrive, Cpu } from 'lucide-react';
+import { AGENT_SETS, AgenticSystem, AgentNode, getAllAgents } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useSceneManager } from '../simulation/SceneContext';
 import { abortAllCalls } from '../integration/coreService';
@@ -13,12 +13,58 @@ interface AgentSetPickerModalProps {
   hasActiveProject?: boolean;
 }
 
+const AgentNodeItem: React.FC<{ agent: AgentNode; level?: number }> = ({ agent, level = 0 }) => (
+  <div className="flex flex-col gap-1">
+    <div
+      className="flex items-center gap-2 py-1.5 px-3 rounded-xl border border-zinc-100 bg-zinc-50/50"
+      style={{ marginLeft: `${level * 16}px` }}
+    >
+      <div
+        className="w-2 h-2 rounded-full shrink-0"
+        style={{ backgroundColor: agent.color }}
+      />
+      <div className="flex flex-col">
+        <span className="text-[10px] font-black text-zinc-900 leading-none">{agent.name}</span>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest leading-none">
+            {agent.name}
+          </span>
+          <div className="flex items-center gap-1 px-1 py-0.5 rounded bg-zinc-200/50 text-[7px] font-bold text-zinc-500">
+            <Cpu size={6} />
+            {agent.model}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const AgentHierarchy: React.FC<{ system: AgenticSystem }> = ({ system }) => {
+  const allAgents = getAllAgents(system);
+
+  const renderAgent = (agent: AgentNode, level: number) => {
+    const children = allAgents.filter(a => a.reportsToId === agent.id);
+    return (
+      <div key={agent.id} className="flex flex-col gap-1">
+        <AgentNodeItem agent={agent} level={level} />
+        {children.map(child => renderAgent(child, level + 1))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-1 mt-2">
+      {renderAgent(system.leadAgent, 0)}
+    </div>
+  );
+};
+
 const AgentSetCard: React.FC<{
-  set: AgentSet;
+  set: AgenticSystem;
   isSelected: boolean;
   onSelect: () => void;
 }> = ({ set, isSelected, onSelect }) => {
-  const npcAgents = set.agents.filter((a) => !a.isPlayer);
+  const totalAgents = getAllAgents(set).length;
   const accent = set.color;
 
   return (
@@ -31,7 +77,6 @@ const AgentSetCard: React.FC<{
       }`}
       style={isSelected ? { borderColor: accent } : {}}
     >
-      {/* Top row: agent count indicator + name + type */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-2.5">
           <div
@@ -40,7 +85,7 @@ const AgentSetCard: React.FC<{
           >
             <Users size={10} className="text-white opacity-90" strokeWidth={3} />
             <span className="text-[10px] font-black text-white leading-none">
-              {set.agents.length - 1}
+              {totalAgents}
             </span>
           </div>
           <div>
@@ -58,25 +103,18 @@ const AgentSetCard: React.FC<{
         />
       </div>
 
-      {/* Description */}
       <p className="text-[10px] text-zinc-500 leading-relaxed mb-3">{set.companyDescription}</p>
 
-      {/* Agent role chips */}
-      <div className="flex flex-wrap gap-1">
-        {npcAgents.map((agent) => (
-          <span
-            key={agent.index}
-            className="flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wide"
-            style={{ borderColor: `${agent.color}40`, color: agent.color, backgroundColor: `${agent.color}10` }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full shrink-0"
-              style={{ backgroundColor: agent.color }}
-            />
-            {agent.role}
-          </span>
-        ))}
-      </div>
+      {isSelected && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="border-t border-zinc-100 pt-3 mt-1"
+        >
+          <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Team Structure</p>
+          <AgentHierarchy system={set} />
+        </motion.div>
+      )}
     </button>
   );
 };

@@ -1,15 +1,15 @@
 
 import { create } from 'zustand';
 import { CharacterState } from '../../types';
-import { DEFAULT_AGENT_SET_ID, getAgentSet } from '../../data/agents';
+import { DEFAULT_AGENT_SET_ID, getAgentSet, getAllAgents } from '../../data/agents';
 import { useCoreStore } from './coreStore';
 
 export const useUiStore = create<CharacterState>()(
   (set) => ({
     isThinking: false,
-    instanceCount: getAgentSet(
+    instanceCount: getAllAgents(getAgentSet(
       useCoreStore.getState().selectedAgentSetId ?? DEFAULT_AGENT_SET_ID
-    ).agents.length,
+    )).length + 1, // +1 for user
 
     selectedNpcIndex: null,
     selectedPosition: null,
@@ -36,7 +36,7 @@ export const useUiStore = create<CharacterState>()(
       return {
         provider: 'gemini',
         apiKey: '',
-        model: 'gemini-3-flash-preview'
+        model: 'gemini-3.1-flash-lite-preview'
       };
     })(),
 
@@ -69,6 +69,7 @@ export const useUiStore = create<CharacterState>()(
 // Keep instanceCount in sync whenever the active agent set changes
 useCoreStore.subscribe((state, prevState) => {
   if (state.selectedAgentSetId !== prevState.selectedAgentSetId) {
-    useUiStore.getState().setInstanceCount(getAgentSet(state.selectedAgentSetId).agents.length);
+    const system = getAgentSet(state.selectedAgentSetId);
+    useUiStore.getState().setInstanceCount(getAllAgents(system).length + 1);
   }
 });

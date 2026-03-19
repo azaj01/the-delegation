@@ -1,4 +1,5 @@
 import { getActiveAgentSet } from '../../integration/store/coreStore'
+import { getAllAgents } from '../../data/agents'
 import type { Task } from '../../integration/store/coreStore'
 
 // ─── Scope constraint (fixed for all agents) ──────────────────
@@ -21,13 +22,14 @@ WORKFLOW RULES:
 
 // ─── Build system prompt for a given agent ────────────────────
 export function buildSystemPrompt(agentIndex: number, isBoardroom = false): string {
-  const { agents, companyName } = getActiveAgentSet()
+  const activeSet = getActiveAgentSet()
+  const agents = getAllAgents(activeSet)
   const agent = agents.find(a => a.index === agentIndex)
   if (!agent) return ''
 
   const teamList = agents
-    .filter((a) => !a.isPlayer)
-    .map((a) => `  [ID: ${a.index}] ${a.role} (${a.department}) — ${a.mission}`)
+    .filter((a) => a.index !== 0) // Exclude player if player is always 0
+    .map((a) => `  [ID: ${a.index}] ${a.role} — ${a.mission}`)
     .join('\n')
 
   const boardroomNote = isBoardroom
@@ -37,8 +39,7 @@ export function buildSystemPrompt(agentIndex: number, isBoardroom = false): stri
     : ''
 
   return [
-    `You are ${agent.role} at ${companyName}.`,
-    `Department: ${agent.department}`,
+    `You are ${agent.role} at ${activeSet.companyName}.`,
     `Mission: ${agent.mission}`,
     `Personality: ${agent.personality}`,
     '',
@@ -92,20 +93,20 @@ export function buildTaskBoardSummary(tasks: Task[]): string {
 
 // ─── Conversational chat prompt (no tools, no workflow) ───────
 export function buildChatSystemPrompt(agentIndex: number): string {
-  const { agents, companyName } = getActiveAgentSet()
+  const activeSet = getActiveAgentSet()
+  const agents = getAllAgents(activeSet)
   const agent = agents.find(a => a.index === agentIndex)
   if (!agent) return ''
 
-  const isAM = agentIndex === 1;
+  const isLead = agentIndex === activeSet.leadAgent.index;
 
   return [
-    `You are ${agent.role} at ${companyName}.`,
-    `Department: ${agent.department}`,
+    `You are ${agent.role} at ${activeSet.companyName}.`,
     `Mission: ${agent.mission}`,
     `Personality: ${agent.personality}`,
     '',
     'CONTEXT:',
-    isAM
+    isLead
       ? [
           'You are the Orchestrator. The client is here to discuss a project, refine their brief, or review final delivery.',
           'IMPORTANT BRIEFING RULE: Do NOT start work (propose tasks) until you have a clear, specific, and actionable brief from the client.',

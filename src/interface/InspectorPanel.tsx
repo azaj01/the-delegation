@@ -6,7 +6,7 @@ import { useChatAvailability } from '../integration/hooks/useChatAvailability';
 import AgentView from './AgentView';
 import ProjectView from './ProjectView';
 import ChatPanel from './ChatPanel';
-import { getAgentSet } from '../data/agents';
+import { getAgentSet, getAllAgents } from '../data/agents';
 import { MessageSquare, Lock, FolderOpen, Siren, MessageSquareWarning } from 'lucide-react';
 
 const ORCHESTRATOR_INDEX = 1;
@@ -19,7 +19,8 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
   const { selectedNpcIndex, isChatting } = useUiStore();
   const scene = useSceneManager();
   const { phase, setFinalOutputOpen, tasks, selectedAgentSetId } = useCoreStore();
-  const agents = getAgentSet(selectedAgentSetId).agents;
+  const system = getAgentSet(selectedAgentSetId);
+  const agents = getAllAgents(system);
   const { canChat, reason } = useChatAvailability(selectedNpcIndex);
   const prevCanChat = useRef(canChat);
 
@@ -69,11 +70,11 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                       style={{ backgroundColor: agent.color }}
                     />
                     <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                      {agent.department}
+                      {agent.name}
                     </p>
                   </div>
                   <h2 className="text-xl font-black text-zinc-900 leading-tight">
-                    {agent.role}
+                    {agent.name}
                   </h2>
                 </div>
               </div>
@@ -94,7 +95,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                   <p className="text-[12px] font-bold text-zinc-900 leading-tight mt-1.5">
                     {isOrchestratorIdle
                       ? "Waiting for project briefing."
-                      : `${agent?.role} needs input.`}
+                      : `${agent?.name} needs input.`}
                   </p>
                 </div>
               )}

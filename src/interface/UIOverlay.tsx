@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useUiStore } from '../integration/store/uiStore';
 import InfoModal from './InfoModal';
-import { getAgentSet } from '../data/agents';
+import { getAgentSet, getAllAgents, PLAYER_INDEX } from '../data/agents';
 import { useCoreStore, Task } from '../integration/store/coreStore';
 import { Siren, MessageSquareWarning, PartyPopper } from 'lucide-react';
 
@@ -86,15 +86,23 @@ const UIOverlay: React.FC = () => {
     phase,
     selectedAgentSetId,
   } = useCoreStore();
-  const agents = getAgentSet(selectedAgentSetId).agents;
+  const system = getAgentSet(selectedAgentSetId);
+  const npcAgents = getAllAgents(system);
+  const playerAgent = {
+    index: PLAYER_INDEX,
+    name: system.user.name,
+    color: system.user.color,
+    expertise: [],
+  };
+  const allPossibleAgents = [playerAgent, ...npcAgents];
 
-  const selectedAgent = selectedNpcIndex != null ? agents.find(a => a.index === selectedNpcIndex) ?? null : null;
-  const hoveredAgent = hoveredNpcIndex != null ? agents.find(a => a.index === hoveredNpcIndex) ?? null : null;
+  const selectedAgent = selectedNpcIndex != null ? allPossibleAgents.find(a => a.index === selectedNpcIndex) as any ?? null : null;
+  const hoveredAgent = hoveredNpcIndex != null ? allPossibleAgents.find(a => a.index === hoveredNpcIndex) as any ?? null : null;
 
   return (
     <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden select-none">
       {/* 1. Parallel Alert Bubbles System */}
-      {agents.map((agent) => {
+      {npcAgents.map((agent) => {
         const pos = npcScreenPositions[agent.index];
         if (!pos) return null;
 
@@ -146,7 +154,7 @@ const UIOverlay: React.FC = () => {
         // Priority 1: Selected Agent
         if (selectedAgent && selectedPosition) {
           const isOrchestratorProjectReady = selectedAgent.index === ORCHESTRATOR_INDEX && phase === 'done';
-          const label = getAgentPhaseLabel(selectedAgent.index, tasks, phase, selectedAgent.department);
+          const label = getAgentPhaseLabel(selectedAgent.index, tasks, phase, '');
 
           return (
             <div
@@ -163,8 +171,8 @@ const UIOverlay: React.FC = () => {
                   style={{ backgroundColor: selectedAgent.color }}
                 />
                 <div className="flex items-center gap-1.5">
-                  {selectedAgent.isPlayer ? (
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white">{selectedAgent.role} (You)</span>
+                  {selectedAgent.index === PLAYER_INDEX ? (
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white">{selectedAgent.name} (You)</span>
                   ) : isOrchestratorProjectReady ? (
                     <span className={`text-[10px] font-black uppercase tracking-widest ${label.className}`}>
                       {label.text}
@@ -172,7 +180,7 @@ const UIOverlay: React.FC = () => {
                   ) : (
                     <>
                       <span className="text-[10px] font-black uppercase tracking-widest text-white">
-                        {selectedAgent.role}
+                        {selectedAgent.name}
                       </span>
                       <span className="text-[10px] font-medium uppercase tracking-widest text-white/40">·</span>
                       <span className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}>
@@ -189,7 +197,7 @@ const UIOverlay: React.FC = () => {
         // Priority 2: Hovered Agent with dynamic phase label (only if not selected)
         if (hoveredAgent && hoverPosition && hoveredNpcIndex !== selectedNpcIndex) {
           const isOrchestratorProjectReady = hoveredAgent.index === ORCHESTRATOR_INDEX && phase === 'done';
-          const label = getAgentPhaseLabel(hoveredAgent.index, tasks, phase, hoveredAgent.department);
+          const label = getAgentPhaseLabel(hoveredAgent.index, tasks, phase, '');
 
           return (
             <div
@@ -206,8 +214,8 @@ const UIOverlay: React.FC = () => {
                   style={{ backgroundColor: hoveredAgent.color }}
                 />
                 <div className="flex items-center gap-1.5">
-                  {hoveredAgent.isPlayer ? (
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white">{hoveredAgent.role} (You)</span>
+                  {hoveredAgent.index === PLAYER_INDEX ? (
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white">{hoveredAgent.name} (You)</span>
                   ) : isOrchestratorProjectReady ? (
                     <span className={`text-[10px] font-black uppercase tracking-widest ${label.className}`}>
                       {label.text}
@@ -215,7 +223,7 @@ const UIOverlay: React.FC = () => {
                   ) : (
                     <>
                       <span className="text-[10px] font-black uppercase tracking-widest text-white">
-                        {hoveredAgent.role}
+                        {hoveredAgent.name}
                       </span>
                       <span className="text-[10px] font-medium uppercase tracking-widest text-white/40">·</span>
                       <span className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}>

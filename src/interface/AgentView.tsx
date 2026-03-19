@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCoreStore } from '../integration/store/coreStore';
-import { getAgentSet } from '../data/agents';
+import { getAgentSet, getAllAgents } from '../data/agents';
 
 interface AgentViewProps {
   agentIndex: number;
@@ -8,7 +8,8 @@ interface AgentViewProps {
 
 const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
   const { tasks, selectedAgentSetId } = useCoreStore();
-  const agents = getAgentSet(selectedAgentSetId).agents;
+  const system = getAgentSet(selectedAgentSetId);
+  const agents = getAllAgents(system);
 
   const agent = agents.find(a => a.index === agentIndex);
   if (!agent) return null;

@@ -1,6 +1,7 @@
 import { useCoreStore } from './store/coreStore';
 import { AgentFunctionCall } from './coreService';
 import { getActiveAgentSet } from './store/coreStore';
+import { getAllAgents } from '../data/agents';
 
 export class ToolHandlerService {
   static process(
@@ -31,7 +32,7 @@ export class ToolHandlerService {
         });
 
         const assignedRoles = agentIds
-          .map(i => getActiveAgentSet().agents.find(a => a.index === i)?.role || `Agent #${i}`)
+          .map(i => getAllAgents(getActiveAgentSet()).find(a => a.index === i)?.name || `Agent #${i}`)
           .join(', ');
 
         store.addLogEntry({
@@ -39,7 +40,7 @@ export class ToolHandlerService {
           action: `proposed task "${title || description}" → assigned to ${assignedRoles}`,
           taskId: task.id,
         });
-        
+
         if (store.phase === 'briefing' || store.phase === 'idle') {
           store.setPhase('working');
         }
