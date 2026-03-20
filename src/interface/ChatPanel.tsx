@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getAgentSet, getAllAgents } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
+import { useTeamStore } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
 import { useSceneManager } from '../simulation/SceneContext';
 
@@ -18,7 +19,7 @@ const ChatPanel: React.FC = () => {
     setIsTyping
   } = useUiStore();
   const scene = useSceneManager();
-  const { selectedAgentSetId } = useCoreStore();
+  const { selectedAgentSetId } = useTeamStore();
   const agents = getAllAgents(getAgentSet(selectedAgentSetId));
 
   const [input, setInput] = useState('');

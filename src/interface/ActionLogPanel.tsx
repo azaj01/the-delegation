@@ -2,6 +2,7 @@ import { Check, ChevronDown, ChevronRight, Copy, Download, Eye, Filter, MessageS
 import React, { useEffect, useRef, useState } from 'react'
 import { getAgentSet, getAllAgents } from '../data/agents'
 import { DebugLogEntry, useCoreStore } from '../integration/store/coreStore'
+import { useTeamStore } from '../integration/store/teamStore'
 
 function formatTime(ts: number): string {
   return new Date(ts).toLocaleTimeString('en-GB', {
@@ -34,7 +35,7 @@ const CopyButton: React.FC<{ text: string }> = ({ text }) => {
 
 const DebugEntryView: React.FC<{ entry: DebugLogEntry }> = ({ entry }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const selectedAgentSetId = useCoreStore((s) => s.selectedAgentSetId);
+    const selectedAgentSetId = useTeamStore((s) => s.selectedAgentSetId);
     const agents = getAllAgents(getAgentSet(selectedAgentSetId));
     const agent = agents.find(a => a.index === entry.agentIndex);
 
@@ -254,7 +255,8 @@ ${entry.rawContent}
 };
 
 export function ActionLogPanel() {
-  const { setLogOpen, actionLog, debugLog, logFilterAgentIndex, selectedAgentSetId } = useCoreStore()
+  const { setLogOpen, actionLog, debugLog, logFilterAgentIndex } = useCoreStore()
+  const { selectedAgentSetId } = useTeamStore()
   const agents = getAllAgents(getAgentSet(selectedAgentSetId));
   const [activeTab, setActiveTab] = useState<'activity' | 'technical'>('technical')
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)

@@ -1,9 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { LLMMessage } from '../../core/llm/types';
-import { AgenticSystem, DEFAULT_AGENTIC_SET_ID, getAgentSet } from '../../data/agents';
-
-export type AgentSet = AgenticSystem;
+import { useTeamStore } from './teamStore';
 
 export type TaskStatus = 'scheduled' | 'on_hold' | 'in_progress' | 'done'
 
@@ -62,10 +60,6 @@ interface CoreState {
   agentSummaries: Record<number, string>
   boardroomHistories: Record<string, LLMMessage[]>
 
-  // ── Agent Set ────────────────────────────────────────────────
-  selectedAgentSetId: string;
-  customSystems: AgenticSystem[];
-
   // ── UI ───────────────────────────────────────────────────────
   isKanbanOpen: boolean
   viewMode: 'simulation' | 'design';
@@ -108,12 +102,7 @@ interface CoreState {
   setPaused: (paused: boolean) => void;
   togglePauseOnCall: () => void;
   resetProject: () => void;
-  setAgentSet: (id: string) => void;
-  saveCustomSystem: (system: AgenticSystem) => void;
-  deleteCustomSystem: (id: string) => void;
   setViewMode: (mode: 'simulation' | 'design') => void;
-  updateActiveSystem: (changes: Partial<AgenticSystem>) => void;
-  updateSystem: (id: string, changes: Partial<AgenticSystem>) => void;
 }
 
 const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
@@ -121,8 +110,6 @@ const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 export const useCoreStore = create<CoreState>()(
   persist(
     (set) => ({
-      selectedAgentSetId: DEFAULT_AGENTIC_SET_ID,
-      customSystems: [],
       clientBrief: '',
       phase: 'idle',
       finalOutput: null,
@@ -142,38 +129,7 @@ export const useCoreStore = create<CoreState>()(
       pauseOnCall: false,
       viewMode: 'simulation',
 
-      saveCustomSystem: (system) =>
-        set((s) => ({
-          customSystems: s.customSystems.some((cs) => cs.id === system.id)
-            ? s.customSystems.map((cs) => (cs.id === system.id ? system : cs))
-            : [...s.customSystems, system],
-        })),
-
-      deleteCustomSystem: (id) =>
-        set((s) => ({
-          customSystems: s.customSystems.filter((cs) => cs.id !== id),
-          selectedAgentSetId: s.selectedAgentSetId === id ? DEFAULT_AGENTIC_SET_ID : s.selectedAgentSetId,
-        })),
-
       setViewMode: (viewMode) => set({ viewMode }),
-      updateActiveSystem: (changes) => set((s) => {
-        const currentSystem = getAgentSet(s.selectedAgentSetId, s.customSystems);
-        const updatedSystem = { ...currentSystem, ...changes };
-        return {
-          customSystems: s.customSystems.some((cs) => cs.id === updatedSystem.id)
-            ? s.customSystems.map((cs) => (cs.id === updatedSystem.id ? updatedSystem : cs))
-            : [...s.customSystems, updatedSystem],
-        };
-      }),
-
-      updateSystem: (id, changes) => set((s) => {
-        const system = s.customSystems.find(cs => cs.id === id);
-        if (!system) return {};
-        const updatedSystem = { ...system, ...changes };
-        return {
-          customSystems: s.customSystems.map((cs) => (cs.id === id ? updatedSystem : cs)),
-        };
-      }),
 
       resetProject: () => set({
         clientBrief: '',
@@ -190,7 +146,6 @@ export const useCoreStore = create<CoreState>()(
         isPaused: false,
       }),
 
-      // ... other actions stay as they are ...
       setClientBrief: (brief) => set({ clientBrief: brief }),
       setPhase: (phase) => set({ phase }),
       setFinalOutput: (output) => set({ finalOutput: output }),
@@ -320,43 +275,21 @@ export const useCoreStore = create<CoreState>()(
         }
         return { pauseOnCall: nextPauseOnCall };
       }),
-
-      setAgentSet: (id) => set({
-        selectedAgentSetId: id,
-        // Reset project state along with the agent set change
-        clientBrief: '',
-        phase: 'idle',
-        finalOutput: null,
-        tasks: [],
-        actionLog: [],
-        debugLog: [],
-        agentHistories: {},
-        agentSummaries: {},
-        boardroomHistories: {},
-        pendingApprovalTaskId: null,
-        isFinalOutputOpen: false,
-        isPaused: false,
-      }),
     }),
     {
       name: 'core-storage',
-      migrate: (persistedState: any, version: number) => {
-        if (persistedState && !persistedState.selectedAgentSetId) {
-          persistedState.selectedAgentSetId = DEFAULT_AGENTIC_SET_ID;
-        }
-        return persistedState;
-      },
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         pauseOnCall: state.pauseOnCall,
-        selectedAgentSetId: state.selectedAgentSetId || DEFAULT_AGENTIC_SET_ID,
       }),
     }
   )
 )
 
-/** Returns the currently active AgentSet. Safe to call from service/non-React contexts. */
-export function getActiveAgentSet(): AgentSet {
-  const { selectedAgentSetId, customSystems } = useCoreStore.getState()
-  return getAgentSet(selectedAgentSetId || DEFAULT_AGENTIC_SET_ID, customSystems)
-}
+// Sync resetProject whenever the active team changes
+useTeamStore.subscribe((state, prevState) => {
+  if (state.selectedAgentSetId !== prevState.selectedAgentSetId) {
+    useCoreStore.getState().resetProject();
+  }
+});
+

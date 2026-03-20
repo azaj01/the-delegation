@@ -1,7 +1,8 @@
 import { ChevronDown, ChevronRight, MessageSquareWarning, Trash2 } from 'lucide-react'
 import React, { useState } from 'react'
 import { getAllAgents } from '../data/agents'
-import { getActiveAgentSet, useCoreStore, type Task, type TaskStatus } from '../integration/store/coreStore'
+import { useCoreStore, type Task, type TaskStatus } from '../integration/store/coreStore'
+import { getActiveAgentSet, useTeamStore } from '../integration/store/teamStore'
 import { useUiStore } from '../integration/store/uiStore'
 import DeleteTaskModal from './DeleteTaskModal'
 

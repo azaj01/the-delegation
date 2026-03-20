@@ -1,6 +1,7 @@
 import { getAllAgents } from '../data/agents';
 import { AgentFunctionCall } from './coreService';
-import { getActiveAgentSet, useCoreStore } from './store/coreStore';
+import { useCoreStore } from './store/coreStore';
+import { getActiveAgentSet } from './store/teamStore';
 
 export class ToolHandlerService {
   static process(

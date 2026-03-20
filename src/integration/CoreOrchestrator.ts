@@ -1,7 +1,8 @@
 import {
     callAgent, callBoardroomAgent, callOrchestrator, type AgentFunctionCall
 } from './coreService';
-import { getActiveAgentSet, useCoreStore, type Task } from './store/coreStore';
+import { getActiveAgentSet } from './store/teamStore';
+import { useCoreStore, type Task } from './store/coreStore';
 import { ToolHandlerService } from './toolHandlerService';
 
 const randomBetween = (min: number, max: number) => Math.random() * (max - min) + min;

@@ -2,6 +2,7 @@ import { Maximize2, Minimize2, Users } from 'lucide-react';
 import React from 'react';
 import { getAgentSet, getAllAgents } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
+import { useTeamStore } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
 import InspectorPanel from './InspectorPanel';
 import UIOverlay from './UIOverlay';
@@ -14,7 +15,7 @@ interface SimulationViewProps {
 
 const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen, setIsFullscreen }) => {
   const selectedNpcIndex = useUiStore((s) => s.selectedNpcIndex);
-  const selectedAgentSetId = useCoreStore((s) => s.selectedAgentSetId);
+  const selectedAgentSetId = useTeamStore((s) => s.selectedAgentSetId);
 
   const activeSet = getAgentSet(selectedAgentSetId);
   const agentCount = getAllAgents(activeSet).length;

@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { getActiveAgentSet } from '../integration/store/coreStore';
+import { getActiveAgentSet } from '../integration/store/teamStore';
 import { AgentBehavior, AnimationName, CharacterStateKey, ExpressionKey, ICharacterDriver } from '../types';
 
 import { AgentStateBuffer } from './behavior/AgentStateBuffer';

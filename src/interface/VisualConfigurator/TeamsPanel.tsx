@@ -2,7 +2,7 @@
 import { Plus } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { AGENTIC_SETS } from '../../data/agents';
-import { useCoreStore } from '../../integration/store/coreStore';
+import { useTeamStore } from '../../integration/store/teamStore';
 import { TeamCard } from './TeamCard';
 
 interface TeamsPanelProps {
@@ -13,7 +13,7 @@ interface TeamsPanelProps {
 }
 
 export const TeamsPanel: React.FC<TeamsPanelProps> = ({ onSelectTeam, selectedTeamId, onModeChange, mode }) => {
-  const { customSystems, selectedAgentSetId, saveCustomSystem } = useCoreStore();
+  const { customSystems, selectedAgentSetId, saveCustomSystem } = useTeamStore();
 
   const allSystems = useMemo(() => {
     const combined = [...customSystems, ...AGENTIC_SETS];

@@ -4,8 +4,8 @@ import '@xyflow/react/dist/style.css';
 import { Plus, Settings, User, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AgentNode, getAgentSet, getAllAgents } from '../../data/agents';
+import { useTeamStore } from '../../integration/store/teamStore';
 import { useCoreStore } from '../../integration/store/coreStore';
-import { useUiStore } from '../../integration/store/uiStore';
 import { AgentConfigPanel } from './AgentConfigPanel';
 import { systemToFlow, VisualAgentNode } from './flowUtils';
 import { TeamsPanel } from './TeamsPanel';
@@ -41,8 +41,8 @@ const nodeTypes: NodeTypes = {
 };
 
 const VisualConfiguratorContent: React.FC = () => {
-  const { selectedAgentSetId, setViewMode, customSystems, viewMode } = useCoreStore();
-  const { setSelectedNpc } = useUiStore();
+  const { selectedAgentSetId, customSystems } = useTeamStore();
+  const { setViewMode, viewMode } = useCoreStore();
   const { fitView } = useReactFlow();
 
   const [configMode, setConfigMode] = useState<'view' | 'edit'>('view');
@@ -109,23 +109,11 @@ const VisualConfiguratorContent: React.FC = () => {
   const onNodeClick = useCallback((_: any, node: Node | InternalNode) => {
     const agentNode = node as VisualAgentNode;
     setSelectedAgentId(agentNode.id);
-
-    if (configMode === 'view' && selectedTeamId === selectedAgentSetId) {
-      if (agentNode.type === 'user') {
-        setSelectedNpc(0);
-      } else if (agentNode.data?.agent && 'index' in agentNode.data.agent) {
-        setSelectedNpc(agentNode.data.agent.index as number);
-      }
-      useUiStore.setState({ inspectorTab: 'info' });
-    }
-  }, [configMode, setSelectedNpc, selectedTeamId, selectedAgentSetId]);
+  }, []);
 
   const onPaneClick = useCallback(() => {
     setSelectedAgentId(null);
-    if (configMode === 'view') {
-      setSelectedNpc(null);
-    }
-  }, [configMode, setSelectedNpc]);
+  }, []);
 
   return (
     <div className="w-full h-full relative bg-zinc-50 flex flex-col overflow-hidden">
@@ -140,7 +128,6 @@ const VisualConfiguratorContent: React.FC = () => {
           <button
             onClick={() => {
               setSelectedAgentId(null);
-              setSelectedNpc(null);
               setSelectedTeamId(selectedAgentSetId);
               setConfigMode('view');
               setViewMode('simulation');

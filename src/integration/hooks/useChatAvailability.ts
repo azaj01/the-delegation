@@ -1,5 +1,6 @@
 import { getAgentSet, getAllAgents } from '../../data/agents'
 import { useCoreStore } from '../store/coreStore'
+import { useTeamStore } from '../store/teamStore'
 
 export interface ChatAvailability {
   canChat: boolean
@@ -11,7 +12,8 @@ export interface ChatAvailability {
  * the current project phase and the agent's task state.
  */
 export function useChatAvailability(agentIndex: number | null): ChatAvailability {
-  const { phase, tasks, selectedAgentSetId } = useCoreStore()
+  const { phase, tasks } = useCoreStore()
+  const { selectedAgentSetId } = useTeamStore()
   const system = getAgentSet(selectedAgentSetId)
   const agents = getAllAgents(system)
 

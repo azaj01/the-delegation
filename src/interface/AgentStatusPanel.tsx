@@ -1,13 +1,15 @@
 import React from 'react';
 import { getAgentSet, getAllCharacters } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
+import { useTeamStore } from '../integration/store/teamStore';
 
 interface AgentStatusPanelProps {
   agentIndex: number;
 }
 
 const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
-  const { tasks, selectedAgentSetId } = useCoreStore();
+  const { tasks } = useCoreStore();
+  const { selectedAgentSetId } = useTeamStore();
   const system = getAgentSet(selectedAgentSetId);
   const agents = getAllCharacters(system);
 

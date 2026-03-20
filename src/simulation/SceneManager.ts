@@ -1,6 +1,5 @@
-
 import * as THREE from 'three/webgpu';
-import { getAgentSet, getAllAgents } from '../data/agents';
+import { getAgentSet, getAllAgents, DEFAULT_AGENTIC_SET_ID } from '../data/agents';
 import { CharacterController } from './CharacterController';
 import { Engine } from './core/Engine';
 import { Stage } from './core/Stage';
@@ -12,7 +11,8 @@ import { PoiManager } from './world/PoiManager';
 import { WorldManager } from './world/WorldManager';
 
 import { CoreOrchestrator } from '../integration/CoreOrchestrator';
-import { getActiveAgentSet, useCoreStore } from '../integration/store/coreStore';
+import { useCoreStore } from '../integration/store/coreStore';
+import { getActiveAgentSet, useTeamStore } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
 import { AgentBehavior, ChatMessage } from '../types';
 import { BUBBLE_Y_OFFSET } from './constants';
@@ -156,7 +156,7 @@ export class SceneManager {
       }
 
       // Update world color if agent set changes
-      const systemState = useCoreStore.getState();
+      const systemState = useTeamStore.getState();
       const currentSetId = systemState.selectedAgentSetId;
       if (currentSetId !== this.lastAgentSetId) {
         this.lastAgentSetId = currentSetId;

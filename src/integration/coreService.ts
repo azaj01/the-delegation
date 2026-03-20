@@ -7,7 +7,8 @@ import {
     buildDynamicContext, buildSystemPrompt
 } from '../core/prompts/agentPrompts'
 import { getAllAgents } from '../data/agents'
-import { getActiveAgentSet, useCoreStore } from './store/coreStore'
+import { useCoreStore } from './store/coreStore'
+import { useTeamStore, getActiveAgentSet } from './store/teamStore';
 import { useUiStore } from './store/uiStore'
 
 export interface AgentFunctionCall {

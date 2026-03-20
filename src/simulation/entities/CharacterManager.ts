@@ -9,7 +9,7 @@ import {
 } from 'three/tsl';
 import * as THREE from 'three/webgpu';
 import { getAllAgents, getAllCharacters } from '../../data/agents';
-import { getActiveAgentSet } from '../../integration/store/coreStore';
+import { getActiveAgentSet } from '../../integration/store/teamStore';
 import { AgentBehavior, AnimationName, ExpressionKey } from '../../types';
 import { AgentStateBuffer } from '../behavior/AgentStateBuffer';
 import { ExpressionBuffer } from '../behavior/ExpressionBuffer';

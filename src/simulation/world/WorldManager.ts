@@ -3,7 +3,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three/webgpu';
 import { getAgentSet } from '../../data/agents';
-import { useCoreStore } from '../../integration/store/coreStore';
+import { useTeamStore } from '../../integration/store/teamStore';
 import { DRACO_LIB_PATH } from '../constants';
 import { NavMeshManager } from '../pathfinding/NavMeshManager';
 import { PoiManager } from './PoiManager';
@@ -27,7 +27,7 @@ export class WorldManager {
     this.scene.add(this.office);
 
     // Get current AgentSet color
-    const selectedAgentSetId = useCoreStore.getState().selectedAgentSetId;
+    const { selectedAgentSetId, customSystems } = useTeamStore.getState();
     const activeSet = getAgentSet(selectedAgentSetId);
     const themeColor = new THREE.Color(activeSet.color);
 

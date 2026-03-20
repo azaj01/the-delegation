@@ -2,7 +2,7 @@ import { Edit2, Pipette, Trash2, Users, X } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AgenticSystem, DEFAULT_AGENTIC_SET_ID, getAllAgents } from '../../data/agents';
 import { abortAllCalls } from '../../integration/coreService';
-import { useCoreStore } from '../../integration/store/coreStore';
+import { useTeamStore } from '../../integration/store/teamStore';
 import { useSceneManager } from '../../simulation/SceneContext';
 import { getBrightness, getDarkenedColor } from './colorUtils';
 
@@ -25,7 +25,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
   onSelectTeam,
   onModeChange,
 }) => {
-  const { setAgentSet, updateSystem, deleteCustomSystem, selectedAgentSetId } = useCoreStore();
+  const { setActiveTeam, updateSystem, deleteCustomSystem, selectedAgentSetId } = useTeamStore();
   const scene = useSceneManager();
   const colorInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,7 +73,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     e.stopPropagation();
     abortAllCalls();
     scene?.resetScene();
-    setAgentSet(system.id);
+    setActiveTeam(system.id);
   };
 
   const handleSave = (e?: React.MouseEvent) => {
@@ -117,7 +117,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     if (system.id === selectedAgentSetId) {
       abortAllCalls();
       scene?.resetScene();
-      setAgentSet(DEFAULT_AGENTIC_SET_ID);
+      setActiveTeam(DEFAULT_AGENTIC_SET_ID);
     }
     deleteCustomSystem(system.id);
     onModeChange('view');
