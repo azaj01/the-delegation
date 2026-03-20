@@ -3,7 +3,7 @@ import { applyEdgeChanges, applyNodeChanges, Background, BaseEdge, EdgeChange, E
 import '@xyflow/react/dist/style.css';
 import { Check, Plus, Settings, User, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AgentNode, getAgentSet, getAllAgents, USER_COLOR, USER_NAME } from '../../data/agents';
+import { AgentNode, getAgentSet, getAllAgents, USER_COLOR, USER_ID, USER_NAME } from '../../data/agents';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { AgentConfigPanel } from './AgentConfigPanel';
@@ -15,7 +15,10 @@ const AgentNodeComponent = ({ data, selected }: any) => {
   const bottomHandles = data.bottomHandles || [];
   
   return (
-    <div className={`px-4 py-3 shadow-sm rounded-xl bg-white border-2 min-w-[160px] pointer-events-auto transition-all ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'}`} style={{ borderColor: !selected ? (data.color || '#ccc') : undefined }}>
+    <div 
+      className={`px-4 py-3 shadow-sm rounded-xl bg-white border-2 min-w-[160px] pointer-events-auto transition-all duration-300 ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'} ${data.isDimmed ? 'opacity-20 translate-y-1' : 'opacity-100'}`} 
+      style={{ borderColor: !selected ? (data.color || '#ccc') : undefined }}
+    >
       {/* Dynamic Top Handles */}
       {topHandles.map((h: any, i: number) => (
         <Handle
@@ -67,7 +70,7 @@ const UserNodeComponent = ({ data, selected }: any) => {
   const bottomHandles = data.bottomHandles || [];
 
   return (
-    <div className={`px-4 py-3 shadow-sm rounded-xl bg-blue-50 border-2 border-blue-200 min-w-[160px] pointer-events-auto transition-all ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'}`}>
+    <div className={`px-4 py-3 shadow-sm rounded-xl bg-blue-50 border-2 border-blue-200 min-w-[160px] pointer-events-auto transition-all duration-300 ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'} ${data.isDimmed ? 'opacity-20 translate-y-1' : 'opacity-100'}`}>
       {/* Dynamic Top Handles */}
       {topHandles.map((h: any, i: number) => (
         <Handle
@@ -144,8 +147,9 @@ const DirectionalEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePositio
               position: 'absolute',
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               pointerEvents: 'all',
+              opacity: style?.opacity ?? 1,
             }}
-            className="flex items-center justify-center"
+            className="flex items-center justify-center transition-opacity duration-300"
           >
             <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full shadow-sm border border-white ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`}>
               {isSuccess ? (
@@ -232,15 +236,11 @@ const VisualConfiguratorContent: React.FC = () => {
   }, [viewMode, selectedTeamId, initialNodes, fitView]);
 
   const onNodesChange = (changes: NodeChange<VisualAgentNode>[]) => {
-    if (configMode === 'edit') {
-      setNodes((nds) => applyNodeChanges(changes, nds));
-    }
+    setNodes((nds) => applyNodeChanges(changes, nds));
   };
 
   const onEdgesChange = (changes: EdgeChange[]) => {
-    if (configMode === 'edit') {
-      setEdges((eds) => applyEdgeChanges(changes, eds));
-    }
+    setEdges((eds) => applyEdgeChanges(changes, eds));
   };
 
   const onNodeClick = useCallback((_: any, node: Node | InternalNode) => {
@@ -251,6 +251,56 @@ const VisualConfiguratorContent: React.FC = () => {
   const onPaneClick = useCallback(() => {
     setSelectedAgentId(null);
   }, []);
+
+  const nodesWithFocus = useMemo(() => {
+    const selectedNode = selectedAgentId ? nodes.find(n => n.id === selectedAgentId) : null;
+    const isSubagentSelected = selectedNode?.type === 'agent' && !selectedNode.data.isLead;
+
+    if (!isSubagentSelected) {
+      return nodes.map(node => ({
+        ...node,
+        data: { ...node.data, isDimmed: false }
+      }));
+    }
+
+    return nodes.map(node => ({
+      ...node,
+      data: { 
+        ...node.data, 
+        isDimmed: (node.type === 'agent' && !node.data.isLead && node.id !== selectedAgentId)
+      }
+    }));
+  }, [nodes, selectedAgentId]);
+
+  const edgesWithFocus = useMemo(() => {
+    const selectedNode = selectedAgentId ? nodes.find(n => n.id === selectedAgentId) : null;
+    const isSubagentSelected = selectedNode?.type === 'agent' && !selectedNode.data.isLead;
+
+    if (!isSubagentSelected) {
+      return edges.map(edge => ({
+        ...edge,
+        style: { ...edge.style, opacity: 1 },
+        animated: edge.animated,
+      }));
+    }
+
+    return edges.map(edge => {
+      const involvesSelected = edge.source === selectedAgentId || edge.target === selectedAgentId;
+      const isCorePath = (edge.source === USER_ID || edge.target === USER_ID) && 
+                         (edge.source === system.leadAgent.id || edge.target === system.leadAgent.id);
+      
+      const shouldBeOpaque = involvesSelected || isCorePath;
+
+      return {
+        ...edge,
+        style: { 
+          ...edge.style, 
+          opacity: shouldBeOpaque ? 1 : 0.05 
+        },
+        animated: shouldBeOpaque ? edge.animated : false,
+      };
+    });
+  }, [edges, nodes, selectedAgentId, system.leadAgent.id]);
 
   return (
     <div className="w-full h-full relative bg-zinc-50 flex flex-col overflow-hidden">
@@ -299,8 +349,8 @@ const VisualConfiguratorContent: React.FC = () => {
         {/* Center Canvas */}
         <div className="flex-1 relative overflow-hidden">
           <ReactFlow
-            nodes={nodes}
-            edges={edges}
+            nodes={nodesWithFocus}
+            edges={edgesWithFocus}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onNodeClick={onNodeClick}
