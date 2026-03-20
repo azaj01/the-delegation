@@ -35,10 +35,10 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
         <div className="flex-1 flex items-center gap-4">
           <div className="flex flex-col">
             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-tight">
-              {activeSet.companyType}
+              {activeSet.teamType}
             </span>
             <span className="text-sm font-black text-zinc-900 leading-tight">
-              {activeSet.companyName}
+              {activeSet.teamName}
             </span>
           </div>
 

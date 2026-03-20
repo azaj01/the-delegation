@@ -125,13 +125,13 @@ export const VisualConfigurator: React.FC = () => {
             <div className="flex items-center gap-2">
               {configMode === 'edit' ? (
                 <input
-                  value={system.companyName}
-                  onChange={(e) => updateActiveSystem({ companyName: e.target.value })}
+                  value={system.teamName}
+                  onChange={(e) => updateActiveSystem({ teamName: e.target.value })}
                   className="text-sm font-bold text-zinc-800 bg-zinc-100 px-2 py-0.5 rounded-lg outline-none focus:ring-2 ring-blue-500/30 w-48 transition-all"
-                  placeholder="Company Name"
+                  placeholder="Team Name"
                 />
               ) : (
-                <h2 className="text-sm font-bold text-zinc-800 leading-none">{system.companyName}</h2>
+                <h2 className="text-sm font-bold text-zinc-800 leading-none">{system.teamName}</h2>
               )}
 
             </div>
@@ -139,10 +139,10 @@ export const VisualConfigurator: React.FC = () => {
               {configMode === 'edit' ? (
                 <>
                   <input
-                    value={system.companyType}
-                    onChange={(e) => updateActiveSystem({ companyType: e.target.value })}
+                    value={system.teamType}
+                    onChange={(e) => updateActiveSystem({ teamType: e.target.value })}
                     className="text-[10px] text-zinc-500 uppercase tracking-widest font-black bg-zinc-100 px-2 py-0.5 rounded outline-none w-48"
-                    placeholder="Company Type"
+                    placeholder="Team Type"
                   />
                   <div className="relative group/color">
                     <input
@@ -157,7 +157,7 @@ export const VisualConfigurator: React.FC = () => {
                   </div>
                 </>
               ) : (
-                <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-black">{system.companyType}</p>
+                <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-black">{system.teamType}</p>
               )}
             </div>
           </div>

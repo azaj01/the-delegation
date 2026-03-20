@@ -24,9 +24,9 @@ export interface AgentNode {
 
 export interface AgenticSystem {
   id: string;
-  companyName: string;
-  companyType: string;
-  companyDescription: string;
+  teamName: string;
+  teamType: string;
+  teamDescription: string;
   color: string;
   user: {
     name: string;
@@ -43,9 +43,9 @@ export const AGENT_SETS: AgenticSystem[] = [
   // ── 1. Unboring dot net ─────────────────────────
   {
     id: 'marketing-agency',
-    companyName: 'Unboring.net',
-    companyType: 'Creative & Strategy Agency',
-    companyDescription: 'A full-service creative agency covering branding, design, development and go-to-market strategy.',
+    teamName: 'Unboring.net',
+    teamType: 'Creative & Strategy Agency',
+    teamDescription: 'A full-service creative agency covering branding, design, development and go-to-market strategy.',
     color: '#4387E2',
     user: {
       name: 'Client',
@@ -127,9 +127,9 @@ export const AGENT_SETS: AgenticSystem[] = [
   // ── 2. Game Studio ──────────────────────────────────────────
   {
     id: 'game-studio',
-    companyName: 'Pixxel AI Games',
-    companyType: 'Indie Game Studio',
-    companyDescription: 'A specialized game development studio focused on creating the next viral hit.',
+    teamName: 'Pixxel AI Games',
+    teamType: 'Indie Game Studio',
+    teamDescription: 'A specialized game development studio focused on creating the next viral hit.',
     color: '#22c55e',
     user: {
       name: 'Lead Visionary',

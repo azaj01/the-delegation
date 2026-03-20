@@ -34,12 +34,12 @@ export function buildSystemPrompt(agentIndex: number, isBoardroom = false): stri
 
   const boardroomNote = isBoardroom
     ? `\nCONTEXT: You are in the BOARDROOM collaborating with other agents. ` +
-      `Divide the work clearly using propose_task, one per teammate. ` +
-      `Then each agent will execute their own sub-task independently.`
+    `Divide the work clearly using propose_task, one per teammate. ` +
+    `Then each agent will execute their own sub-task independently.`
     : ''
 
   return [
-    `You are ${agent.name} at ${activeSet.companyName}.`,
+    `You are ${agent.name} at ${activeSet.teamName}.`,
     agent.description ? `Description: ${agent.description}` : '',
     `Instruction: ${agent.instruction}`,
     '',
@@ -101,19 +101,19 @@ export function buildChatSystemPrompt(agentIndex: number): string {
   const isLead = agentIndex === activeSet.leadAgent.index;
 
   return [
-    `You are ${agent.name} at ${activeSet.companyName}.`,
+    `You are ${agent.name} at ${activeSet.teamName}.`,
     agent.description ? `Description: ${agent.description}` : '',
     `Instruction: ${agent.instruction}`,
     '',
     'CONTEXT:',
     isLead
       ? [
-          'You are the Orchestrator. The client is here to discuss a project, refine their brief, or review final delivery.',
-          'IMPORTANT BRIEFING RULE: Do NOT start work (propose tasks) until you have a clear, specific, and actionable brief from the client.',
-          'If the client message is missing details, ask clarifying questions instead of starting the project.',
-          'Use the "update_client_brief" tool to save/update the official brief based on the client\'s input.',
-          'Once the brief is final and you are ready to start, use "propose_task" to assign work to the team.'
-        ].join(' ')
+        'You are the Orchestrator. The client is here to discuss a project, refine their brief, or review final delivery.',
+        'IMPORTANT BRIEFING RULE: Do NOT start work (propose tasks) until you have a clear, specific, and actionable brief from the client.',
+        'If the client message is missing details, ask clarifying questions instead of starting the project.',
+        'Use the "update_client_brief" tool to save/update the official brief based on the client\'s input.',
+        'Once the brief is final and you are ready to start, use "propose_task" to assign work to the team.'
+      ].join(' ')
       : 'The client has approached you for a conversation. If you previously requested their approval/feedback on a task (ON_HOLD), they are here to provide it so you can resume work.',
     'Be helpful, friendly, and stay in character.',
     '',
