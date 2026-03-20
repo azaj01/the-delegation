@@ -1,7 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { IAgentDriver } from '../../types';
 import { CharacterController } from '../CharacterController';
-import { PLAYER_INDEX } from '../../data/agents';
 
 /**
  * PlayerInputDriver — translates user input into CharacterController actions.
@@ -13,10 +12,12 @@ import { PLAYER_INDEX } from '../../data/agents';
  * Wired up by SceneManager after InputManager is created.
  */
 export class PlayerInputDriver implements IAgentDriver {
-  public readonly agentIndex = PLAYER_INDEX;
+  public readonly agentIndex: number;
   private lastPositions: Float32Array | null = null;
 
-  constructor(private readonly controller: CharacterController) {}
+  constructor(agentIndex: number, private readonly controller: CharacterController) {
+    this.agentIndex = agentIndex;
+  }
 
   // ── Input handlers (called by InputManager callbacks) ────────
 
@@ -24,13 +25,14 @@ export class PlayerInputDriver implements IAgentDriver {
   public onFloorClick(x: number, z: number): void {
     const target = new THREE.Vector3(x, 0, z);
     const from = this._getCurrentPos();
-    this.controller.moveTo(PLAYER_INDEX, target, 'idle', undefined, from);
+    this.controller.moveTo(this.agentIndex, target, 'idle', undefined, from);
   }
 
   /** User clicked on a POI (e.g. chair): walk to and interact. */
   public onPoiClick(id: string): void {
     const from = this._getCurrentPos();
-    this.controller.walkToPoi(PLAYER_INDEX, id, undefined, from);
+    this.controller.walkToPoi(this.agentIndex, id, undefined, from);
+
   }
 
   /**
@@ -43,7 +45,8 @@ export class PlayerInputDriver implements IAgentDriver {
     onArrival?: (index: number) => void,
   ): void {
     const from = this._getCurrentPos();
-    this.controller.moveTo(PLAYER_INDEX, target, arrivalState, onArrival, from);
+    this.controller.moveTo(this.agentIndex, target, arrivalState, onArrival, from);
+
   }
 
   private _getCurrentPos(): THREE.Vector3 | undefined {
@@ -57,7 +60,8 @@ export class PlayerInputDriver implements IAgentDriver {
 
   /** Cancel current movement (e.g. chat was aborted before arrival). */
   public cancelMovement(): void {
-    this.controller.cancelMovement(PLAYER_INDEX);
+    this.controller.cancelMovement(this.agentIndex);
+
   }
 
   // ── IAgentDriver ─────────────────────────────────────────────

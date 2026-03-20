@@ -6,10 +6,8 @@ import { useChatAvailability } from '../integration/hooks/useChatAvailability';
 import AgentStatusPanel from './AgentStatusPanel';
 import ProjectView from './ProjectView';
 import ChatPanel from './ChatPanel';
-import { getAgentSet, getAllAgents } from '../data/agents';
+import { getAgentSet, getAllCharacters } from '../data/agents';
 import { MessageSquare, Lock, FolderOpen, Siren, MessageSquareWarning } from 'lucide-react';
-
-const ORCHESTRATOR_INDEX = 1;
 
 interface InspectorPanelProps {
   isFloating?: boolean;
@@ -20,14 +18,14 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
   const scene = useSceneManager();
   const { phase, setFinalOutputOpen, tasks, selectedAgentSetId } = useCoreStore();
   const system = getAgentSet(selectedAgentSetId);
-  const agents = getAllAgents(system);
+  const agents = getAllCharacters(system);
   const { canChat, reason } = useChatAvailability(selectedNpcIndex);
   const prevCanChat = useRef(canChat);
 
   const agent = selectedNpcIndex !== null ? agents.find(a => a.index === selectedNpcIndex) ?? null : null;
-  const isProjectReady = phase === 'done' && selectedNpcIndex === ORCHESTRATOR_INDEX;
+  const isProjectReady = phase === 'done' && selectedNpcIndex === system.leadAgent.index;
 
-  const isOrchestratorIdle = selectedNpcIndex === ORCHESTRATOR_INDEX && phase === 'idle';
+  const isOrchestratorIdle = selectedNpcIndex === system.leadAgent.index && phase === 'idle';
   const tasksOnHold = agent ? tasks.filter(
     t => t.assignedAgentIds.includes(agent.index) && t.status === 'on_hold'
   ) : [];
@@ -41,7 +39,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
       if (isChatting) scene?.endChat();
     }
     prevCanChat.current = canChat;
-  }, [canChat]);
+  }, [canChat, isChatting, scene]);
 
   const handleEndChat = () => {
     scene?.endChat();
@@ -66,11 +64,11 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
                     <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: agent.color }}
+                       className="w-2 h-2 rounded-full"
+                       style={{ backgroundColor: agent.color }}
                     />
                     <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                      {agent.name}
+                      {agent.index === system.user.index ? 'You' : agent.name}
                     </p>
                   </div>
                   <h2 className="text-xl font-black text-zinc-900 leading-tight">
@@ -127,7 +125,9 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
               ) : (
                 /* Chat Action Button below name - ONLY SHOW IF NOT NEEDS DISCUSSION (OR IF CHATTING) */
                 <div className="w-full">
-                  {isProjectReady ? (
+                  {agent.index === system.user.index ? (
+                    null // No chat button for the local player
+                  ) : isProjectReady ? (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex flex-col gap-3 shadow-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />

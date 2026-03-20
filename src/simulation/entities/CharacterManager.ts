@@ -26,7 +26,7 @@ import { ExpressionKey, AnimationName, AgentBehavior } from '../../types';
 import { DRACO_LIB_PATH } from '../constants';
 import { AgentStateBuffer } from '../behavior/AgentStateBuffer';
 import { ExpressionBuffer } from '../behavior/ExpressionBuffer';
-import { PLAYER_INDEX, getAllAgents } from '../../data/agents';
+import { getAllAgents, getAllCharacters } from '../../data/agents';
 import { getActiveAgentSet } from '../../integration/store/coreStore';
 import { PoiManager } from '../world/PoiManager';
 
@@ -223,22 +223,19 @@ export class CharacterManager {
     const agentsBuffer = []; // Temporary to store POIs for orientation
 
     const system = getActiveAgentSet();
-    const allAgents = getAllAgents(system);
+    const allCharacters = getAllCharacters(system);
 
     for (let i = 0; i < this.instanceCount; i++) {
-        let colorOverride: string;
-        if (i === PLAYER_INDEX) {
-            colorOverride = system.user.color;
-            // Player spawns slightly offset from center so they're clearly visible
+        const agentNode = allCharacters.find(a => a.index === i) || system.leadAgent;
+        const colorOverride = agentNode.color;
+        tempColor.set(colorOverride);
+
+        if (i === system.user.index) {
+            // Player spawns at (0,0,0)
             posArray[i * 4 + 0] = 0;
             posArray[i * 4 + 2] = 0;
-            posArray[i * 4 + 3] = 1;
-            tempColor.set(colorOverride);
             agentsBuffer[i] = null;
         } else {
-            const agentNode = allAgents.find(a => a.index === i) || system.leadAgent;
-            colorOverride = agentNode.color;
-
             const poi = spawnPois[spawnIndex % spawnPois.length];
             if (poi) {
                 this.poiManager?.occupy(poi.id, i);
@@ -254,13 +251,13 @@ export class CharacterManager {
             posArray[i * 4 + 3] = 1;
             velArray[i * 4 + 0] = (Math.random() - 0.5) * 0.1;
             velArray[i * 4 + 2] = (Math.random() - 0.5) * 0.1;
-            tempColor.set(colorOverride);
         }
 
         colorArray[i * 3 + 0] = tempColor.r;
         colorArray[i * 3 + 1] = tempColor.g;
         colorArray[i * 3 + 2] = tempColor.b;
     }
+
 
     this.debugPosArray = new Float32Array(posArray);
 

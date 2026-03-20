@@ -1,6 +1,7 @@
 import { IAgentDriver } from '../../types';
 import { CharacterController } from '../CharacterController';
-import { AgentData, PLAYER_INDEX } from '../../data/agents';
+import { AgentNode } from '../../data/agents';
+
 import { PlayerInputDriver } from './PlayerInputDriver';
 import { NpcAgentDriver } from './NpcAgentDriver';
 
@@ -22,19 +23,21 @@ export class DriverManager {
   // ── Registration ─────────────────────────────────────────────
 
   /** Register the player driver. Returns it so SceneManager can wire InputManager callbacks. */
-  public registerPlayer(): PlayerInputDriver {
-    const driver = new PlayerInputDriver(this.controller);
-    this.drivers.set(PLAYER_INDEX, driver);
+  public registerPlayer(index: number): PlayerInputDriver {
+    const driver = new PlayerInputDriver(index, this.controller);
+    this.drivers.set(index, driver);
     this.playerDriver = driver;
     return driver;
   }
 
+
   /** Register a NPC agent with its data. Returns the driver for optional further customization. */
-  public registerNpc(agentIndex: number, data: AgentData): NpcAgentDriver {
+  public registerNpc(agentIndex: number, data: AgentNode): NpcAgentDriver {
     const driver = new NpcAgentDriver(agentIndex, this.controller, data);
     this.drivers.set(agentIndex, driver);
     return driver;
   }
+
 
   /** Replace the driver for an agent (e.g. switch from NPC to player control). */
   public setDriver(agentIndex: number, driver: IAgentDriver): void {

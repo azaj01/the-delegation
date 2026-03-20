@@ -1,10 +1,10 @@
 import * as THREE from 'three/webgpu';
-import { PLAYER_INDEX } from '../../data/agents';
+
 import { CHARACTER_Y_OFFSET, PICK_RADIUS, POI_PICK_RADIUS } from '../constants';
 import { PoiDef } from '../../types';
 
 const DRAG_THRESHOLD_PX = 4;
-const FLOOR_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0),0); // y=0
+const FLOOR_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // y=0
 
 export class InputManager {
   private raycaster = new THREE.Raycaster();
@@ -32,7 +32,9 @@ export class InputManager {
     private raycastObject?: THREE.Object3D,
     private isPointValid?: (point: THREE.Vector3) => boolean,
     private getIsPaused?: () => boolean,
+    private getPlayerIndex?: () => number,
   ) {
+
     this.boundPointerDown = this.handlePointerDown.bind(this);
     this.boundPointerMove = this.handlePointerMove.bind(this);
     this.boundPointerUp = this.handlePointerUp.bind(this);
@@ -200,16 +202,12 @@ export class InputManager {
     const closestIdx = this.getAgentAtPointer();
 
     if (closestIdx !== null) {
-      if (closestIdx === PLAYER_INDEX) {
-        // Click on the player → deselect any NPC (go back to default)
-        this.selectedIndex = null;
-        this.onSelect(null);
-      } else if (closestIdx === this.selectedIndex) {
-        // Click on already-selected NPC → deselect
+      if (closestIdx === this.selectedIndex) {
+        // Click on already-selected character → deselect
         this.selectedIndex = null;
         this.onSelect(null);
       } else {
-        // Click on a new NPC → select it
+        // Click on a new character (NPC or Player) → select it
         this.selectedIndex = closestIdx;
         this.onSelect(closestIdx);
       }
@@ -222,7 +220,7 @@ export class InputManager {
         this.onPoiHover(null, null, null);
         this.onPoiClick(hoveredPoi.id);
       } else if (this.selectedIndex !== null) {
-        // If an NPC was selected, deselect it first
+        // If something was selected, deselect it first
         this.selectedIndex = null;
         this.onSelect(null);
       } else {

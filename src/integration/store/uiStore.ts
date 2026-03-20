@@ -1,14 +1,14 @@
 
 import { create } from 'zustand';
 import { CharacterState } from '../../types';
-import { DEFAULT_AGENT_SET_ID, getAgentSet, getAllAgents } from '../../data/agents';
+import { DEFAULT_AGENTIC_SET_ID, getAgentSet, getAllAgents } from '../../data/agents';
 import { useCoreStore } from './coreStore';
 
 export const useUiStore = create<CharacterState>()(
   (set) => ({
     isThinking: false,
     instanceCount: getAllAgents(getAgentSet(
-      useCoreStore.getState().selectedAgentSetId ?? DEFAULT_AGENT_SET_ID
+      useCoreStore.getState().selectedAgentSetId ?? DEFAULT_AGENTIC_SET_ID
     )).length + 1, // +1 for user
 
     selectedNpcIndex: null,
@@ -32,7 +32,7 @@ export const useUiStore = create<CharacterState>()(
       try {
         const saved = localStorage.getItem('byok-config');
         if (saved) return JSON.parse(saved);
-      } catch {}
+      } catch { }
       return {
         provider: 'gemini',
         apiKey: '',

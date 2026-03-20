@@ -9,7 +9,8 @@ import { PoiManager } from './world/PoiManager';
 import { WorldManager } from './world/WorldManager';
 import { DriverManager } from './drivers/DriverManager';
 import { InputManager } from './input/InputManager';
-import { PLAYER_INDEX, NPC_START_INDEX, getAgentSet, getAllAgents } from '../data/agents';
+import { getAgentSet, getAllAgents, getAllCharacters } from '../data/agents';
+
 import { useUiStore } from '../integration/store/uiStore';
 import { useCoreStore, getActiveAgentSet } from '../integration/store/coreStore';
 import { CoreOrchestrator } from '../integration/CoreOrchestrator';
@@ -66,17 +67,17 @@ export class SceneManager {
         state.tasks.forEach(task => {
           const prevTask = prevState.tasks.find(t => t.id === task.id);
           if (task.status === 'in_progress' && prevTask?.status !== 'in_progress') {
-             task.assignedAgentIds.forEach(id => {
-                 this.setNpcWorking(id, true);
-             });
+            task.assignedAgentIds.forEach(id => {
+              this.setNpcWorking(id, true);
+            });
           }
           if ((task.status === 'done' || task.status === 'on_hold') && prevTask?.status === 'in_progress') {
-             task.assignedAgentIds.forEach(id => {
-                 if (task.status === 'on_hold') {
-                   this.moveNpcToSpawn(id);
-                 }
-                 this.setNpcWorking(id, false);
-             });
+            task.assignedAgentIds.forEach(id => {
+              if (task.status === 'on_hold') {
+                this.moveNpcToSpawn(id);
+              }
+              this.setNpcWorking(id, false);
+            });
           }
         });
       })
@@ -109,13 +110,16 @@ export class SceneManager {
 
     // Register all character drivers
     this.driverManager = new DriverManager(this.controller);
-    const playerDriver = this.driverManager.registerPlayer();
-
     const activeSet = getActiveAgentSet();
+    const playerIndex = activeSet.user.index;
+    const playerDriver = this.driverManager.registerPlayer(playerIndex);
+
     getAllAgents(activeSet).forEach((agent) => {
-      if (agent.index === 0) return; // Assuming index 0 is player
+      if (agent.index === playerIndex) return;
       this.driverManager.registerNpc(agent.index, agent);
     });
+
+
 
     // InputManager — callbacks feed into PlayerInputDriver or store
     new InputManager(
@@ -128,7 +132,8 @@ export class SceneManager {
         if (storeState.isChatting) {
           this.endChat();
         }
-        this.selectedIndex = index !== PLAYER_INDEX ? index : null;
+        this.selectedIndex = index !== activeSet.user.index ? index : null;
+
         useUiStore.getState().setSelectedNpc(this.selectedIndex);
       },
       (x, z) => playerDriver.onFloorClick(x, z),
@@ -139,7 +144,9 @@ export class SceneManager {
       this.worldManager.getOffice() ?? undefined,
       (point) => this.navMesh.isPointOnNavMesh(point),
       () => useCoreStore.getState().isPaused,
+      () => getActiveAgentSet().user.index,
     );
+
 
     this.engine.renderer.setAnimationLoop(this.animate.bind(this));
 
@@ -160,9 +167,10 @@ export class SceneManager {
         // Force agents to their spawn points and update colors when the team changes
         if (this.controller) {
           const system = getActiveAgentSet();
-    this.controller.setColors(getAllAgents(system).map(a => a.color));
+          this.controller.setColors(getAllCharacters(system).map(a => a.color));
           const npcIndices = getAllAgents(activeSet).map((a) => a.index);
-          this.controller.warpAllToSpawn(PLAYER_INDEX, npcIndices);
+          this.controller.warpAllToSpawn(system.user.index, npcIndices);
+
         }
       }
 
@@ -172,6 +180,7 @@ export class SceneManager {
         || s.isTyping !== prev.isTyping;
 
       if (chatChanged && this.controller) {
+        const system = getActiveAgentSet();
         if (s.isChatting && s.selectedNpcIndex !== null) {
           const npc = s.selectedNpcIndex;
           // NPC: thinking = talk, waiting = listen
@@ -180,22 +189,25 @@ export class SceneManager {
           }
           this.controller.setSpeaking(npc, s.isThinking);
           // Player: typing = talk, waiting = listen
-          if (this.controller.getState(PLAYER_INDEX) !== 'walk') {
-            this.controller.play(PLAYER_INDEX, s.isTyping ? 'talk' : 'listen');
+          if (this.controller.getState(system.user.index) !== 'walk') {
+            this.controller.play(system.user.index, s.isTyping ? 'talk' : 'listen');
           }
-          this.controller.setSpeaking(PLAYER_INDEX, s.isTyping);
+          this.controller.setSpeaking(system.user.index, s.isTyping);
         } else if (!s.isChatting && prev.isChatting) {
           // Chat ended — restore both sides
+          const system = getActiveAgentSet();
           if (prev.selectedNpcIndex !== null) {
             this.controller.setSpeaking(prev.selectedNpcIndex, false);
             this.controller.play(prev.selectedNpcIndex, 'idle');
           }
-          this.controller.setSpeaking(PLAYER_INDEX, false);
-          this.controller.play(PLAYER_INDEX, 'idle');
+          this.controller.setSpeaking(system.user.index, false);
+          this.controller.play(system.user.index, 'idle');
         }
       }
     });
+
     this.unsubs.push(unsub);
+
   }
 
   // ── Public chat API ──────────────────────────────────────────
@@ -206,8 +218,10 @@ export class SceneManager {
     const positions = this.controller.getCPUPositions();
     if (!positions) return;
 
+    const system = getActiveAgentSet();
     const npc = new THREE.Vector3(positions[npcIndex * 4], 0, positions[npcIndex * 4 + 2]);
-    const player = new THREE.Vector3(positions[PLAYER_INDEX * 4], 0, positions[PLAYER_INDEX * 4 + 2]);
+    const player = new THREE.Vector3(positions[system.user.index * 4], 0, positions[system.user.index * 4 + 2]);
+
 
     // Direction from NPC to player, stop 1.2 units away
     let dir = new THREE.Vector3().subVectors(player, npc);
@@ -238,10 +252,12 @@ export class SceneManager {
     playerDriver?.walkTo(target, 'listen', () => {
       // Face each other once arrived
       const p = this.controller!.getCPUPositions()!;
-      const fx = p[npcIndex * 4] - p[PLAYER_INDEX * 4];
-      const fz = p[npcIndex * 4 + 2] - p[PLAYER_INDEX * 4 + 2];
-      this.controller!.getAgentStateBuffer()?.setWaypoint(PLAYER_INDEX, fx, fz);
+      const system = getActiveAgentSet();
+      const fx = p[npcIndex * 4] - p[system.user.index * 4];
+      const fz = p[npcIndex * 4 + 2] - p[system.user.index * 4 + 2];
+      this.controller!.getAgentStateBuffer()?.setWaypoint(system.user.index, fx, fz);
       this.controller!.getAgentStateBuffer()?.setWaypoint(npcIndex, -fx, -fz);
+
 
       // --- New: Pre-fill Chat if agent has pending approval ---
       const coreStore = useCoreStore.getState();
@@ -292,9 +308,11 @@ export class SceneManager {
       this.controller.poiManager.releaseAll(selectedNpcIndex);
     }
     if (this.controller) {
-      this.controller.setSpeaking(PLAYER_INDEX, false);
-      this.controller.play(PLAYER_INDEX, 'idle');
+      const system = getActiveAgentSet();
+      this.controller.setSpeaking(system.user.index, false);
+      this.controller.play(system.user.index, 'idle');
     }
+
     this.selectedIndex = null;
     useUiStore.getState().setSelectedNpc(null);
   }
@@ -367,10 +385,10 @@ export class SceneManager {
         const positions = this.controller.getCPUPositions();
         const currentPos = positions
           ? new THREE.Vector3(
-              positions[index * 4],
-              positions[index * 4 + 1],
-              positions[index * 4 + 2],
-            )
+            positions[index * 4],
+            positions[index * 4 + 1],
+            positions[index * 4 + 2],
+          )
           : undefined;
         this.controller.walkToPoi(index, poi.id, undefined, currentPos);
       } else {
@@ -387,10 +405,10 @@ export class SceneManager {
     const positions = this.controller.getCPUPositions();
     const currentPos = positions
       ? new THREE.Vector3(
-          positions[index * 4],
-          positions[index * 4 + 1],
-          positions[index * 4 + 2],
-        )
+        positions[index * 4],
+        positions[index * 4 + 1],
+        positions[index * 4 + 2],
+      )
       : undefined;
 
     // Convention: idle-spawn-1, idle-spawn-2, etc.
@@ -472,8 +490,11 @@ export class SceneManager {
       this.updateTransparency(positions, delta);
     });
 
+    const system = getActiveAgentSet();
+    const playerIndex = system.user.index;
+
     // 3. Camera follow
-    const followIdx = this.selectedIndex ?? PLAYER_INDEX;
+    const followIdx = this.selectedIndex ?? playerIndex;
     const followPos = this.controller?.getCPUPosition(followIdx) ?? null;
     this.stage.setFollowTarget(followPos);
 
@@ -514,10 +535,11 @@ export class SceneManager {
 
     // 5. Chat camera mode
     const { isChatting } = useUiStore.getState();
-    const playerMoving = this.controller?.getAgentState(PLAYER_INDEX) === AgentBehavior.GOTO;
+    const playerMoving = this.controller?.getAgentState(playerIndex) === AgentBehavior.GOTO;
     this.stage.setChatMode(isChatting, playerMoving);
 
     this.engine.render(this.stage.scene, this.stage.camera);
+
   }
 
   /** Update transparency based on proximity between characters. */
@@ -583,8 +605,9 @@ export class SceneManager {
     getAllAgents(system).forEach((agent) => this.controller?.setSpeaking(agent.index, false));
 
     // Teleport every agent instantly to their original spawn POI — no walking
-    const npcIndices = getAllAgents(getActiveAgentSet()).map((a) => a.index);
-    this.controller.warpAllToSpawn(PLAYER_INDEX, npcIndices);
+    const npcIndices = getAllAgents(system).map((a) => a.index);
+    this.controller.warpAllToSpawn(system.user.index, npcIndices);
+
 
     // Reset camera to default
     this.stage.setFollowTarget(null);

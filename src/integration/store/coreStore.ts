@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { LLMMessage } from '../../core/llm/types'
-import { AgenticSystem, DEFAULT_AGENT_SET_ID, getAgentSet } from '../../data/agents'
+import { AgenticSystem, DEFAULT_AGENTIC_SET_ID, getAgentSet } from '../../data/agents'
 
 export type AgentSet = AgenticSystem;
 
@@ -120,7 +120,7 @@ const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 export const useCoreStore = create<CoreState>()(
   persist(
     (set) => ({
-      selectedAgentSetId: DEFAULT_AGENT_SET_ID,
+      selectedAgentSetId: DEFAULT_AGENTIC_SET_ID,
       customSystems: [],
       clientBrief: '',
       phase: 'idle',
@@ -151,7 +151,7 @@ export const useCoreStore = create<CoreState>()(
       deleteCustomSystem: (id) =>
         set((s) => ({
           customSystems: s.customSystems.filter((cs) => cs.id !== id),
-          selectedAgentSetId: s.selectedAgentSetId === id ? DEFAULT_AGENT_SET_ID : s.selectedAgentSetId,
+          selectedAgentSetId: s.selectedAgentSetId === id ? DEFAULT_AGENTIC_SET_ID : s.selectedAgentSetId,
         })),
 
       setViewMode: (viewMode) => set({ viewMode }),

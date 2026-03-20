@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { AgentBehavior, AnimationName, CharacterStateKey, ExpressionKey, ICharacterDriver } from '../types';
-import { PLAYER_INDEX } from '../data/agents';
+import { getActiveAgentSet } from '../integration/store/coreStore';
+
 import { CharacterManager } from './entities/CharacterManager';
 import { CharacterStateMachine } from './behavior/CharacterStateMachine';
 import { AgentStateBuffer } from './behavior/AgentStateBuffer';
@@ -100,11 +101,8 @@ export class CharacterController implements ICharacterDriver {
     if (path.length === 0) {
       // Emergency Teleport: If the target is valid on the navmesh but we can't find a path
       // (likely because the character is stuck outside the navmesh bounds), teleport directly.
-      // ONLY applies to the player (PLAYER_INDEX).
-      if (index === PLAYER_INDEX && this.navMesh.isPointOnNavMesh(target)) {
-        console.warn(`Player stuck outside NavMesh. Teleporting to target.`);
-        this.cancelMovement(index);
-        this.characterManager.setPositionAndZeroVelocity(index, target);
+      if (index === getActiveAgentSet().user.index) {
+        this.characterManager.setPosition(index, target);
         if (targetOrientation) {
           this.characterManager.setOrientation(index, targetOrientation);
         }
@@ -112,6 +110,7 @@ export class CharacterController implements ICharacterDriver {
         onArrival?.(index);
         return true;
       }
+
       return false;
     }
 

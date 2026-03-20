@@ -1,7 +1,5 @@
 import { useCoreStore } from '../store/coreStore'
-import { getAgentSet, getAllAgents, PLAYER_INDEX } from '../../data/agents'
-
-const ORCHESTRATOR_INDEX = 1
+import { getAgentSet, getAllAgents } from '../../data/agents'
 
 export interface ChatAvailability {
   canChat: boolean
@@ -16,6 +14,8 @@ export function useChatAvailability(agentIndex: number | null): ChatAvailability
   const { phase, tasks, selectedAgentSetId } = useCoreStore()
   const system = getAgentSet(selectedAgentSetId)
   const agents = getAllAgents(system)
+
+  const ORCHESTRATOR_INDEX = system.leadAgent.index
 
   if (agentIndex === null) return { canChat: false, reason: '' }
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, AlertTriangle, Users, ChevronRight, HardDrive, Cpu } from 'lucide-react';
-import { AGENT_SETS, AgenticSystem, AgentNode, getAllAgents } from '../data/agents';
+import { AGENTIC_SETS, AgenticSystem, AgentNode, getAllAgents } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useSceneManager } from '../simulation/SceneContext';
 import { abortAllCalls } from '../integration/coreService';
@@ -71,8 +71,8 @@ const AgentSetCard: React.FC<{
     <button
       onClick={onSelect}
       className={`relative w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 ${isSelected
-          ? 'bg-zinc-50 shadow-lg'
-          : 'border-zinc-100 bg-white hover:border-zinc-200 hover:shadow-sm'
+        ? 'bg-zinc-50 shadow-lg'
+        : 'border-zinc-100 bg-white hover:border-zinc-200 hover:shadow-sm'
         }`}
       style={isSelected ? { borderColor: accent } : {}}
     >
@@ -128,7 +128,7 @@ const AgentSetPickerModal: React.FC<AgentSetPickerModalProps> = ({
   const scene = useSceneManager();
 
   const allPossibleSystems = React.useMemo(() => {
-    const combined = [...customSystems, ...AGENT_SETS];
+    const combined = [...customSystems, ...AGENTIC_SETS];
     return combined.filter((sys, index, self) =>
       index === self.findIndex((s) => s.id === sys.id)
     );

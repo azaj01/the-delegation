@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCoreStore } from '../integration/store/coreStore';
-import { getAgentSet, getAllAgents } from '../data/agents';
+import { getAgentSet, getAllCharacters } from '../data/agents';
 
 interface AgentStatusPanelProps {
   agentIndex: number;
@@ -9,7 +9,7 @@ interface AgentStatusPanelProps {
 const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
   const { tasks, selectedAgentSetId } = useCoreStore();
   const system = getAgentSet(selectedAgentSetId);
-  const agents = getAllAgents(system);
+  const agents = getAllCharacters(system);
 
   const agent = agents.find(a => a.index === agentIndex);
   if (!agent) return null;

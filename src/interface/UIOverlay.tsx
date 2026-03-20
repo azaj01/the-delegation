@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { useUiStore } from '../integration/store/uiStore';
 import InfoModal from './InfoModal';
-import { getAgentSet, getAllAgents, PLAYER_INDEX } from '../data/agents';
+import { getAgentSet, getAllAgents, getAllCharacters } from '../data/agents';
+
 import { useCoreStore, Task } from '../integration/store/coreStore';
 import { Siren, MessageSquareWarning, PartyPopper } from 'lucide-react';
 
@@ -88,17 +89,11 @@ const UIOverlay: React.FC = () => {
   } = useCoreStore();
   const system = getAgentSet(selectedAgentSetId);
   const npcAgents = getAllAgents(system);
-  const playerAgent = {
-    index: PLAYER_INDEX,
-    name: system.user.name,
-    color: system.user.color,
-    description: 'The primary user and project visionary.',
-    instruction: 'Review team progress and provide approvals when requested.',
-  };
-  const allPossibleAgents = [playerAgent, ...npcAgents];
+  const allPossibleAgents = getAllCharacters(system);
 
   const selectedAgent = selectedNpcIndex != null ? allPossibleAgents.find(a => a.index === selectedNpcIndex) as any ?? null : null;
   const hoveredAgent = hoveredNpcIndex != null ? allPossibleAgents.find(a => a.index === hoveredNpcIndex) as any ?? null : null;
+
 
   return (
     <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden select-none">
@@ -172,7 +167,8 @@ const UIOverlay: React.FC = () => {
                   style={{ backgroundColor: selectedAgent.color }}
                 />
                 <div className="flex items-center gap-1.5">
-                  {selectedAgent.index === PLAYER_INDEX ? (
+                  {selectedAgent.index === system.user.index ? (
+
                     <span className="text-[10px] font-black uppercase tracking-widest text-white">{selectedAgent.name} (You)</span>
                   ) : isOrchestratorProjectReady ? (
                     <span className={`text-[10px] font-black uppercase tracking-widest ${label.className}`}>
@@ -219,7 +215,8 @@ const UIOverlay: React.FC = () => {
                   style={{ backgroundColor: hoveredAgent.color }}
                 />
                 <div className="flex items-center gap-1.5">
-                  {hoveredAgent.index === PLAYER_INDEX ? (
+                  {hoveredAgent.index === system.user.index ? (
+
                     <span className="text-[10px] font-black uppercase tracking-widest text-white">{hoveredAgent.name} (You)</span>
                   ) : isOrchestratorProjectReady ? (
                     <span className={`text-[10px] font-black uppercase tracking-widest ${label.className}`}>

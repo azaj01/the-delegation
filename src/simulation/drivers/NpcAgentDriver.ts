@@ -1,7 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { IAgentDriver } from '../../types';
 import { CharacterController } from '../CharacterController';
-import { AgentData } from '../../data/agents';
+import { AgentNode } from '../../data/agents';
 import { useCoreStore } from '../../integration/store/coreStore';
 
 
@@ -27,7 +27,7 @@ export class NpcAgentDriver implements IAgentDriver {
   constructor(
     agentIndex: number,
     protected readonly controller: CharacterController,
-    protected readonly data: AgentData,
+    protected readonly data: AgentNode,
   ) {
     this.agentIndex = agentIndex;
   }
@@ -53,8 +53,9 @@ export class NpcAgentDriver implements IAgentDriver {
       return;
     }
 
-    // Special behavior for Orchestrator (index 1) when project is ready
-    if (this.agentIndex === 1 && systemState.phase === 'done') {
+    // Special behavior for Lead Agent (Orchestrator) when project is ready
+    const isLeadCandidate = !this.data.reportsToId;
+    if (isLeadCandidate && systemState.phase === 'done') {
       this._updateProjectReadyBehavior(positions, delta, currentState);
       return;
     }
@@ -147,7 +148,8 @@ export class NpcAgentDriver implements IAgentDriver {
   }
 
   private _updateProjectReadyBehavior(positions: Float32Array, delta: number, currentState: string): void {
-    const targetPoi = this.controller.poiManager.getPoi('idle-spawn-1'); // Correct ID for Orchestrator spawn
+    const spawnId = `idle-spawn-${this.agentIndex}`;
+    const targetPoi = this.controller.poiManager.getPoi(spawnId);
     if (!targetPoi) return;
 
     const currentPos = new THREE.Vector3(
@@ -208,8 +210,9 @@ export class NpcAgentDriver implements IAgentDriver {
     // 2. Behavior when STANDING (or if decided to get up)
 
     // A. Chance to go sit (only if NOT already seated or if we explicitly want a new POI)
-    // Orchestrator (index 1) NEVER sits, he prefers to pace or stay standing
-    if (!isSeated && rand < 0.4 && this.agentIndex !== 1) {
+    // Lead agent candidates NEVER sit, they prefer to pace or stay standing
+    const isLeadCandidate = !this.data.reportsToId;
+    if (!isSeated && rand < 0.4 && !isLeadCandidate) {
       const pois = this.controller.poiManager.getFreePois('sit_idle', this.agentIndex);
       if (pois.length > 0) {
         const poi = pois[Math.floor(Math.random() * pois.length)];

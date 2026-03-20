@@ -1,9 +1,8 @@
 // ─────────────────────────────────────────────────────────────
 //  Constants
 // ─────────────────────────────────────────────────────────────
-export const PLAYER_INDEX = 0;
-export const NPC_START_INDEX = 1;
-export const DEFAULT_AGENT_SET_ID = 'marketing-agency';
+
+export const DEFAULT_AGENTIC_SET_ID = 'marketing-agency';
 
 // ─────────────────────────────────────────────────────────────
 //  Agent data types
@@ -28,10 +27,8 @@ export interface AgenticSystem {
   teamType: string;
   teamDescription: string;
   color: string;
-  user: {
-    name: string;
-    color: string;
-  };
+  user: AgentNode;
+
   leadAgent: AgentNode;
   subagents: AgentNode[];
 }
@@ -39,7 +36,7 @@ export interface AgenticSystem {
 // ─────────────────────────────────────────────────────────────
 //  Agent Sets (Agentic Systems)
 // ─────────────────────────────────────────────────────────────
-export const AGENT_SETS: AgenticSystem[] = [
+export const AGENTIC_SETS: AgenticSystem[] = [
   // ── 1. Unboring dot net ─────────────────────────
   {
     id: 'marketing-agency',
@@ -48,9 +45,16 @@ export const AGENT_SETS: AgenticSystem[] = [
     teamDescription: 'A full-service creative agency covering branding, design, development and go-to-market strategy.',
     color: '#4387E2',
     user: {
+      id: 'client',
+      index: 0,
       name: 'Client',
       color: '#7EACEA',
+      description: 'The primary user and project visionary.',
+      instruction: 'Provide approvals and feedback to the team.',
+      model: 'Human',
+      allowedTools: [],
     },
+
     leadAgent: {
       id: 'account-manager',
       index: 1,
@@ -132,9 +136,16 @@ export const AGENT_SETS: AgenticSystem[] = [
     teamDescription: 'A specialized game development studio focused on creating the next viral hit.',
     color: '#22c55e',
     user: {
+      id: 'lead-visionary',
+      index: 0,
       name: 'Lead Visionary',
       color: '#7EACEA',
+      description: 'The primary user and project visionary.',
+      instruction: 'Provide approvals and feedback to the team.',
+      model: 'Human',
+      allowedTools: [],
     },
+
     leadAgent: {
       id: 'game-director',
       index: 1,
@@ -173,14 +184,21 @@ export const AGENT_SETS: AgenticSystem[] = [
 export function getAgentSet(id: string, customSystems: AgenticSystem[] = []): AgenticSystem {
   return (
     customSystems.find((s) => s.id === id) ||
-    AGENT_SETS.find((s) => s.id === id) ||
-    AGENT_SETS[0]
+    AGENTIC_SETS.find((s) => s.id === id) ||
+    AGENTIC_SETS[0]
   );
 }
 
 export function getAllAgents(system: AgenticSystem): AgentNode[] {
+  // Returns ONLY the AI agents (lead + subagents)
   return [system.leadAgent, ...system.subagents];
 }
+
+export function getAllCharacters(system: AgenticSystem): AgentNode[] {
+  // Returns ALL characters in the simulation (User + AI agents)
+  return [system.user, system.leadAgent, ...system.subagents];
+}
+
 
 export function getAgent(index: number, agents: AgentNode[]): AgentNode | undefined {
   return agents.find((a) => a.index === index);
