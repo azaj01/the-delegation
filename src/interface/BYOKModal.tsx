@@ -1,6 +1,6 @@
+import { Eye, EyeOff, Trash2, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import React, { useState } from 'react';
-import { X, Eye, EyeOff, Trash2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 import { useUiStore } from '../integration/store/uiStore';
 
 interface BYOKModalProps {
@@ -16,7 +16,7 @@ const PROVIDERS = [
 ] as const;
 
 const BYOKModal: React.FC<BYOKModalProps> = ({ onClose }) => {
-  const { llmConfig, setLlmConfig, byokError, setBYOKOpen } = useUiStore();
+  const { llmConfig, setLlmConfig, byokError } = useUiStore();
 
   const [selectedProvider, setSelectedProvider] = useState<string>(llmConfig.provider);
   const [apiKey, setApiKey] = useState<string>(llmConfig.apiKey || '');

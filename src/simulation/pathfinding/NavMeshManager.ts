@@ -1,5 +1,5 @@
-import * as THREE from 'three/webgpu';
 import { Pathfinding } from 'three-pathfinding';
+import * as THREE from 'three/webgpu';
 import { NAVMESH_ZONE } from '../constants';
 
 /**

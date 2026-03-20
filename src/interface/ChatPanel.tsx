@@ -1,14 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useUiStore } from '../integration/store/uiStore';
-import { useSceneManager } from '../simulation/SceneContext';
-import { useCoreStore } from '../integration/store/coreStore';
-import { getAgentSet, getAllAgents } from '../data/agents';
-import { Send, FolderOpen } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { Send } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { getAgentSet, getAllAgents } from '../data/agents';
+import { useCoreStore } from '../integration/store/coreStore';
+import { useUiStore } from '../integration/store/uiStore';
+import { useSceneManager } from '../simulation/SceneContext';
 
-const ORCHESTRATOR_INDEX = 1;
+
 
 const ChatPanel: React.FC = () => {
   const {
@@ -18,7 +18,7 @@ const ChatPanel: React.FC = () => {
     setIsTyping
   } = useUiStore();
   const scene = useSceneManager();
-  const { phase, setFinalOutputOpen, selectedAgentSetId } = useCoreStore();
+  const { selectedAgentSetId } = useCoreStore();
   const agents = getAllAgents(getAgentSet(selectedAgentSetId));
 
   const [input, setInput] = useState('');
@@ -35,7 +35,6 @@ const ChatPanel: React.FC = () => {
     ? (coreStore.agentHistories[selectedNpcIndex] || [])
     : [];
 
-  const isProjectReady = phase === 'done' && selectedNpcIndex === ORCHESTRATOR_INDEX;
 
   useEffect(() => {
     return () => {

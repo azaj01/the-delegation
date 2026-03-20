@@ -1,12 +1,12 @@
 import * as THREE from 'three/webgpu';
-import { AgentBehavior, AnimationName, CharacterStateKey, ExpressionKey, ICharacterDriver } from '../types';
 import { getActiveAgentSet } from '../integration/store/coreStore';
+import { AgentBehavior, AnimationName, CharacterStateKey, ExpressionKey, ICharacterDriver } from '../types';
 
-import { CharacterManager } from './entities/CharacterManager';
-import { CharacterStateMachine } from './behavior/CharacterStateMachine';
 import { AgentStateBuffer } from './behavior/AgentStateBuffer';
-import { PathAgent } from './pathfinding/PathAgent';
+import { CharacterStateMachine } from './behavior/CharacterStateMachine';
+import { CharacterManager } from './entities/CharacterManager';
 import { NavMeshManager } from './pathfinding/NavMeshManager';
+import { PathAgent } from './pathfinding/PathAgent';
 import { PoiManager } from './world/PoiManager';
 
 /**
@@ -301,8 +301,8 @@ export class CharacterController implements ICharacterDriver {
     return this.characterManager.getAgentStateBuffer();
   }
 
-  public setColors(colors: string[]): void {
-    this.characterManager.setColors(colors);
+  public setColors(): void {
+    this.characterManager.setColors();
     // Re-sync components after recreation
     const newCount = this.characterManager.getCount();
     const stateBuffer = this.characterManager.getAgentStateBuffer()!;

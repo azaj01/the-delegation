@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
-import { useCoreStore } from '../integration/store/coreStore'
+import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useCoreStore } from '../integration/store/coreStore'
 
 export function FinalOutputModal() {
   const { isFinalOutputOpen, setFinalOutputOpen, finalOutput } = useCoreStore()

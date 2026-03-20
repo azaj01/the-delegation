@@ -1,14 +1,13 @@
 
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { ReactFlow, Background, Controls, NodeTypes, Handle, Position, applyNodeChanges, applyEdgeChanges, NodeChange, EdgeChange, Node, InternalNode, ReactFlowProvider, useReactFlow } from '@xyflow/react';
+import { applyEdgeChanges, applyNodeChanges, Background, EdgeChange, Handle, InternalNode, Node, NodeChange, NodeTypes, Position, ReactFlow, ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { Plus, Settings, User, X } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { AgentNode, getAgentSet, getAllAgents } from '../../data/agents';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useUiStore } from '../../integration/store/uiStore';
-import { getAgentSet, getAllAgents, AGENTIC_SETS } from '../../data/agents';
-import { systemToFlow, VisualAgentNode } from './flowUtils';
-import { Settings2, X, User, Edit3, Eye, Plus, Save, Users, Settings } from 'lucide-react';
 import { AgentConfigPanel } from './AgentConfigPanel';
-import { AgentNode } from '../../data/agents';
+import { systemToFlow, VisualAgentNode } from './flowUtils';
 import { TeamsPanel } from './TeamsPanel';
 
 const AgentNodeComponent = ({ data, selected }: any) => (
@@ -55,8 +54,6 @@ const VisualConfiguratorContent: React.FC = () => {
   }, [selectedAgentSetId]);
 
   const system = useMemo(() => getAgentSet(selectedTeamId, customSystems), [selectedTeamId, customSystems]);
-  const isPredefined = useMemo(() => AGENTIC_SETS.some(s => s.id === system.id), [system]);
-  const isEditable = !isPredefined;
   const agents = useMemo(() => {
     const all = getAllAgents(system);
     const userAgent: AgentNode = {

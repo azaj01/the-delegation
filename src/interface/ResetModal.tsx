@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { AlertTriangle, RefreshCcw, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import React from 'react';
 
 interface ResetModalProps {
   isOpen: boolean;

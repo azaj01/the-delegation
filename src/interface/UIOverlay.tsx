@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
+import { getAgentSet, getAllAgents, getAllCharacters } from '../data/agents';
 import { useUiStore } from '../integration/store/uiStore';
 import InfoModal from './InfoModal';
-import { getAgentSet, getAllAgents, getAllCharacters } from '../data/agents';
 
-import { useCoreStore, Task } from '../integration/store/coreStore';
-import { Siren, MessageSquareWarning, PartyPopper } from 'lucide-react';
+import { MessageSquareWarning, PartyPopper, Siren } from 'lucide-react';
+import { Task, useCoreStore } from '../integration/store/coreStore';
 
 const ORCHESTRATOR_INDEX = 1;
 

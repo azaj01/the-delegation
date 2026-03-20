@@ -1,24 +1,22 @@
+import { RefreshCcw, ScrollText } from 'lucide-react';
 import React, { useState } from 'react';
-import { useCoreStore } from '../integration/store/coreStore';
-import { ScrollText, RefreshCcw, Users } from 'lucide-react';
-import ResetModal from './ResetModal';
-import { useSceneManager } from '../simulation/SceneContext';
+
 import { abortAllCalls } from '../integration/coreService';
-import { getAgentSet } from '../data/agents';
+import { useCoreStore } from '../integration/store/coreStore';
+import { useSceneManager } from '../simulation/SceneContext';
+import ResetModal from './ResetModal';
 
 const ProjectView: React.FC = () => {
   const {
     clientBrief,
     phase,
     actionLog,
-    selectedAgentSetId,
     resetProject,
   } = useCoreStore();
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const scene = useSceneManager();
 
   const hasLogs = actionLog.length > 0;
-  const activeSet = getAgentSet(selectedAgentSetId);
 
   const handleResetConfirm = () => {
     // 1. Cancel all in-flight LLM calls

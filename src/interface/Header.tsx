@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { useUiStore } from '../integration/store/uiStore';
-import { useCoreStore } from '../integration/store/coreStore';
-import { Maximize2, KeyRound, Info, Zap, ZapOff, Grid3X3, Play, Pause, Settings } from 'lucide-react';
+import { Info, KeyRound, Maximize2, Pause, Play, Settings, Zap, ZapOff } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
-import InfoModal from './InfoModal';
-import BYOKModal from './BYOKModal';
+import React, { useState } from 'react';
 import packageJson from '../../package.json';
+import { useCoreStore } from '../integration/store/coreStore';
+import { useUiStore } from '../integration/store/uiStore';
+import BYOKModal from './BYOKModal';
+import InfoModal from './InfoModal';
 
 const version = packageJson.version;
 

@@ -1,5 +1,5 @@
-import * as THREE from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as THREE from 'three/webgpu';
 import { SCENE_BACKGROUND_COLOR } from '../constants';
 
 export class Stage {

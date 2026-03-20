@@ -1,5 +1,5 @@
-import { useCoreStore } from '../store/coreStore'
 import { getAgentSet, getAllAgents } from '../../data/agents'
+import { useCoreStore } from '../store/coreStore'
 
 export interface ChatAvailability {
   canChat: boolean

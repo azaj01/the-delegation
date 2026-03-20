@@ -1,6 +1,6 @@
 
-import { AgenticSystem, AgentNode, getAllAgents } from '../../data/agents';
-import { Node, Edge } from '@xyflow/react';
+import { Edge, Node } from '@xyflow/react';
+import { AgenticSystem, AgentNode } from '../../data/agents';
 
 export interface VisualAgentNode extends Node {
   type: 'agent' | 'user';

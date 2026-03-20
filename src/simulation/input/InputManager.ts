@@ -1,7 +1,7 @@
 import * as THREE from 'three/webgpu';
 
-import { CHARACTER_Y_OFFSET, PICK_RADIUS, POI_PICK_RADIUS } from '../constants';
 import { PoiDef } from '../../types';
+import { CHARACTER_Y_OFFSET, PICK_RADIUS, POI_PICK_RADIUS } from '../constants';
 
 const DRAG_THRESHOLD_PX = 4;
 const FLOOR_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // y=0
@@ -32,7 +32,6 @@ export class InputManager {
     private raycastObject?: THREE.Object3D,
     private isPointValid?: (point: THREE.Vector3) => boolean,
     private getIsPaused?: () => boolean,
-    private getPlayerIndex?: () => number,
   ) {
 
     this.boundPointerDown = this.handlePointerDown.bind(this);

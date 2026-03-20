@@ -3,18 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { SceneManager } from './simulation/SceneManager';
-import { SceneContext } from './simulation/SceneContext';
-import { CoreOrchestrator } from './integration/CoreOrchestrator';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useCoreStore } from './integration/store/coreStore';
+import { ActionLogPanel } from './interface/ActionLogPanel';
+import { FinalOutputModal } from './interface/FinalOutputModal';
 import Header from './interface/Header';
 import InspectorPanel from './interface/InspectorPanel';
-import { ActionLogPanel } from './interface/ActionLogPanel';
 import { KanbanPanel } from './interface/KanbanPanel';
-import { FinalOutputModal } from './interface/FinalOutputModal';
 import SimulationView from './interface/SimulationView';
 import { VisualConfigurator } from './interface/VisualConfigurator/VisualConfigurator';
+import { SceneContext } from './simulation/SceneContext';
+import { SceneManager } from './simulation/SceneManager';
 
 
 const App: React.FC = () => {

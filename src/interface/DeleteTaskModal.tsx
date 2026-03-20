@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { Trash2, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import React from 'react';
 
 interface DeleteTaskModalProps {
   isOpen: boolean;

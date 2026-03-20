@@ -1,7 +1,7 @@
+import { Check, ChevronDown, ChevronRight, Copy, Download, Eye, Filter, MessageSquare, Terminal, Zap } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
-import { useCoreStore, DebugLogEntry } from '../integration/store/coreStore'
 import { getAgentSet, getAllAgents } from '../data/agents'
-import { ChevronDown, ChevronRight, MessageSquare, Terminal, Eye, Zap, Copy, Check, Download, Filter } from 'lucide-react'
+import { DebugLogEntry, useCoreStore } from '../integration/store/coreStore'
 
 function formatTime(ts: number): string {
   return new Date(ts).toLocaleTimeString('en-GB', {
@@ -254,7 +254,7 @@ ${entry.rawContent}
 };
 
 export function ActionLogPanel() {
-  const { setLogOpen, actionLog, debugLog, logFilterAgentIndex, phase, setFinalOutputOpen, selectedAgentSetId } = useCoreStore()
+  const { setLogOpen, actionLog, debugLog, logFilterAgentIndex, selectedAgentSetId } = useCoreStore()
   const agents = getAllAgents(getAgentSet(selectedAgentSetId));
   const [activeTab, setActiveTab] = useState<'activity' | 'technical'>('technical')
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)

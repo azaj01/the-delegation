@@ -1,10 +1,9 @@
+import { ChevronDown, ChevronRight, MessageSquareWarning, Trash2 } from 'lucide-react'
 import React, { useState } from 'react'
-import { useCoreStore, type Task, type TaskStatus } from '../integration/store/coreStore'
-import { getActiveAgentSet } from '../integration/store/coreStore'
 import { getAllAgents } from '../data/agents'
-import { ChevronDown, ChevronRight, Trash2, MessageSquareWarning } from 'lucide-react'
-import DeleteTaskModal from './DeleteTaskModal'
+import { getActiveAgentSet, useCoreStore, type Task, type TaskStatus } from '../integration/store/coreStore'
 import { useUiStore } from '../integration/store/uiStore'
+import DeleteTaskModal from './DeleteTaskModal'
 
 const COLUMNS: { status: TaskStatus; label: string }[] = [
   { status: 'scheduled',   label: 'Scheduled'   },

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useCoreStore } from '../integration/store/coreStore';
 import { getAgentSet, getAllCharacters } from '../data/agents';
+import { useCoreStore } from '../integration/store/coreStore';
 
 interface AgentStatusPanelProps {
   agentIndex: number;

@@ -1,33 +1,19 @@
 
-import * as THREE from 'three/webgpu';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {
-  Fn,
-  instanceIndex,
-  storage,
-  float,
-  vec3,
-  vec4,
-  mat3,
-  mat4,
-  uint,
-  If,
-  uniform,
-  atan,
-  attribute,
-  positionLocal,
-  texture,
-  sin,
-  cos,
-  uv
+    atan,
+    attribute, cos, float, Fn, If, instanceIndex, mat3,
+    mat4, positionLocal, sin, storage, texture, uint, uniform, uv, vec3,
+    vec4
 } from 'three/tsl';
-import { ExpressionKey, AnimationName, AgentBehavior } from '../../types';
-import { DRACO_LIB_PATH } from '../constants';
-import { AgentStateBuffer } from '../behavior/AgentStateBuffer';
-import { ExpressionBuffer } from '../behavior/ExpressionBuffer';
+import * as THREE from 'three/webgpu';
 import { getAllAgents, getAllCharacters } from '../../data/agents';
 import { getActiveAgentSet } from '../../integration/store/coreStore';
+import { AgentBehavior, AnimationName, ExpressionKey } from '../../types';
+import { AgentStateBuffer } from '../behavior/AgentStateBuffer';
+import { ExpressionBuffer } from '../behavior/ExpressionBuffer';
+import { DRACO_LIB_PATH } from '../constants';
 import { PoiManager } from '../world/PoiManager';
 
 export class CharacterManager {
@@ -60,7 +46,6 @@ export class CharacterManager {
   // Assets & Objects
   private instancedMeshes: THREE.Mesh[] = [];
   private meshData: { name: string; geometry: THREE.BufferGeometry; material: THREE.MeshStandardMaterial }[] = [];
-  private colors: string[] | null = null;
 
   // Animation Data
   private animationsMeta: { [key: string]: { offset: number; numFrames: number; duration: number; index: number } } = {};
@@ -619,8 +604,7 @@ export class CharacterManager {
     // Note: External logic should handle TALK/IDLE animations
   }
 
-  public setColors(hexColors: string[]) {
-    this.colors = hexColors;
+  public setColors() {
     if (this.isLoaded) {
       this.cleanupInstances();
       this.initInstances();

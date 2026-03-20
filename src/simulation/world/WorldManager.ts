@@ -1,12 +1,12 @@
 
-import * as THREE from 'three/webgpu';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as THREE from 'three/webgpu';
+import { getAgentSet } from '../../data/agents';
+import { useCoreStore } from '../../integration/store/coreStore';
 import { DRACO_LIB_PATH } from '../constants';
 import { NavMeshManager } from '../pathfinding/NavMeshManager';
 import { PoiManager } from './PoiManager';
-import { getAgentSet } from '../../data/agents';
-import { useCoreStore } from '../../integration/store/coreStore';
 
 export class WorldManager {
   private office: THREE.Group | null = null;

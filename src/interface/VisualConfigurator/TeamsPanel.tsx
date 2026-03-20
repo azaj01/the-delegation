@@ -1,8 +1,8 @@
 
-import React, { useMemo } from 'react';
-import { useCoreStore } from '../../integration/store/coreStore';
-import { AGENTIC_SETS } from '../../data/agents';
 import { Plus } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { AGENTIC_SETS } from '../../data/agents';
+import { useCoreStore } from '../../integration/store/coreStore';
 import { TeamCard } from './TeamCard';
 
 interface TeamsPanelProps {

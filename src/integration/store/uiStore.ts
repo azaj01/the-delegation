@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
-import { CharacterState } from '../../types';
 import { DEFAULT_AGENTIC_SET_ID, getAgentSet, getAllAgents } from '../../data/agents';
+import { CharacterState } from '../../types';
 import { useCoreStore } from './coreStore';
 
 export const useUiStore = create<CharacterState>()(

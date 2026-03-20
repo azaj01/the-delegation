@@ -1,8 +1,8 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { useCoreStore } from '../../integration/store/coreStore';
-import { getAllAgents, AgenticSystem, DEFAULT_AGENTIC_SET_ID } from '../../data/agents';
-import { Users, Trash2, Edit2, X, Pipette } from 'lucide-react';
+import { Edit2, Pipette, Trash2, Users, X } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AgenticSystem, DEFAULT_AGENTIC_SET_ID, getAllAgents } from '../../data/agents';
 import { abortAllCalls } from '../../integration/coreService';
+import { useCoreStore } from '../../integration/store/coreStore';
 import { useSceneManager } from '../../simulation/SceneContext';
 import { getBrightness, getDarkenedColor } from './colorUtils';
 

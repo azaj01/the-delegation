@@ -1,5 +1,5 @@
-import * as THREE from 'three/webgpu';
 import { storage } from 'three/tsl';
+import * as THREE from 'three/webgpu';
 import { AgentBehavior } from '../../types';
 
 /**

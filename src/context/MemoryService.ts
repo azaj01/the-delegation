@@ -1,6 +1,6 @@
+import { LLMFactory } from '../core/llm/LLMFactory';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useUiStore } from '../integration/store/uiStore';
-import { LLMFactory } from '../core/llm/LLMFactory';
 
 const SUMMARY_PROMPT = "You are an AI assistant helping an agent summarize their conversation history.";
 

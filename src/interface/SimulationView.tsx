@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import UIOverlay from './UIOverlay';
-import InspectorPanel from './InspectorPanel';
-import { Maximize2, Minimize2, Users, LayoutDashboard } from 'lucide-react';
+import { Maximize2, Minimize2, Users } from 'lucide-react';
+import React from 'react';
+import { getAgentSet, getAllAgents } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useUiStore } from '../integration/store/uiStore';
-import { getAgentSet, getAllAgents } from '../data/agents';
+import InspectorPanel from './InspectorPanel';
+import UIOverlay from './UIOverlay';
 
 interface SimulationViewProps {
   canvasRef: React.RefObject<HTMLDivElement>;
@@ -13,18 +13,11 @@ interface SimulationViewProps {
 }
 
 const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen, setIsFullscreen }) => {
-  const isPaused = useCoreStore((s) => s.isPaused);
-  const setPaused = useCoreStore((s) => s.setPaused);
-  const setViewMode = useCoreStore((s) => s.setViewMode);
-  const pauseOnCall = useCoreStore((s) => s.pauseOnCall);
-  const actionLog = useCoreStore((s) => s.actionLog);
   const selectedNpcIndex = useUiStore((s) => s.selectedNpcIndex);
-  const isPlaying = !isPaused;
   const selectedAgentSetId = useCoreStore((s) => s.selectedAgentSetId);
 
   const activeSet = getAgentSet(selectedAgentSetId);
   const agentCount = getAllAgents(activeSet).length;
-  const hasLogs = actionLog.length > 0;
 
   return (
     <div className="flex flex-col flex-1 min-w-0 min-h-0 relative">

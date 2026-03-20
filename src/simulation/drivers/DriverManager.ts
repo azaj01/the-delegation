@@ -1,9 +1,9 @@
+import { AgentNode } from '../../data/agents';
 import { IAgentDriver } from '../../types';
 import { CharacterController } from '../CharacterController';
-import { AgentNode } from '../../data/agents';
 
-import { PlayerInputDriver } from './PlayerInputDriver';
 import { NpcAgentDriver } from './NpcAgentDriver';
+import { PlayerInputDriver } from './PlayerInputDriver';
 
 /**
  * DriverManager — registers and orchestrates all agent drivers.

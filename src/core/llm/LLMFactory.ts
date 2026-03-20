@@ -1,5 +1,5 @@
 import { GeminiProvider } from './providers/GeminiProvider';
-import { LLMProvider, LLMConfig } from './types';
+import { LLMConfig, LLMProvider } from './types';
 
 export class LLMFactory {
   static getProvider(config: LLMConfig): LLMProvider {

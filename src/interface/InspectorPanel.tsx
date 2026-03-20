@@ -1,13 +1,13 @@
+import { FolderOpen, Lock, MessageSquare, MessageSquareWarning } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
+import { getAgentSet, getAllCharacters } from '../data/agents';
+import { useChatAvailability } from '../integration/hooks/useChatAvailability';
+import { useCoreStore } from '../integration/store/coreStore';
 import { useUiStore } from '../integration/store/uiStore';
 import { useSceneManager } from '../simulation/SceneContext';
-import { useCoreStore } from '../integration/store/coreStore';
-import { useChatAvailability } from '../integration/hooks/useChatAvailability';
 import AgentStatusPanel from './AgentStatusPanel';
-import ProjectView from './ProjectView';
 import ChatPanel from './ChatPanel';
-import { getAgentSet, getAllCharacters } from '../data/agents';
-import { MessageSquare, Lock, FolderOpen, Siren, MessageSquareWarning } from 'lucide-react';
+import ProjectView from './ProjectView';
 
 interface InspectorPanelProps {
   isFloating?: boolean;

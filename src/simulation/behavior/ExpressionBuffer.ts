@@ -1,11 +1,8 @@
-import * as THREE from 'three/webgpu';
 import { storage } from 'three/tsl';
+import * as THREE from 'three/webgpu';
 import { AtlasCoords, ExpressionKey } from '../../types';
 import {
-  ATLAS_COLS, ATLAS_ROWS,
-  BLINK_FRAME, BLINK_DURATION,
-  SPEAKING_FRAME_DURATION,
-  BLINK_INTERVAL_MIN, BLINK_INTERVAL_RANGE,
+    ATLAS_COLS, ATLAS_ROWS, BLINK_DURATION, BLINK_FRAME, BLINK_INTERVAL_MIN, BLINK_INTERVAL_RANGE, SPEAKING_FRAME_DURATION
 } from '../constants';
 
 export const EXPRESSIONS: Record<ExpressionKey, { eyes: AtlasCoords; mouth: AtlasCoords }> = {

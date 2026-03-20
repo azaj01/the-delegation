@@ -1,8 +1,8 @@
 import * as THREE from 'three/webgpu';
-import { IAgentDriver } from '../../types';
-import { CharacterController } from '../CharacterController';
 import { AgentNode } from '../../data/agents';
 import { useCoreStore } from '../../integration/store/coreStore';
+import { IAgentDriver } from '../../types';
+import { CharacterController } from '../CharacterController';
 
 
 /**

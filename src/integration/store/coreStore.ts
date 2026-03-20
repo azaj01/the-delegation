@@ -1,7 +1,7 @@
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import { LLMMessage } from '../../core/llm/types'
-import { AgenticSystem, DEFAULT_AGENTIC_SET_ID, getAgentSet } from '../../data/agents'
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { LLMMessage } from '../../core/llm/types';
+import { AgenticSystem, DEFAULT_AGENTIC_SET_ID, getAgentSet } from '../../data/agents';
 
 export type AgentSet = AgenticSystem;
 
@@ -208,7 +208,6 @@ export const useCoreStore = create<CoreState>()(
 
       removeTask: (taskId) =>
         set((s) => {
-          const removedTask = s.tasks.find(t => t.id === taskId);
           const newTasks = s.tasks.filter((t) => t.id !== taskId);
 
           // Logic to check if removing this task finishes the project

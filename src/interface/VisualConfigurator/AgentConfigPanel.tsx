@@ -1,6 +1,6 @@
+import { Cpu, Save, Shield, Target, Trash2, User, X } from 'lucide-react';
 import React from 'react';
 import { AgentNode } from '../../data/agents';
-import { X, Save, Trash2, Shield, Target, Cpu, User } from 'lucide-react';
 
 interface AgentConfigPanelProps {
   agent: AgentNode;

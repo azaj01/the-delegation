@@ -1,16 +1,14 @@
-import { useCoreStore } from './store/coreStore'
-import { useUiStore } from './store/uiStore'
-import {
-  buildSystemPrompt,
-  buildChatSystemPrompt,
-  buildDynamicContext,
-} from '../core/prompts/agentPrompts'
-import { LLMFactory } from '../core/llm/LLMFactory'
-import { LLMMessage } from '../core/llm/types'
-import { CORE_TOOLS } from '../core/llm/toolDefinitions'
-import { getActiveAgentSet } from './store/coreStore'
-import { getAllAgents } from '../data/agents'
 import { MemoryService } from '../context/MemoryService'
+import { LLMFactory } from '../core/llm/LLMFactory'
+import { CORE_TOOLS } from '../core/llm/toolDefinitions'
+import { LLMMessage } from '../core/llm/types'
+import {
+    buildChatSystemPrompt,
+    buildDynamicContext, buildSystemPrompt
+} from '../core/prompts/agentPrompts'
+import { getAllAgents } from '../data/agents'
+import { getActiveAgentSet, useCoreStore } from './store/coreStore'
+import { useUiStore } from './store/uiStore'
 
 export interface AgentFunctionCall {
   name: string

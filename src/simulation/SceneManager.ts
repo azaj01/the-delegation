@@ -1,19 +1,19 @@
 
 import * as THREE from 'three/webgpu';
+import { getAgentSet, getAllAgents } from '../data/agents';
+import { CharacterController } from './CharacterController';
 import { Engine } from './core/Engine';
 import { Stage } from './core/Stage';
+import { DriverManager } from './drivers/DriverManager';
 import { CharacterManager } from './entities/CharacterManager';
-import { CharacterController } from './CharacterController';
+import { InputManager } from './input/InputManager';
 import { NavMeshManager } from './pathfinding/NavMeshManager';
 import { PoiManager } from './world/PoiManager';
 import { WorldManager } from './world/WorldManager';
-import { DriverManager } from './drivers/DriverManager';
-import { InputManager } from './input/InputManager';
-import { getAgentSet, getAllAgents, getAllCharacters } from '../data/agents';
 
-import { useUiStore } from '../integration/store/uiStore';
-import { useCoreStore, getActiveAgentSet } from '../integration/store/coreStore';
 import { CoreOrchestrator } from '../integration/CoreOrchestrator';
+import { getActiveAgentSet, useCoreStore } from '../integration/store/coreStore';
+import { useUiStore } from '../integration/store/uiStore';
 import { AgentBehavior, ChatMessage } from '../types';
 import { BUBBLE_Y_OFFSET } from './constants';
 
@@ -144,7 +144,6 @@ export class SceneManager {
       this.worldManager.getOffice() ?? undefined,
       (point) => this.navMesh.isPointOnNavMesh(point),
       () => useCoreStore.getState().isPaused,
-      () => getActiveAgentSet().user.index,
     );
 
 
@@ -167,7 +166,7 @@ export class SceneManager {
         // Force agents to their spawn points and update colors when the team changes
         if (this.controller) {
           const system = getActiveAgentSet();
-          this.controller.setColors(getAllCharacters(system).map(a => a.color));
+          this.controller.setColors();
           const npcIndices = getAllAgents(activeSet).map((a) => a.index);
           this.controller.warpAllToSpawn(system.user.index, npcIndices);
 
