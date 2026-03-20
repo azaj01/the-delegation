@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { ReactFlow, Background, Controls, NodeTypes, Handle, Position, applyNodeChanges, applyEdgeChanges, NodeChange, EdgeChange, Node, InternalNode } from '@xyflow/react';
+import { ReactFlow, Background, Controls, NodeTypes, Handle, Position, applyNodeChanges, applyEdgeChanges, NodeChange, EdgeChange, Node, InternalNode, ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useUiStore } from '../../integration/store/uiStore';
@@ -41,9 +41,10 @@ const nodeTypes: NodeTypes = {
   user: UserNodeComponent,
 };
 
-export const VisualConfigurator: React.FC = () => {
-  const { selectedAgentSetId, setViewMode, customSystems, updateActiveSystem } = useCoreStore();
+const VisualConfiguratorContent: React.FC = () => {
+  const { selectedAgentSetId, setViewMode, customSystems, viewMode } = useCoreStore();
   const { setSelectedNpc } = useUiStore();
+  const { fitView } = useReactFlow();
 
   const [configMode, setConfigMode] = useState<'view' | 'edit'>('view');
   const [selectedTeamId, setSelectedTeamId] = useState<string>(selectedAgentSetId);
@@ -85,6 +86,16 @@ export const VisualConfigurator: React.FC = () => {
     setNodes(initialNodes);
     setEdges(initialEdges);
   }, [initialNodes, initialEdges]);
+
+  // Handle fitView on appearance or team change
+  useEffect(() => {
+    if (viewMode === 'design') {
+      const timer = setTimeout(() => {
+        fitView({ padding: 0.1, duration: 800 });
+      }, 400); // Wait for the modal animation to finish
+      return () => clearTimeout(timer);
+    }
+  }, [viewMode, selectedTeamId, initialNodes, fitView]);
 
   const onNodesChange = (changes: NodeChange<VisualAgentNode>[]) => {
     if (configMode === 'edit') {
@@ -212,3 +223,9 @@ export const VisualConfigurator: React.FC = () => {
     </div>
   );
 };
+
+export const VisualConfigurator: React.FC = () => (
+  <ReactFlowProvider>
+    <VisualConfiguratorContent />
+  </ReactFlowProvider>
+);

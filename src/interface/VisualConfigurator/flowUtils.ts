@@ -31,7 +31,7 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[],
   nodes.push({
     id: system.leadAgent.id,
     type: 'agent',
-    position: system.leadAgent.position || { x: 250, y: 0 },
+    position: system.leadAgent.position || { x: 0, y: 150 },
     data: {
       label: system.leadAgent.name,
       agent: system.leadAgent,
@@ -49,11 +49,17 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[],
   });
 
   // 3. Subagents
-  system.subagents.forEach((agent) => {
+  const subagentCount = system.subagents.length;
+  const spacing = 250;
+  
+  system.subagents.forEach((agent, index) => {
+    // Calculate horizontal position to center them under the lead agent
+    const xPos = (index - (subagentCount - 1) / 2) * spacing;
+    
     nodes.push({
       id: agent.id,
       type: 'agent',
-      position: agent.position || { x: 500, y: nodes.length * 100 },
+      position: agent.position || { x: xPos, y: 300 },
       data: {
         label: agent.name,
         agent: agent,

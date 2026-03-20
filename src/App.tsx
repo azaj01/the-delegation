@@ -21,7 +21,7 @@ const App: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const managerRef = useRef<SceneManager | null>(null);
   const [sceneManager, setSceneManager] = useState<SceneManager | null>(null);
-  const { isLogOpen, isKanbanOpen, setIsResizing, viewMode } = useCoreStore();
+  const { isLogOpen, isKanbanOpen, setIsResizing, viewMode, setViewMode } = useCoreStore();
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [kanbanHeight, setKanbanHeight] = useState(220);
@@ -83,14 +83,6 @@ const App: React.FC = () => {
 
           {/* Center: canvas + kanban drawer stacked */}
           <div className="relative flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-zinc-50">
-            {/* Design Mode Overlay (Modal) */}
-            <div
-              className={`absolute inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-white/60 backdrop-blur-xl transition-all duration-300 ${viewMode === 'design' ? 'opacity-100' : 'opacity-0 pointer-events-none invisible'}`}
-            >
-              <div className={`w-full h-full max-w-[1800px] bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden flex flex-col transition-all duration-500 transform ${viewMode === 'design' ? 'translate-y-0 scale-100' : 'translate-y-4 scale-95'}`}>
-                <VisualConfigurator />
-              </div>
-            </div>
 
             {/* Simulation Context - Persistently Mounted */}
             <div
@@ -115,6 +107,19 @@ const App: React.FC = () => {
 
           {/* Right: Inspector sidebar */}
           {!isFullscreen && viewMode !== 'design' && <InspectorPanel />}
+        </div>
+
+        {/* Design Mode Overlay (Modal) */}
+        <div
+          className={`fixed inset-0 z-[60] flex items-center justify-center p-3 md:p-6 bg-white/40 backdrop-blur-xl transition-all duration-300 ${viewMode === 'design' ? 'opacity-100' : 'opacity-0 pointer-events-none invisible'}`}
+          onClick={() => setViewMode('simulation')}
+        >
+          <div 
+            className={`w-full h-full max-w-[1800px] bg-white rounded-2xl shadow-2xl border border-zinc-200/50 overflow-hidden flex flex-col transition-all duration-500 transform ${viewMode === 'design' ? 'translate-y-0 scale-100' : 'translate-y-4 scale-95'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <VisualConfigurator />
+          </div>
         </div>
 
         {/* Final output — fixed viewport overlay */}
