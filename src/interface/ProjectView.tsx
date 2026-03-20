@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useCoreStore } from '../integration/store/coreStore';
 import { ScrollText, RefreshCcw, Users } from 'lucide-react';
-import AgentSetPickerModal from './AgentSetPickerModal';
 import ResetModal from './ResetModal';
 import { useSceneManager } from '../simulation/SceneContext';
 import { abortAllCalls } from '../integration/coreService';
@@ -15,7 +14,6 @@ const ProjectView: React.FC = () => {
     selectedAgentSetId,
     resetProject,
   } = useCoreStore();
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const scene = useSceneManager();
 
@@ -78,12 +76,6 @@ const ProjectView: React.FC = () => {
           </p>
         </div>
       </div>
-
-      <AgentSetPickerModal
-        isOpen={isPickerOpen}
-        onClose={() => setIsPickerOpen(false)}
-        hasActiveProject={hasLogs}
-      />
 
       <ResetModal
         isOpen={isResetModalOpen}

@@ -4,11 +4,12 @@ import { ReactFlow, Background, Controls, NodeTypes, Handle, Position, applyNode
 import '@xyflow/react/dist/style.css';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useUiStore } from '../../integration/store/uiStore';
-import { getAgentSet, getAllAgents } from '../../data/agents';
+import { getAgentSet, getAllAgents, AGENTIC_SETS } from '../../data/agents';
 import { systemToFlow, VisualAgentNode } from './flowUtils';
 import { Settings2, X, User, Edit3, Eye, Plus, Save } from 'lucide-react';
 import { AgentConfigPanel } from './AgentConfigPanel';
 import { AgentNode } from '../../data/agents';
+import { TeamsPanel } from './TeamsPanel';
 
 const AgentNodeComponent = ({ data, selected }: any) => (
   <div className={`px-4 py-2 shadow-md rounded-md bg-white border-2 min-w-[37.5] pointer-events-auto transition-all ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'}`} style={{ borderColor: !selected ? (data.color || '#ccc') : undefined }}>
@@ -45,8 +46,16 @@ export const VisualConfigurator: React.FC = () => {
   const { setSelectedNpc } = useUiStore();
 
   const [configMode, setConfigMode] = useState<'view' | 'edit'>('view');
+  const [selectedTeamId, setSelectedTeamId] = useState<string>(selectedAgentSetId);
 
-  const system = useMemo(() => getAgentSet(selectedAgentSetId, customSystems), [selectedAgentSetId, customSystems]);
+  // Sync selectedTeamId when the active one changes (e.g. via switch button in TeamsPanel)
+  useEffect(() => {
+    setSelectedTeamId(selectedAgentSetId);
+  }, [selectedAgentSetId]);
+
+  const system = useMemo(() => getAgentSet(selectedTeamId, customSystems), [selectedTeamId, customSystems]);
+  const isPredefined = useMemo(() => AGENTIC_SETS.some(s => s.id === system.id), [system]);
+  const isEditable = !isPredefined;
   const agents = useMemo(() => {
     const all = getAllAgents(system);
     const userAgent: AgentNode = {
@@ -93,7 +102,7 @@ export const VisualConfigurator: React.FC = () => {
     const agentNode = node as VisualAgentNode;
     setSelectedAgentId(agentNode.id);
 
-    if (configMode === 'view') {
+    if (configMode === 'view' && selectedTeamId === selectedAgentSetId) {
       if (agentNode.type === 'user') {
         setSelectedNpc(0);
       } else if (agentNode.data?.agent && 'index' in agentNode.data.agent) {
@@ -101,7 +110,7 @@ export const VisualConfigurator: React.FC = () => {
       }
       useUiStore.setState({ inspectorTab: 'info' });
     }
-  }, [configMode, setSelectedNpc]);
+  }, [configMode, setSelectedNpc, selectedTeamId, selectedAgentSetId]);
 
   const onPaneClick = useCallback(() => {
     setSelectedAgentId(null);
@@ -163,29 +172,33 @@ export const VisualConfigurator: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-zinc-100 p-1 rounded-xl border border-zinc-200">
-          <button
-            onClick={() => {
-              setConfigMode('view');
-              setSelectedAgentId(null);
-              setSelectedNpc(null);
-            }}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${configMode === 'view' ? 'bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200' : 'text-zinc-500 hover:text-zinc-700'}`}
-          >
-            <Eye size={12} strokeWidth={3} />
-            Monitor
-          </button>
-          <button
-            onClick={() => {
-              setConfigMode('edit');
-              setSelectedAgentId(null);
-              setSelectedNpc(null);
-            }}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${configMode === 'edit' ? 'bg-zinc-900 text-white shadow-lg shadow-black/20' : 'text-zinc-500 hover:text-zinc-700'}`}
-          >
-            <Edit3 size={12} strokeWidth={3} />
-            Architect
-          </button>
+        <div className="flex items-center gap-2">
+          {isEditable && (
+            <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl border border-zinc-200 mr-2">
+              <button
+                onClick={() => {
+                  setConfigMode('view');
+                  setSelectedAgentId(null);
+                  setSelectedNpc(null);
+                }}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${configMode === 'view' ? 'bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200' : 'text-zinc-500 hover:text-zinc-700'}`}
+              >
+                <Eye size={12} strokeWidth={3} />
+                Monitor
+              </button>
+              <button
+                onClick={() => {
+                  setConfigMode('edit');
+                  setSelectedAgentId(null);
+                  setSelectedNpc(null);
+                }}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${configMode === 'edit' ? 'bg-zinc-900 text-white shadow-lg shadow-black/20' : 'text-zinc-500 hover:text-zinc-700'}`}
+              >
+                <Edit3 size={12} strokeWidth={3} />
+                Architect
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -208,6 +221,17 @@ export const VisualConfigurator: React.FC = () => {
       </div>
 
       <div className="flex-1 min-h-0 relative flex">
+        <TeamsPanel 
+          selectedTeamId={selectedTeamId}
+          onSelectTeam={(id) => {
+            setSelectedTeamId(id);
+            setSelectedAgentId(null);
+          }}
+          onCreateTeam={() => {
+            setConfigMode('edit');
+          }}
+        />
+
         <div className="flex-1 relative overflow-hidden">
           <ReactFlow
             nodes={nodes}

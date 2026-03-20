@@ -5,7 +5,6 @@ import { Maximize2, Minimize2, Users, LayoutDashboard } from 'lucide-react';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useUiStore } from '../integration/store/uiStore';
 import { getAgentSet, getAllAgents } from '../data/agents';
-import AgentSetPickerModal from './AgentSetPickerModal';
 
 interface SimulationViewProps {
   canvasRef: React.RefObject<HTMLDivElement>;
@@ -25,7 +24,6 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
 
   const activeSet = getAgentSet(selectedAgentSetId);
   const agentCount = getAllAgents(activeSet).length;
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const hasLogs = actionLog.length > 0;
 
   return (
@@ -44,27 +42,14 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
 
           <div className="h-6 w-px bg-zinc-100 mx-1" />
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setViewMode('design')}
-              className="group flex items-center gap-2 px-2 py-0.5 rounded-full transition-all hover:ring-2 hover:ring-blue-400/30 cursor-pointer"
-              style={{ backgroundColor: activeSet.color }}
-              title="Open Configurator"
-            >
-              <LayoutDashboard size={10} className="text-white/70 group-hover:text-white transition-colors" />
-              <span className="text-[10px] font-black text-white uppercase tracking-tighter">
-                {agentCount} AGENTS
-              </span>
-            </button>
-            <button
-              onClick={() => setIsPickerOpen(true)}
-              className="flex items-center gap-1.5 px-2 py-1 bg-zinc-50 hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 rounded-md transition-all border border-zinc-100 hover:border-zinc-200 shrink-0"
-              title="Change team"
-            >
-              <Users size={11} />
-              <span className="text-[9px] font-black uppercase tracking-widest">Switch</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setViewMode('design')}
+            className="flex items-center gap-2.5 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl transition-all shadow-lg shadow-black/10 active:scale-95 cursor-pointer ml-2"
+            title="Manage Teams"
+          >
+            <Users size={16} />
+            <span className="text-[11px] font-black uppercase tracking-widest">Team</span>
+          </button>
         </div>
 
         <div className="flex-1 flex items-center justify-end gap-1">
@@ -86,12 +71,6 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
           </div>
         )}
       </div>
-
-      <AgentSetPickerModal
-        isOpen={isPickerOpen}
-        onClose={() => setIsPickerOpen(false)}
-        hasActiveProject={hasLogs}
-      />
     </div>
   );
 };
