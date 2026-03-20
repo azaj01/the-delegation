@@ -9,7 +9,7 @@ export const UserFlowNode = ({ data, selected }: any) => {
   const bottomHandles: HandleData[] = data.bottomHandles || [];
 
   return (
-    <div className={`relative px-4 py-3 shadow-sm rounded-xl bg-blue-50 border-2 border-blue-200 min-w-[220px] pointer-events-auto transition-all duration-300 ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'} ${data.isDimmed ? 'opacity-20 translate-y-1' : 'opacity-100'}`}>
+    <div className={`relative px-5 py-3 shadow-sm rounded-xl bg-blue-50 border-2 border-blue-200 min-w-[160px] w-fit pointer-events-auto transition-all duration-300 ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'} ${data.isDimmed ? 'opacity-20 translate-y-1' : 'opacity-100'}`}>
       {/* Top Handles */}
       {topHandles.map((h, i) => (
         <Handle

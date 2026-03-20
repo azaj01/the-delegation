@@ -163,6 +163,7 @@ const VisualConfiguratorContent: React.FC = () => {
             onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
+            nodeOrigin={[0.5, 0]}
             fitView
             proOptions={{ hideAttribution: true }}
             nodesConnectable={configMode === 'edit'}

@@ -22,10 +22,6 @@ export interface VisualAgentNode extends Node {
   };
 }
 
-// Explicit dimensions so React Flow can position handles without waiting for DOM measurement.
-// This fixes the first-render misalignment when using nodeOrigin=[0.5, 0].
-const NODE_WIDTH = 220;
-const NODE_HEIGHT = 90;
 
 export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[], edges: Edge[] } {
   const allAgents = [system.leadAgent, ...system.subagents];
@@ -33,22 +29,22 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[],
   // 1. Node positions
   const nodeMetas = new Map<string, { name: string; color: string; type: 'user' | 'agent'; x: number; y: number; agent?: AgentNode }>();
 
-  // Center user at 0 by subtracting half width
-  nodeMetas.set(USER_ID, { name: USER_NAME, color: USER_COLOR, type: 'user', x: -NODE_WIDTH / 2, y: 0 });
+  // Center user at 0
+  nodeMetas.set(USER_ID, { name: USER_NAME, color: USER_COLOR, type: 'user', x: 0, y: 0 });
 
   const leadPos = system.leadAgent.position || { x: 0, y: 150 };
   nodeMetas.set(system.leadAgent.id, {
     name: system.leadAgent.name,
     color: system.leadAgent.color,
     type: 'agent',
-    x: leadPos.x - NODE_WIDTH / 2,
+    x: leadPos.x,
     y: leadPos.y,
     agent: system.leadAgent,
   });
 
   system.subagents.forEach((agent, i) => {
-    const spacing = 250;
-    const defaultX = (i - (system.subagents.length - 1) / 2) * spacing - NODE_WIDTH / 2;
+    const spacing = 280; // Slightly more spacing for dynamic widths
+    const defaultX = (i - (system.subagents.length - 1) / 2) * spacing;
     const staggerY = 400 + (i % 2 === 0 ? 1 : -1) * (15 + i * 12);
     const pos = agent.position || { x: defaultX, y: staggerY };
     nodeMetas.set(agent.id, { name: agent.name, color: agent.color, type: 'agent', x: pos.x, y: pos.y, agent });
@@ -126,7 +122,7 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[],
     };
   });
 
-  // 4. Build final nodes with explicit dimensions
+  // 4. Build final nodes
   const typeOrder = { retry: 0, hierarchy: 1, success: 2 };
   const sortHandles = (handles: HandleData[]) =>
     [...handles].sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
@@ -135,7 +131,6 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[],
     id,
     type: meta.type,
     position: { x: meta.x, y: meta.y },
-    measured: { width: NODE_WIDTH, height: NODE_HEIGHT },
     data: {
       label: meta.name,
       agent: meta.agent,

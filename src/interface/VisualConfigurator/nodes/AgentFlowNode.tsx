@@ -9,7 +9,7 @@ export const AgentFlowNode = ({ data, selected }: any) => {
 
   return (
     <div
-      className={`relative px-4 py-3 shadow-sm rounded-xl bg-white border-2 min-w-[220px] pointer-events-auto transition-all duration-300 ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'} ${data.isDimmed ? 'opacity-20 translate-y-1' : 'opacity-100'}`}
+      className={`relative px-5 py-3 shadow-sm rounded-xl bg-white border-2 min-w-[160px] w-fit pointer-events-auto transition-all duration-300 ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'} ${data.isDimmed ? 'opacity-20 translate-y-1' : 'opacity-100'}`}
       style={{ borderColor: !selected ? (data.color || '#ccc') : undefined }}
     >
       {/* Top Handles — only rendered if connections exist on this side */}
