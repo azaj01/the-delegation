@@ -7,8 +7,8 @@ import { useUiStore } from '../../integration/store/uiStore';
 import { getAgentSet, getAllAgents } from '../../data/agents';
 import { systemToFlow, VisualAgentNode } from './flowUtils';
 import { Settings2, X, User, Edit3, Eye, Plus, Save } from 'lucide-react';
-import InspectorPanel from '../InspectorPanel';
-import { AgentEditPanel } from './AgentEditPanel';
+import { AgentConfigPanel } from './AgentConfigPanel';
+import { AgentNode } from '../../data/agents';
 
 const AgentNodeComponent = ({ data, selected }: any) => (
   <div className={`px-4 py-2 shadow-md rounded-md bg-white border-2 min-w-[37.5] pointer-events-auto transition-all ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'}`} style={{ borderColor: !selected ? (data.color || '#ccc') : undefined }}>
@@ -41,13 +41,26 @@ const nodeTypes: NodeTypes = {
 };
 
 export const VisualConfigurator: React.FC = () => {
-  const { selectedAgentSetId, setViewMode } = useCoreStore();
+  const { selectedAgentSetId, setViewMode, customSystems, updateActiveSystem } = useCoreStore();
   const { setSelectedNpc } = useUiStore();
 
   const [configMode, setConfigMode] = useState<'view' | 'edit'>('view');
 
-  const system = useMemo(() => getAgentSet(selectedAgentSetId), [selectedAgentSetId]);
-  const agents = useMemo(() => getAllAgents(system), [system]);
+  const system = useMemo(() => getAgentSet(selectedAgentSetId, customSystems), [selectedAgentSetId, customSystems]);
+  const agents = useMemo(() => {
+    const all = getAllAgents(system);
+    const userAgent: AgentNode = {
+      id: 'user',
+      index: 0,
+      name: system.user.name,
+      color: system.user.color,
+      description: 'The primary user and project visionary.',
+      instruction: 'Provide approvals and feedback to the team.',
+      model: 'Human',
+      allowedTools: [],
+    };
+    return [userAgent, ...all];
+  }, [system]);
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => systemToFlow(system), [system]);
 
@@ -57,7 +70,7 @@ export const VisualConfigurator: React.FC = () => {
 
   const activeAgent = useMemo(() =>
     selectedAgentId ? agents.find(a => a.id === selectedAgentId) : null
-  , [selectedAgentId, agents]);
+    , [selectedAgentId, agents]);
 
   useEffect(() => {
     setNodes(initialNodes);
@@ -78,7 +91,7 @@ export const VisualConfigurator: React.FC = () => {
 
   const onNodeClick = useCallback((_: any, node: Node | InternalNode) => {
     const agentNode = node as VisualAgentNode;
-    setSelectedAgentId(agentNode.id === 'user' ? null : agentNode.id);
+    setSelectedAgentId(agentNode.id);
 
     if (configMode === 'view') {
       if (agentNode.type === 'user') {
@@ -100,17 +113,53 @@ export const VisualConfigurator: React.FC = () => {
   return (
     <div className="w-full h-full relative bg-zinc-50 flex flex-col overflow-hidden">
       {/* ToolBar */}
-      <div className="h-14 border-b border-zinc-200 bg-white flex items-center justify-between px-6 z-50 shrink-0 shadow-sm">
+      <div className="h-20 border-b border-zinc-100 bg-white flex items-center justify-between px-6 z-50 shrink-0">
         <div className="flex items-center gap-4">
-          <div className="p-2 bg-zinc-900 rounded-xl shadow-lg shadow-black/10">
+          <div
+            className="p-2 rounded-xl shadow-lg shadow-black/10 transition-all duration-500 ease-in-out"
+            style={{ backgroundColor: system.color || '#18181b' }}
+          >
             <Settings2 className="w-5 h-5 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-zinc-800 leading-none">{system.companyName}</h2>
-              <span className="px-1.5 py-0.5 bg-zinc-100 text-zinc-500 rounded text-[9px] font-black uppercase tracking-tighter shadow-sm border border-zinc-200/50">v0.1.0</span>
+              {configMode === 'edit' ? (
+                <input
+                  value={system.companyName}
+                  onChange={(e) => updateActiveSystem({ companyName: e.target.value })}
+                  className="text-sm font-bold text-zinc-800 bg-zinc-100 px-2 py-0.5 rounded-lg outline-none focus:ring-2 ring-blue-500/30 w-48 transition-all"
+                  placeholder="Company Name"
+                />
+              ) : (
+                <h2 className="text-sm font-bold text-zinc-800 leading-none">{system.companyName}</h2>
+              )}
+
             </div>
-            <p className="text-[10px] text-zinc-400 uppercase tracking-widest mt-1.5 font-black">Team Architect</p>
+            <div className="flex items-center gap-2 mt-1.5">
+              {configMode === 'edit' ? (
+                <>
+                  <input
+                    value={system.companyType}
+                    onChange={(e) => updateActiveSystem({ companyType: e.target.value })}
+                    className="text-[10px] text-zinc-500 uppercase tracking-widest font-black bg-zinc-100 px-2 py-0.5 rounded outline-none w-48"
+                    placeholder="Company Type"
+                  />
+                  <div className="relative group/color">
+                    <input
+                      type="color"
+                      value={system.color}
+                      onChange={(e) => updateActiveSystem({ color: e.target.value })}
+                      className="w-4 h-4 rounded-full overflow-hidden p-0 border-none cursor-pointer appearance-none bg-transparent"
+                    />
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-zinc-900 text-white text-[8px] font-bold rounded opacity-0 group-hover/color:opacity-100 pointer-events-none transition-opacity uppercase whitespace-nowrap">
+                      Theme Color
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-black">{system.companyType}</p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -159,7 +208,7 @@ export const VisualConfigurator: React.FC = () => {
       </div>
 
       <div className="flex-1 min-h-0 relative flex">
-        <div className="flex-1 relative overflow-hidden bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[24px_24px]">
+        <div className="flex-1 relative overflow-hidden">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -175,11 +224,9 @@ export const VisualConfigurator: React.FC = () => {
             proOptions={{ hideAttribution: true }}
             zoomOnScroll={true}
             maxZoom={1.5}
-            minZoom={0.2}
+            minZoom={0.5}
           >
-            <Background color="#f1f1f1" gap={20} />
-            <Controls showInteractive={true} className="bg-white border-zinc-200 shadow-sm !left-6! !bottom-6!" />
-
+            <Background gap={24} color="#bbbbbb" size={2} />
             {configMode === 'edit' && (
               <div className="absolute top-6 left-6 flex flex-col gap-2 z-10">
                 <button className="flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-600 shadow-sm transition-all hover:bg-zinc-50">
@@ -191,21 +238,16 @@ export const VisualConfigurator: React.FC = () => {
           </ReactFlow>
         </div>
 
-        {/* Panel Container (Right) */}
         <div className="relative shrink-0 flex">
-          {configMode === 'view' ? (
-            <div className={`w-80 h-full p-6 transition-all duration-500 pointer-events-none ${useUiStore.getState().selectedNpcIndex !== null ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
-              <div className="w-80 h-full pointer-events-none">
-                <InspectorPanel isFloating />
-              </div>
-            </div>
-          ) : (
-            activeAgent && (
-              <AgentEditPanel
-                agent={activeAgent}
-                onClose={() => setSelectedAgentId(null)}
-              />
-            )
+          {activeAgent && (
+            <AgentConfigPanel
+              agent={activeAgent}
+              onClose={() => {
+                setSelectedAgentId(null);
+                setSelectedNpc(null);
+              }}
+              mode={configMode === 'view' ? 'view' : 'edit'}
+            />
           )}
         </div>
       </div>

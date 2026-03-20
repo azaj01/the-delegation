@@ -2,11 +2,11 @@ import React from 'react';
 import { useCoreStore } from '../integration/store/coreStore';
 import { getAgentSet, getAllAgents } from '../data/agents';
 
-interface AgentViewProps {
+interface AgentStatusPanelProps {
   agentIndex: number;
 }
 
-const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
+const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
   const { tasks, selectedAgentSetId } = useCoreStore();
   const system = getAgentSet(selectedAgentSetId);
   const agents = getAllAgents(system);
@@ -20,17 +20,41 @@ const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
 
   return (
     <div className="flex flex-col h-full p-6">
-      {/* Description / Instruction */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Description</p>
-          <span className="px-1.5 py-0.5 bg-zinc-100 text-zinc-400 rounded text-[9px] font-mono border border-zinc-200/50">{agent.model}</span>
+      {/* Agent Info */}
+      <div className="mb-8 space-y-6">
+        {/* Model */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Model</p>
+            <div className="h-px flex-1 bg-zinc-100" />
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-50 rounded-lg border border-zinc-100/60">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: agent.color }} />
+            <p className="text-[11px] font-mono font-bold text-zinc-800 uppercase tracking-tighter">
+              {agent.model}
+            </p>
+          </div>
         </div>
+
+        {/* Description */}
         {agent.description && (
-          <p className="text-xs text-zinc-600 leading-relaxed mb-4">{agent.description}</p>
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Description</p>
+              <div className="h-px flex-1 bg-zinc-100" />
+            </div>
+            <p className="text-xs text-zinc-600 leading-relaxed font-medium">{agent.description}</p>
+          </div>
         )}
-        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Instruction</p>
-        <p className="text-xs text-zinc-600 leading-relaxed italic">{agent.instruction}</p>
+
+        {/* Instruction */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Instruction</p>
+            <div className="h-px flex-1 bg-zinc-100" />
+          </div>
+          <p className="text-xs text-zinc-600 leading-relaxed italic font-medium">{agent.instruction}</p>
+        </div>
       </div>
 
       <div className="h-px bg-zinc-100 w-full mb-6" />
@@ -63,4 +87,4 @@ const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
   );
 };
 
-export default AgentView;
+export default AgentStatusPanel;

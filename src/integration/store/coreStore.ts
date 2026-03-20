@@ -112,6 +112,7 @@ interface CoreState {
   saveCustomSystem: (system: AgenticSystem) => void;
   deleteCustomSystem: (id: string) => void;
   setViewMode: (mode: 'simulation' | 'design') => void;
+  updateActiveSystem: (changes: Partial<AgenticSystem>) => void;
 }
 
 const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
@@ -154,6 +155,15 @@ export const useCoreStore = create<CoreState>()(
         })),
 
       setViewMode: (viewMode) => set({ viewMode }),
+      updateActiveSystem: (changes) => set((s) => {
+        const currentSystem = getAgentSet(s.selectedAgentSetId, s.customSystems);
+        const updatedSystem = { ...currentSystem, ...changes };
+        return {
+          customSystems: s.customSystems.some((cs) => cs.id === updatedSystem.id)
+            ? s.customSystems.map((cs) => (cs.id === updatedSystem.id ? updatedSystem : cs))
+            : [...s.customSystems, updatedSystem],
+        };
+      }),
 
       resetProject: () => set({
         clientBrief: '',
@@ -335,6 +345,6 @@ export const useCoreStore = create<CoreState>()(
 
 /** Returns the currently active AgentSet. Safe to call from service/non-React contexts. */
 export function getActiveAgentSet(): AgentSet {
-  const { selectedAgentSetId } = useCoreStore.getState()
-  return getAgentSet(selectedAgentSetId)
+  const { selectedAgentSetId, customSystems } = useCoreStore.getState()
+  return getAgentSet(selectedAgentSetId, customSystems)
 }

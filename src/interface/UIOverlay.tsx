@@ -230,10 +230,14 @@ const UIOverlay: React.FC = () => {
                       <span className="text-[10px] font-black uppercase tracking-widest text-white">
                         {hoveredAgent.name}
                       </span>
-                      <span className="text-[10px] font-medium uppercase tracking-widest text-white/40">·</span>
-                      <span className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}>
-                        {label.text}
-                      </span>
+                      {label.text && (
+                        <>
+                          <span className="text-[10px] font-medium uppercase tracking-widest text-white/40">·</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}>
+                            {label.text}
+                          </span>
+                        </>
+                      )}
                     </>
                   )}
                 </div>

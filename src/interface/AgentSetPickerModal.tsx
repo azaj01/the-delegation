@@ -103,7 +103,7 @@ const AgentSetCard: React.FC<{
         />
       </div>
 
-      <p className="text-[10px] text-zinc-500 leading-relaxed mb-3">{set.companyDescription}</p>
+      {/* companyDescription removed */}
 
       {isSelected && (
         <motion.div
@@ -124,12 +124,19 @@ const AgentSetPickerModal: React.FC<AgentSetPickerModalProps> = ({
   onClose,
   hasActiveProject = false,
 }) => {
-  const { selectedAgentSetId, setAgentSet } = useCoreStore();
+  const { selectedAgentSetId, setAgentSet, customSystems } = useCoreStore();
   const [pendingSetId, setPendingSetId] = useState<string>(selectedAgentSetId);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const scene = useSceneManager();
 
-  const selectedSet = AGENT_SETS.find((s) => s.id === pendingSetId) ?? AGENT_SETS[0];
+  const allPossibleSystems = React.useMemo(() => {
+    const combined = [...customSystems, ...AGENT_SETS];
+    return combined.filter((sys, index, self) => 
+      index === self.findIndex((s) => s.id === sys.id)
+    );
+  }, [customSystems]);
+
+  const selectedSet = allPossibleSystems.find((s) => s.id === pendingSetId) ?? allPossibleSystems[0];
   const isChangingSet = pendingSetId !== selectedAgentSetId;
 
   const handleConfirm = () => {
@@ -205,7 +212,7 @@ const AgentSetPickerModal: React.FC<AgentSetPickerModalProps> = ({
             {/* Cards grid */}
             <div className="px-8 overflow-y-auto flex-1">
               <div className="flex flex-col gap-3 pb-6">
-                {AGENT_SETS.map((set) => (
+                {allPossibleSystems.map((set) => (
                   <AgentSetCard
                     key={set.id}
                     set={set}

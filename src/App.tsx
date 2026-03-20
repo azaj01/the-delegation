@@ -79,7 +79,7 @@ const App: React.FC = () => {
 
         <div className="flex-1 flex flex-row min-h-0 min-w-0 overflow-hidden">
           {/* Left: Log panel */}
-          {isLogOpen && !isFullscreen && <ActionLogPanel />}
+          {isLogOpen && !isFullscreen && viewMode !== 'design' && <ActionLogPanel />}
 
           {/* Center: canvas + kanban drawer stacked */}
           <div className="relative flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-zinc-50">
@@ -112,7 +112,7 @@ const App: React.FC = () => {
           </div>
 
           {/* Right: Inspector sidebar */}
-          {!isFullscreen && <InspectorPanel />}
+          {!isFullscreen && viewMode !== 'design' && <InspectorPanel />}
         </div>
 
         {/* Final output — fixed viewport overlay */}

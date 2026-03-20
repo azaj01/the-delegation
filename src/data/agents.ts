@@ -170,8 +170,12 @@ export const AGENT_SETS: AgenticSystem[] = [
 // ─────────────────────────────────────────────────────────────
 //  Helpers
 // ─────────────────────────────────────────────────────────────
-export function getAgentSet(id: string): AgenticSystem {
-  return AGENT_SETS.find((s) => s.id === id) ?? AGENT_SETS[0];
+export function getAgentSet(id: string, customSystems: AgenticSystem[] = []): AgenticSystem {
+  return (
+    customSystems.find((s) => s.id === id) ||
+    AGENT_SETS.find((s) => s.id === id) ||
+    AGENT_SETS[0]
+  );
 }
 
 export function getAllAgents(system: AgenticSystem): AgentNode[] {

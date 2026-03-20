@@ -3,7 +3,7 @@ import { useUiStore } from '../integration/store/uiStore';
 import { useSceneManager } from '../simulation/SceneContext';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useChatAvailability } from '../integration/hooks/useChatAvailability';
-import AgentView from './AgentView';
+import AgentStatusPanel from './AgentStatusPanel';
 import ProjectView from './ProjectView';
 import ChatPanel from './ChatPanel';
 import { getAgentSet, getAllAgents } from '../data/agents';
@@ -192,7 +192,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
             ) : (
               <div className="flex flex-col h-full">
                 <div className="flex-1">
-                  <AgentView agentIndex={selectedNpcIndex!} />
+                  <AgentStatusPanel agentIndex={selectedNpcIndex!} />
                 </div>
               </div>
             )}
