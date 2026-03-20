@@ -37,8 +37,20 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {/* Name & Identity */}
-        <section className="space-y-3">
+        {agent.index === 0 ? (
+          <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 bg-blue-50/30 rounded-2xl border border-blue-100/50 italic">
+            <div className="p-3 bg-blue-500 rounded-2xl text-white shadow-lg shadow-blue-500/20">
+              <User size={24} strokeWidth={2.5} />
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-zinc-800 uppercase tracking-widest mb-1">Primary User</h4>
+              <p className="text-xs text-zinc-500 font-medium">This is you. Your identity and role are fixed across all teams.</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Name & Identity */}
+            <section className="space-y-3">
           <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block">Identity</label>
           <div className="space-y-4">
             <div>
@@ -104,11 +116,13 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
               placeholder="Core task, persona, and constraints..."
             />
           )}
-        </section>
+            </section>
+          </>
+        )}
       </div>
 
       {/* Footer Actions */}
-      {!isView && (
+      {!isView && agent.index !== 0 && (
         <div className="p-4 border-t border-zinc-100 bg-zinc-50/30 flex flex-col gap-2">
           <button className="w-full py-2.5 bg-zinc-900 hover:bg-black text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95">
             <Save size={16} />

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { getAgentSet, getAllAgents } from '../data/agents';
+import { getAgentSet, getAllAgents, USER_COLOR } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
@@ -124,7 +124,7 @@ const ChatPanel: React.FC = () => {
                     </div>
                   ) : (
                     <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 shadow-sm">
-                      <span className="text-sm font-black text-[#7EACEA]">U</span>
+                      <span className="text-sm font-black" style={{ color: USER_COLOR }}>U</span>
                     </div>
                   )}
                 </div>

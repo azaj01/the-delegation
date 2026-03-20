@@ -3,6 +3,9 @@
 // ─────────────────────────────────────────────────────────────
 
 export const DEFAULT_AGENTIC_SET_ID = 'marketing-agency';
+export const USER_ID = 'user';
+export const USER_NAME = 'user';
+export const USER_COLOR = '#7EACEA';
 
 // ─────────────────────────────────────────────────────────────
 //  Agent data types
@@ -27,7 +30,10 @@ export interface AgenticSystem {
   teamType: string;
   teamDescription: string;
   color: string;
-  user: AgentNode;
+  user: {
+    index: number;
+    model: string;
+  };
 
   leadAgent: AgentNode;
   subagents: AgentNode[];
@@ -45,14 +51,8 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamDescription: 'A full-service creative agency covering branding, design, development and go-to-market strategy.',
     color: '#4387E2',
     user: {
-      id: 'client',
       index: 0,
-      name: 'Client',
-      color: '#7EACEA',
-      description: 'The primary user and project visionary.',
-      instruction: 'Provide approvals and feedback to the team.',
       model: 'Human',
-      allowedTools: [],
     },
 
     leadAgent: {
@@ -136,14 +136,8 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamDescription: 'A specialized game development studio focused on creating the next viral hit.',
     color: '#22c55e',
     user: {
-      id: 'lead-visionary',
       index: 0,
-      name: 'Lead Visionary',
-      color: '#7EACEA',
-      description: 'The primary user and project visionary.',
-      instruction: 'Provide approvals and feedback to the team.',
       model: 'Human',
-      allowedTools: [],
     },
 
     leadAgent: {
@@ -196,7 +190,16 @@ export function getAllAgents(system: AgenticSystem): AgentNode[] {
 
 export function getAllCharacters(system: AgenticSystem): AgentNode[] {
   // Returns ALL characters in the simulation (User + AI agents)
-  return [system.user, system.leadAgent, ...system.subagents];
+  const userNode: AgentNode = {
+    id: USER_ID,
+    index: system.user.index,
+    name: USER_NAME,
+    color: USER_COLOR,
+    model: system.user.model,
+    instruction: '',
+    allowedTools: [],
+  };
+  return [userNode, system.leadAgent, ...system.subagents];
 }
 
 

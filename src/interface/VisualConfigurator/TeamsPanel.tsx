@@ -31,14 +31,8 @@ export const TeamsPanel: React.FC<TeamsPanelProps> = ({ onSelectTeam, selectedTe
       teamDescription: '', 
       color: '#A855F7',
       user: { 
-        id: 'user', 
         index: 0, 
-        name: 'User', 
-        color: '#7EACEA', 
-        description: 'The primary user.', 
-        instruction: 'Provide approvals and feedback.', 
         model: 'Human', 
-        allowedTools: [] 
       },
       leadAgent: { 
         id: `agent-${Date.now()}`, 
