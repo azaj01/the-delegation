@@ -29,7 +29,7 @@ export function buildSystemPrompt(agentIndex: number, isBoardroom = false): stri
 
   const teamList = agents
     .filter((a) => a.index !== 0) // Exclude player if player is always 0
-    .map((a) => `  [ID: ${a.index}] ${a.role} — ${a.mission}`)
+    .map((a) => `  [ID: ${a.index}] ${a.name}${a.description ? ` — ${a.description}` : ''}`)
     .join('\n')
 
   const boardroomNote = isBoardroom
@@ -39,9 +39,9 @@ export function buildSystemPrompt(agentIndex: number, isBoardroom = false): stri
     : ''
 
   return [
-    `You are ${agent.role} at ${activeSet.companyName}.`,
-    `Mission: ${agent.mission}`,
-    `Personality: ${agent.personality}`,
+    `You are ${agent.name} at ${activeSet.companyName}.`,
+    agent.description ? `Description: ${agent.description}` : '',
+    `Instruction: ${agent.instruction}`,
     '',
     SCOPE_CONSTRAINT,
     '',
@@ -101,9 +101,9 @@ export function buildChatSystemPrompt(agentIndex: number): string {
   const isLead = agentIndex === activeSet.leadAgent.index;
 
   return [
-    `You are ${agent.role} at ${activeSet.companyName}.`,
-    `Mission: ${agent.mission}`,
-    `Personality: ${agent.personality}`,
+    `You are ${agent.name} at ${activeSet.companyName}.`,
+    agent.description ? `Description: ${agent.description}` : '',
+    `Instruction: ${agent.instruction}`,
     '',
     'CONTEXT:',
     isLead
@@ -126,6 +126,7 @@ export function buildChatSystemPrompt(agentIndex: number): string {
     '- Use "update_client_brief" if you are the Orchestrator and the project requirements have changed.',
     '- Do NOT propose new tasks or execute work via tools here (unless you are the Orchestrator starting the project).',
   ]
+    .filter(Boolean)
     .join('\n')
     .trim()
 }

@@ -92,7 +92,8 @@ const UIOverlay: React.FC = () => {
     index: PLAYER_INDEX,
     name: system.user.name,
     color: system.user.color,
-    expertise: [],
+    description: 'The primary user and project visionary.',
+    instruction: 'Review team progress and provide approvals when requested.',
   };
   const allPossibleAgents = [playerAgent, ...npcAgents];
 
@@ -182,10 +183,14 @@ const UIOverlay: React.FC = () => {
                       <span className="text-[10px] font-black uppercase tracking-widest text-white">
                         {selectedAgent.name}
                       </span>
-                      <span className="text-[10px] font-medium uppercase tracking-widest text-white/40">·</span>
-                      <span className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}>
-                        {label.text}
-                      </span>
+                      {label.text && (
+                        <>
+                          <span className="text-[10px] font-medium uppercase tracking-widest text-white/40">·</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-widest ${label.className}`}>
+                            {label.text}
+                          </span>
+                        </>
+                      )}
                     </>
                   )}
                 </div>

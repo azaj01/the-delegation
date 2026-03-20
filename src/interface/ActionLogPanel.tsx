@@ -55,7 +55,7 @@ const DebugEntryView: React.FC<{ entry: DebugLogEntry }> = ({ entry }) => {
     }
 
     const fullContent = `
-AGENT: ${agent?.role} (${entry.phase})
+AGENT: ${agent?.name} (${entry.phase})
 TIME: ${formatTime(entry.timestamp)}
 PHASE: ${entry.phase}
 
@@ -81,7 +81,7 @@ ${entry.rawContent}
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: agent?.color ?? '#ccc' }} />
                                 <span className="text-[10px] font-black text-zinc-800 uppercase tracking-widest leading-none">
-                                    {agent?.role}
+                                    {agent?.name}
                                 </span>
                                 <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter ${
                                     entry.phase === 'request' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'
@@ -265,7 +265,7 @@ export function ActionLogPanel() {
       const agent = agents.find(a => a.index === entry.agentIndex);
       return `
 =========================================
-AGENT: ${agent?.role} (${entry.phase})
+AGENT: ${agent?.name} (${entry.phase})
 TIME: ${new Date(entry.timestamp).toLocaleString()}
 PHASE: ${entry.phase}
 =========================================
@@ -322,7 +322,7 @@ ${entry.rawContent}
                   className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold text-white uppercase tracking-tighter animate-in fade-in zoom-in duration-200"
                   style={{ backgroundColor: filterAgent.color }}
                 >
-                  {filterAgent.role}
+                  {filterAgent.name}
                   <button
                     onClick={() => setLogOpen(true, null)}
                     className="hover:scale-110 transition-transform cursor-pointer"
@@ -382,7 +382,7 @@ ${entry.rawContent}
                             className="w-2 h-2 rounded-full"
                             style={{ backgroundColor: agent.color }}
                           />
-                          {agent.role}
+                          {agent.name}
                         </button>
                       ))}
                     </div>
@@ -441,7 +441,7 @@ ${entry.rawContent}
                             style={{ backgroundColor: agent?.color ?? '#e4e4e7' }}
                           />
                           <span className="text-[10px] font-black text-zinc-900 uppercase tracking-widest leading-none">
-                            {agent?.role ?? 'System'}
+                            {agent?.name ?? 'System'}
                           </span>
                         </div>
                         <span className="text-[9px] font-medium text-zinc-400 font-mono">

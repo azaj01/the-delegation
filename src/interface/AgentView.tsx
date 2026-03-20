@@ -20,17 +20,17 @@ const AgentView: React.FC<AgentViewProps> = ({ agentIndex }) => {
 
   return (
     <div className="flex flex-col h-full p-6">
-      {/* Expertise / Traits */}
+      {/* Description / Instruction */}
       <div className="mb-6">
-        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Expertise</p>
-        <p className="text-xs text-zinc-600 leading-relaxed italic">{agent.mission}</p>
-        <div className="flex flex-wrap gap-1 mt-3">
-          {agent.expertise.map(exp => (
-            <span key={exp} className="px-2 py-0.5 bg-zinc-100 text-zinc-500 text-[9px] font-bold rounded-full uppercase">
-              {exp}
-            </span>
-          ))}
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Description</p>
+          <span className="px-1.5 py-0.5 bg-zinc-100 text-zinc-400 rounded text-[9px] font-mono border border-zinc-200/50">{agent.model}</span>
         </div>
+        {agent.description && (
+          <p className="text-xs text-zinc-600 leading-relaxed mb-4">{agent.description}</p>
+        )}
+        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Instruction</p>
+        <p className="text-xs text-zinc-600 leading-relaxed italic">{agent.instruction}</p>
       </div>
 
       <div className="h-px bg-zinc-100 w-full mb-6" />

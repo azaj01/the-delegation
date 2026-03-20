@@ -64,9 +64,11 @@ interface CoreState {
 
   // ── Agent Set ────────────────────────────────────────────────
   selectedAgentSetId: string;
+  customSystems: AgenticSystem[];
 
   // ── UI ───────────────────────────────────────────────────────
   isKanbanOpen: boolean
+  viewMode: 'simulation' | 'design';
   isLogOpen: boolean
   isFinalOutputOpen: boolean;
   pendingApprovalTaskId: string | null;
@@ -107,6 +109,9 @@ interface CoreState {
   togglePauseOnCall: () => void;
   resetProject: () => void;
   setAgentSet: (id: string) => void;
+  saveCustomSystem: (system: AgenticSystem) => void;
+  deleteCustomSystem: (id: string) => void;
+  setViewMode: (mode: 'simulation' | 'design') => void;
 }
 
 const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
@@ -115,6 +120,7 @@ export const useCoreStore = create<CoreState>()(
   persist(
     (set) => ({
       selectedAgentSetId: DEFAULT_AGENT_SET_ID,
+      customSystems: [],
       clientBrief: '',
       phase: 'idle',
       finalOutput: null,
@@ -132,6 +138,22 @@ export const useCoreStore = create<CoreState>()(
       isResizing: false,
       isPaused: false,
       pauseOnCall: false,
+      viewMode: 'simulation',
+
+      saveCustomSystem: (system) =>
+        set((s) => ({
+          customSystems: s.customSystems.some((cs) => cs.id === system.id)
+            ? s.customSystems.map((cs) => (cs.id === system.id ? system : cs))
+            : [...s.customSystems, system],
+        })),
+
+      deleteCustomSystem: (id) =>
+        set((s) => ({
+          customSystems: s.customSystems.filter((cs) => cs.id !== id),
+          selectedAgentSetId: s.selectedAgentSetId === id ? DEFAULT_AGENT_SET_ID : s.selectedAgentSetId,
+        })),
+
+      setViewMode: (viewMode) => set({ viewMode }),
 
       resetProject: () => set({
         clientBrief: '',

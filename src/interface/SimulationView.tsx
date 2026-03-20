@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import UIOverlay from './UIOverlay';
 import InspectorPanel from './InspectorPanel';
-import { Play, Pause, Maximize2, Minimize2, Users } from 'lucide-react';
+import { Maximize2, Minimize2, Users, LayoutDashboard } from 'lucide-react';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useUiStore } from '../integration/store/uiStore';
 import { getAgentSet, getAllAgents } from '../data/agents';
@@ -16,6 +16,7 @@ interface SimulationViewProps {
 const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen, setIsFullscreen }) => {
   const isPaused = useCoreStore((s) => s.isPaused);
   const setPaused = useCoreStore((s) => s.setPaused);
+  const setViewMode = useCoreStore((s) => s.setViewMode);
   const pauseOnCall = useCoreStore((s) => s.pauseOnCall);
   const actionLog = useCoreStore((s) => s.actionLog);
   const selectedNpcIndex = useUiStore((s) => s.selectedNpcIndex);
@@ -44,9 +45,17 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
           <div className="h-6 w-px bg-zinc-100 mx-1" />
 
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-tighter" style={{ backgroundColor: activeSet.color }}>
-              {agentCount} AGENTS
-            </span>
+            <button
+              onClick={() => setViewMode('design')}
+              className="group flex items-center gap-2 px-2 py-0.5 rounded-full transition-all hover:ring-2 hover:ring-blue-400/30 cursor-pointer"
+              style={{ backgroundColor: activeSet.color }}
+              title="Open Configurator"
+            >
+              <LayoutDashboard size={10} className="text-white/70 group-hover:text-white transition-colors" />
+              <span className="text-[10px] font-black text-white uppercase tracking-tighter">
+                {agentCount} AGENTS
+              </span>
+            </button>
             <button
               onClick={() => setIsPickerOpen(true)}
               className="flex items-center gap-1.5 px-2 py-1 bg-zinc-50 hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 rounded-md transition-all border border-zinc-100 hover:border-zinc-200 shrink-0"
@@ -57,34 +66,6 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
             </button>
           </div>
         </div>
-
-        {/* Centered Controls */}
-        {pauseOnCall && (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setPaused(false)}
-              disabled={isPlaying}
-              className={`p-1 border rounded transition-all cursor-pointer ${
-                isPlaying
-                  ? 'bg-zinc-50 text-zinc-300 border-zinc-100'
-                  : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'
-              }`}
-            >
-              <Play size={14} fill="none" />
-            </button>
-            <button
-              onClick={() => setPaused(true)}
-              disabled={!isPlaying}
-              className={`p-1 border rounded transition-all cursor-pointer ${
-                !isPlaying
-                  ? 'bg-zinc-50 text-zinc-300 border-zinc-100'
-                  : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'
-              }`}
-            >
-              <Pause size={14} fill="none" />
-            </button>
-          </div>
-        )}
 
         <div className="flex-1 flex items-center justify-end gap-1">
           <button

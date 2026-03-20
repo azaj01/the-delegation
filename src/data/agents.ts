@@ -11,16 +11,15 @@ export const DEFAULT_AGENT_SET_ID = 'marketing-agency';
 export interface AgentNode {
   id: string;
   index: number; // For 3D simulation character mapping
-  name: string; // Used as the role/display name
+  name: string; // Unique identifier and display name
+  description?: string; // Concise summary of capabilities
+  instruction: string; // Core task, persona, and constraints
   color: string;
   model: string;
-  expertise: string[];
-  mission: string;
-  personality: string;
-  instructions: string;
   allowedTools: string[];
   reportsToId?: string; // For hierarchy
   maxIterations?: number;
+  position?: { x: number; y: number }; // For visual canvas storage
 }
 
 export interface AgenticSystem {
@@ -56,12 +55,13 @@ export const AGENT_SETS: AgenticSystem[] = [
       id: 'account-manager',
       index: 1,
       name: 'Account Manager',
+      description: 'Central orchestrator who breaks down client requests into actionable team tasks.',
+      instruction: `You are the central point of contact. Your goal is to coordinate the team to deliver a perfect proposal.
+
+- Mission: Break down the client's request into actionable missions for the team.
+- Personality: Organized, efficient, and central orchestrator.`,
       color: '#4387E2',
       model: 'gemini-3.1-flash-lite-preview',
-      expertise: ['Orchestration', 'Project Management', 'Communication'],
-      mission: "Break down the client's request into actionable missions for the team.",
-      personality: 'Organized, efficient, and central orchestrator.',
-      instructions: 'You are the central point of contact. Your goal is to coordinate the team to deliver a perfect proposal.',
       allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
     },
     subagents: [
@@ -69,12 +69,13 @@ export const AGENT_SETS: AgenticSystem[] = [
         id: 'designer',
         index: 2,
         name: 'Designer',
+        description: 'Focuses on UI/UX, aesthetics, and branding consistency.',
+        instruction: `Design beautiful interfaces and ensure brand consistency.
+
+- Mission: Ensure the aesthetics and user experience are exceptional.
+- Personality: Creative, detail-oriented, and focused on visual harmony.`,
         color: '#eab308',
         model: 'gemini-3.1-flash-lite-preview',
-        expertise: ['UI/UX', 'Aesthetics', 'Branding'],
-        mission: 'Ensure the aesthetics and user experience are exceptional.',
-        personality: 'Creative, detail-oriented, and focused on visual harmony.',
-        instructions: 'Design beautiful interfaces and ensure brand consistency.',
         allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
         reportsToId: 'account-manager',
       },
@@ -82,12 +83,13 @@ export const AGENT_SETS: AgenticSystem[] = [
         id: 'developer',
         index: 3,
         name: 'Developer',
+        description: 'Handles technical feasibility, architecture, and tech stack decisions.',
+        instruction: `Focus on technical execution and documentation.
+
+- Mission: Evaluate technical feasibility and define the necessary architecture.
+- Personality: Pragmatic, technical, and focused on robustness.`,
         color: '#22c55e',
         model: 'gemini-3.1-flash-lite-preview',
-        expertise: ['Architecture', 'Technical Feasibility', 'Tech Stack'],
-        mission: 'Evaluate technical feasibility and define the necessary architecture.',
-        personality: 'Pragmatic, technical, and focused on robustness.',
-        instructions: 'Focus on technical execution and documentation.',
         allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
         reportsToId: 'account-manager',
       },
@@ -95,12 +97,13 @@ export const AGENT_SETS: AgenticSystem[] = [
         id: 'marketing-expert',
         index: 4,
         name: 'Marketing Expert',
+        description: 'Specializes in market analysis, target audience, and sales narratives.',
+        instruction: `Create a compelling narrative and analyze market trends.
+
+- Mission: Analyze the target audience and build the sales narrative.
+- Personality: Strategic, persuasive, and market-savvy.`,
         color: '#EF52BA',
         model: 'gemini-3.1-flash-lite-preview',
-        expertise: ['Market Analysis', 'Target Audience', 'Narrative'],
-        mission: 'Analyze the target audience and build the sales narrative.',
-        personality: 'Strategic, persuasive, and market-savvy.',
-        instructions: 'Create a compelling narrative and analyze market trends.',
         allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
         reportsToId: 'account-manager',
       },
@@ -108,12 +111,13 @@ export const AGENT_SETS: AgenticSystem[] = [
         id: 'sales-lead',
         index: 5,
         name: 'Sales Lead',
+        description: 'Ensures profitability and business viability of all proposals.',
+        instruction: `Vet all proposals for business viability.
+
+- Mission: Act as the final filter, ensuring the plan is profitable and viable.
+- Personality: Critical, realistic, and focused on return on investment.`,
         color: '#ef4444',
         model: 'gemini-3.1-flash-lite-preview',
-        expertise: ['Profitability', 'Business Viability', 'Sales'],
-        mission: 'Act as the final filter, ensuring the plan is profitable and viable.',
-        personality: 'Critical, realistic, and focused on return on investment.',
-        instructions: 'Vet all proposals for business viability.',
         allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
         reportsToId: 'account-manager',
       },
@@ -135,12 +139,13 @@ export const AGENT_SETS: AgenticSystem[] = [
       id: 'game-director',
       index: 1,
       name: 'Game Director',
+      description: 'Visionary who turns game ideas into structured mechanics and systems.',
+      instruction: `You lead the creative vision and system architecture.
+
+- Mission: Turn raw ideas into structured game mechanics and loop systems.
+- Personality: Analytical, visionary, and balanced.`,
       color: '#22c55e',
       model: 'gemini-3.1-flash-lite-preview',
-      expertise: ['Game Design', 'Systems Design', 'World Building'],
-      mission: 'Turn raw ideas into structured game mechanics and loop systems.',
-      personality: 'Analytical, visionary, and balanced.',
-      instructions: 'You lead the creative vision and system architecture.',
       allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
     },
     subagents: [
@@ -148,12 +153,13 @@ export const AGENT_SETS: AgenticSystem[] = [
         id: 'tech-architect',
         index: 2,
         name: 'Technical Architect',
+        description: 'Translates game vision into high-fidelity technical specs and AI prompts.',
+        instruction: `Translate vision into technical specs.
+
+- Mission: Ensure the game concept is technically feasible and translate it into a high-fidelity generation prompt.
+- Personality: Calculated, tech-obsessed, and precise.`,
         color: '#4DECAC',
         model: 'gemini-3.1-flash-lite-preview',
-        expertise: ['Game Engines', 'AI Systems', 'Prompt Engineering'],
-        mission: 'Ensure the game concept is technically feasible and translate it into a high-fidelity generation prompt.',
-        personality: 'Calculated, tech-obsessed, and precise.',
-        instructions: 'Translate vision into technical specs.',
         allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
         reportsToId: 'game-director',
       },

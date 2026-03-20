@@ -86,14 +86,9 @@ export async function callAgent(params: {
   const agentData = getAllAgents(activeSet).find((a) => a.index === agentIndex);
 
   // 1. Build context
-  const systemInstruction = chatMode
+  const fullSystemPrompt = chatMode
     ? buildChatSystemPrompt(agentIndex)
     : buildSystemPrompt(agentIndex, isBoardroom);
-
-  // Inject agent.instructions if present
-  const fullSystemPrompt = agentData?.instructions
-    ? `${systemInstruction}\n\nSPECIFIC INSTRUCTIONS FOR THIS AGENT:\n${agentData.instructions}`
-    : systemInstruction;
 
   const store = useCoreStore.getState();
   const currentTask = store.tasks.find(
@@ -147,7 +142,7 @@ export async function callAgent(params: {
   // Always log the request for the technical log panel
   useCoreStore.getState().addDebugLogEntry({
       agentIndex,
-      agentName: agentData?.role || 'Unknown',
+      agentName: agentData?.name || 'Unknown',
       phase: 'request',
       systemPrompt: fullSystemPrompt,
       dynamicContext,
@@ -203,7 +198,7 @@ export async function callAgent(params: {
   // Always log the response for the technical log panel
   useCoreStore.getState().addDebugLogEntry({
       agentIndex,
-      agentName: agentData?.role || 'Unknown',
+      agentName: agentData?.name || 'Unknown',
       phase: 'response',
       systemPrompt: fullSystemPrompt,
       dynamicContext,

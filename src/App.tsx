@@ -14,13 +14,14 @@ import { ActionLogPanel } from './interface/ActionLogPanel';
 import { KanbanPanel } from './interface/KanbanPanel';
 import { FinalOutputModal } from './interface/FinalOutputModal';
 import SimulationView from './interface/SimulationView';
+import { VisualConfigurator } from './interface/VisualConfigurator/VisualConfigurator';
 
 
 const App: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const managerRef = useRef<SceneManager | null>(null);
   const [sceneManager, setSceneManager] = useState<SceneManager | null>(null);
-  const { isLogOpen, isKanbanOpen, setIsResizing } = useCoreStore();
+  const { isLogOpen, isKanbanOpen, setIsResizing, viewMode } = useCoreStore();
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [kanbanHeight, setKanbanHeight] = useState(220);
@@ -82,19 +83,32 @@ const App: React.FC = () => {
 
           {/* Center: canvas + kanban drawer stacked */}
           <div className="relative flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-zinc-50">
-            <SimulationView canvasRef={canvasRef} isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />
+            {/* Design Mode Overlay */}
+            <div
+              className={`absolute inset-0 z-40 bg-zinc-50 transition-all duration-300 ${viewMode === 'design' ? 'opacity-100' : 'opacity-0 pointer-events-none invisible'}`}
+            >
+              <VisualConfigurator />
+            </div>
 
-            {/* Resize Bar */}
-            {isKanbanOpen && !isFullscreen && (
-              <div
-                className={`h-2 hover:h-2 bg-transparent hover:bg-zinc-200 border-t border-black/5 transition-colors cursor-row-resize z-30 flex items-center justify-center group shrink-0 ${useCoreStore.getState().isResizing ? 'bg-zinc-300' : ''}`}
-                onMouseDown={startResizing}
-              >
-                <div className="w-12 h-1 bg-zinc-300 rounded-full group-hover:bg-zinc-400" />
-              </div>
-            )}
+            {/* Simulation Context - Persistently Mounted */}
+            <div
+              className="flex-1 flex flex-col min-w-0 min-h-0"
+              style={{ visibility: viewMode === 'design' ? 'hidden' : 'visible' }}
+            >
+              <SimulationView canvasRef={canvasRef} isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />
 
-            {isKanbanOpen && !isFullscreen && <KanbanPanel height={kanbanHeight} />}
+              {/* Resize Bar */}
+              {isKanbanOpen && !isFullscreen && (
+                <div
+                  className={`h-2 hover:h-2 bg-transparent hover:bg-zinc-200 border-t border-black/5 transition-colors cursor-row-resize z-30 flex items-center justify-center group shrink-0 ${useCoreStore.getState().isResizing ? 'bg-zinc-300' : ''}`}
+                  onMouseDown={startResizing}
+                >
+                  <div className="w-12 h-1 bg-zinc-300 rounded-full group-hover:bg-zinc-400" />
+                </div>
+              )}
+
+              {isKanbanOpen && !isFullscreen && <KanbanPanel height={kanbanHeight} />}
+            </div>
           </div>
 
           {/* Right: Inspector sidebar */}

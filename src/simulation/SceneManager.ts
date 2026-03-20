@@ -414,7 +414,7 @@ export class SceneManager {
     useUiStore.setState({ isThinking: true });
     try {
       // Simplified operational greeting
-      const text = `Hello. I am the ${agent.role}. How can I help you with our current objectives?`;
+      const text = `Hello. I am ${agent.name}. How can I help you with our current objectives?`;
       const msg: ChatMessage = {
         role: 'assistant',
         text,
