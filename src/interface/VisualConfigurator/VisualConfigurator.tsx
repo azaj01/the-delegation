@@ -25,7 +25,7 @@ const AgentNodeComponent = ({ data, selected }: any) => {
           id={h.id}
           className="w-2.5 h-2.5 shadow-sm border-white"
           style={{ 
-            left: `${(i + 1) * (100 / (topHandles.length + 1))}%`,
+            left: `calc(50% + ${(i - (topHandles.length - 1) / 2) * 14}px)`,
             backgroundColor: h.color,
             top: '-6px'
           }}
@@ -52,7 +52,7 @@ const AgentNodeComponent = ({ data, selected }: any) => {
           id={h.id}
           className="w-2.5 h-2.5 shadow-sm border-white"
           style={{ 
-            left: `${(i + 1) * (100 / (bottomHandles.length + 1))}%`,
+            left: `calc(50% + ${(i - (bottomHandles.length - 1) / 2) * 14}px)`,
             backgroundColor: h.color,
             bottom: '-6px'
           }}
@@ -77,7 +77,7 @@ const UserNodeComponent = ({ data, selected }: any) => {
           id={h.id}
           className="w-2.5 h-2.5 border-white shadow-sm"
           style={{ 
-            left: `${(i + 1) * (100 / (topHandles.length + 1))}%`,
+            left: `calc(50% + ${(i - (topHandles.length - 1) / 2) * 14}px)`,
             backgroundColor: h.color,
             top: '-6px'
           }}
@@ -101,7 +101,7 @@ const UserNodeComponent = ({ data, selected }: any) => {
           id={h.id}
           className="w-2.5 h-2.5 border-white shadow-sm"
           style={{ 
-            left: `${(i + 1) * (100 / (bottomHandles.length + 1))}%`,
+            left: `calc(50% + ${(i - (bottomHandles.length - 1) / 2) * 14}px)`,
             backgroundColor: h.color,
             bottom: '-6px'
           }}
@@ -308,6 +308,7 @@ const VisualConfiguratorContent: React.FC = () => {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             fitView
+            nodeOrigin={[0.5, 0]}
             nodesConnectable={configMode === 'edit'}
             nodesDraggable={configMode === 'edit'}
             elementsSelectable={true}

@@ -37,7 +37,9 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[],
   system.subagents.forEach((agent, i) => {
     const spacing = 250;
     const defaultX = (i - (system.subagents.length - 1) / 2) * spacing;
-    const pos = agent.position || { x: defaultX, y: 400 };
+    // Stagger Y position to avoid flat horizontal rows and ensure no two nodes have identical Y coordinates
+    const staggerY = 400 + (i % 2 === 0 ? 1 : -1) * (15 + (i * 12));
+    const pos = agent.position || { x: defaultX, y: staggerY };
     nodeMetas.set(agent.id, { 
       name: agent.name, 
       color: agent.color, 
@@ -139,7 +141,7 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[],
     const bottom = nodeBottomHandles.get(id) || [];
     
     // Sort to keep order consistent
-    const typeOrder = { hierarchy: 0, success: 1, retry: 2 };
+    const typeOrder = { retry: 0, hierarchy: 1, success: 2 };
     top.sort((a, b) => typeOrder[a.type as keyof typeof typeOrder] - typeOrder[b.type as keyof typeof typeOrder]);
     bottom.sort((a, b) => typeOrder[a.type as keyof typeof typeOrder] - typeOrder[b.type as keyof typeof typeOrder]);
 
