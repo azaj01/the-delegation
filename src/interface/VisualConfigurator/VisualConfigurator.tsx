@@ -1,43 +1,180 @@
 
-import { applyEdgeChanges, applyNodeChanges, Background, EdgeChange, Handle, InternalNode, Node, NodeChange, NodeTypes, Position, ReactFlow, ReactFlowProvider, useReactFlow } from '@xyflow/react';
+import { applyEdgeChanges, applyNodeChanges, Background, BaseEdge, EdgeChange, EdgeLabelRenderer, getBezierPath, getSmoothStepPath, Handle, InternalNode, Node, NodeChange, NodeTypes, Position, ReactFlow, ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Plus, Settings, User, X } from 'lucide-react';
+import { Check, Plus, Settings, User, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AgentNode, getAgentSet, getAllAgents } from '../../data/agents';
+import { AgentNode, getAgentSet, getAllAgents, USER_COLOR, USER_NAME } from '../../data/agents';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { AgentConfigPanel } from './AgentConfigPanel';
 import { systemToFlow, VisualAgentNode } from './flowUtils';
 import { TeamsPanel } from './TeamsPanel';
 
-const AgentNodeComponent = ({ data, selected }: any) => (
-  <div className={`px-4 py-2 shadow-md rounded-md bg-white border-2 min-w-[37.5] pointer-events-auto transition-all ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'}`} style={{ borderColor: !selected ? (data.color || '#ccc') : undefined }}>
-    <Handle type="target" position={Position.Top} className="w-2 h-2 !bg-zinc-300!" />
-    <div className="flex items-center">
-      <div className="rounded-full w-3 h-3 mr-2" style={{ backgroundColor: data.color }} />
-      <div className="font-bold text-xs uppercase tracking-wider">{data.label}</div>
-    </div>
-    <div className="text-[9px] text-zinc-400 mt-1 font-mono">{data.agent?.model}</div>
-    <Handle type="source" position={Position.Bottom} className="w-2 h-2 !bg-zinc-300!" />
-  </div>
-);
+const AgentNodeComponent = ({ data, selected }: any) => {
+  const topHandles = data.topHandles || [];
+  const bottomHandles = data.bottomHandles || [];
+  
+  return (
+    <div className={`px-4 py-3 shadow-sm rounded-xl bg-white border-2 min-w-[160px] pointer-events-auto transition-all ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'}`} style={{ borderColor: !selected ? (data.color || '#ccc') : undefined }}>
+      {/* Dynamic Top Handles */}
+      {topHandles.map((h: any, i: number) => (
+        <Handle
+          key={h.id}
+          type={h.role}
+          position={Position.Top}
+          id={h.id}
+          className="w-2.5 h-2.5 shadow-sm border-white"
+          style={{ 
+            left: `${(i + 1) * (100 / (topHandles.length + 1))}%`,
+            backgroundColor: h.color,
+            top: '-6px'
+          }}
+        />
+      ))}
 
-const UserNodeComponent = ({ data, selected }: any) => (
-  <div className={`px-4 py-2 shadow-md rounded-md bg-blue-50 border-2 border-blue-200 min-w-[37.5] pointer-events-auto transition-all ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'}`}>
-    <div className="flex items-center">
-      <div className="p-1 bg-blue-500 rounded mr-2">
-        <User size={12} className="text-white" />
+      <div className="flex items-center mb-1">
+        <div className="rounded-full w-3 h-3 mr-2 shadow-inner" style={{ backgroundColor: data.color }} />
+        <div className="font-bold text-[11px] uppercase tracking-wider text-zinc-800">{data.label}</div>
+        {data.isLead && (
+          <div className="ml-3 bg-blue-100 text-blue-700 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border border-blue-200 shadow-sm leading-none flex items-center h-4">
+            Lead Agent
+          </div>
+        )}
       </div>
-      <div className="font-bold text-xs uppercase tracking-wider text-blue-800">{data.label}</div>
+      <div className="text-[9px] text-zinc-400 font-mono bg-zinc-50 px-1.5 py-0.5 rounded border border-zinc-100 inline-block">{data.agent?.model}</div>
+
+      {/* Dynamic Bottom Handles */}
+      {bottomHandles.map((h: any, i: number) => (
+        <Handle
+          key={h.id}
+          type={h.role}
+          position={Position.Bottom}
+          id={h.id}
+          className="w-2.5 h-2.5 shadow-sm border-white"
+          style={{ 
+            left: `${(i + 1) * (100 / (bottomHandles.length + 1))}%`,
+            backgroundColor: h.color,
+            bottom: '-6px'
+          }}
+        />
+      ))}
     </div>
-    <div className="text-[9px] text-blue-400 mt-1 font-mono italic">Entry Point</div>
-    <Handle type="source" position={Position.Bottom} className="w-2 h-2 !bg-blue-400!" />
-  </div>
-);
+  );
+};
+
+const UserNodeComponent = ({ data, selected }: any) => {
+  const topHandles = data.topHandles || [];
+  const bottomHandles = data.bottomHandles || [];
+
+  return (
+    <div className={`px-4 py-3 shadow-sm rounded-xl bg-blue-50 border-2 border-blue-200 min-w-[160px] pointer-events-auto transition-all ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'}`}>
+      {/* Dynamic Top Handles */}
+      {topHandles.map((h: any, i: number) => (
+        <Handle
+          key={h.id}
+          type={h.role}
+          position={Position.Top}
+          id={h.id}
+          className="w-2.5 h-2.5 border-white shadow-sm"
+          style={{ 
+            left: `${(i + 1) * (100 / (topHandles.length + 1))}%`,
+            backgroundColor: h.color,
+            top: '-6px'
+          }}
+        />
+      ))}
+
+      <div className="flex items-center mb-1">
+        <div className="p-1.5 bg-blue-500 rounded-lg mr-2 shadow-sm">
+          <User size={14} className="text-white" />
+        </div>
+        <div className="font-bold text-[11px] uppercase tracking-wider text-blue-900">{data.label}</div>
+      </div>
+      <div className="text-[9px] text-blue-400 font-mono italic px-1">Control Hub</div>
+      
+      {/* Dynamic Bottom Handles */}
+      {bottomHandles.map((h: any, i: number) => (
+        <Handle
+          key={h.id}
+          type={h.role}
+          position={Position.Bottom}
+          id={h.id}
+          className="w-2.5 h-2.5 border-white shadow-sm"
+          style={{ 
+            left: `${(i + 1) * (100 / (bottomHandles.length + 1))}%`,
+            backgroundColor: h.color,
+            bottom: '-6px'
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+const DirectionalEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style, label }: any) => {
+  const isSuccess = label === 'OK';
+  const isRetry = typeof label === 'string' && label.startsWith('KO:');
+  
+  // Create deterministic offsets based on edge type to guarantee parallel lanes
+  const typeOffset = isSuccess ? 25 : (isRetry ? -25 : 0);
+  
+  // Add a unique sub-offset based on the ID hash to separate parallel lines of the SAME type
+  const hash = id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+  const subOffset = (hash % 3 - 1) * 8; 
+  
+  const offset = typeOffset + subOffset;
+
+  // Manual boxy path with offset to avoid overlaps
+  const centerY = (sourceY + targetY) / 2 + offset;
+  
+  // Custom boxy path string
+  const edgePath = `M ${sourceX},${sourceY} L ${sourceX},${centerY} L ${targetX},${centerY} L ${targetX},${targetY}`;
+  const labelX = (sourceX + targetX) / 2;
+  const labelY = centerY;
+
+  const retryCount = isRetry ? label.split(':')[1] : null;
+
+  return (
+    <>
+      <BaseEdge path={edgePath} style={style} />
+      {label && (
+        <EdgeLabelRenderer>
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+              pointerEvents: 'all',
+            }}
+            className="flex items-center justify-center"
+          >
+            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full shadow-sm border border-white ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`}>
+              {isSuccess ? (
+                <Check size={10} strokeWidth={4} className="text-white" />
+              ) : (
+                <>
+                  <X size={10} strokeWidth={4} className="text-white" />
+                  {retryCount && (
+                    <span className="text-[8px] font-black text-white leading-none -ml-0.5">
+                      {retryCount}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </>
+  );
+};
 
 const nodeTypes: NodeTypes = {
   agent: AgentNodeComponent,
   user: UserNodeComponent,
+};
+
+const edgeTypes = {
+  default: DirectionalEdge,
 };
 
 const VisualConfiguratorContent: React.FC = () => {
@@ -59,8 +196,8 @@ const VisualConfiguratorContent: React.FC = () => {
     const userAgent: AgentNode = {
       id: 'user',
       index: 0,
-      name: system.user.name,
-      color: system.user.color,
+      name: USER_NAME,
+      color: USER_COLOR,
       description: 'The primary user and project visionary.',
       instruction: 'Provide approvals and feedback to the team.',
       model: 'Human',
@@ -169,6 +306,7 @@ const VisualConfiguratorContent: React.FC = () => {
             onNodeClick={onNodeClick}
             onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             fitView
             nodesConnectable={configMode === 'edit'}
             nodesDraggable={configMode === 'edit'}

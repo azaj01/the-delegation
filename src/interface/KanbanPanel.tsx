@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronRight, MessageSquareWarning, Trash2 } from 'lucide-react'
 import React, { useState } from 'react'
-import { getAllAgents } from '../data/agents'
+import { getAllAgents, USER_COLOR, USER_NAME } from '../data/agents'
 import { useCoreStore, type Task, type TaskStatus } from '../integration/store/coreStore'
 import { getActiveAgentSet, useTeamStore } from '../integration/store/teamStore'
 import { useUiStore } from '../integration/store/uiStore'
@@ -21,12 +21,12 @@ function renderAgentTag(agentIndex: number) {
   const system = getActiveAgentSet();
   if (agentIndex === 0) { // Client / You
      return (
-      <span key={agentIndex} className="flex items-center gap-1 text-[10px] font-bold" style={{ color: system.user.color }}>
+      <span key={agentIndex} className="flex items-center gap-1 text-[10px] font-bold" style={{ color: USER_COLOR }}>
         <span
           className="w-1.5 h-1.5 rounded-full shrink-0"
-          style={{ backgroundColor: system.user.color }}
+          style={{ backgroundColor: USER_COLOR }}
         />
-        You
+        {USER_NAME}
       </span>
     )
   }

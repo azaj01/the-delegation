@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { AgentNode } from '../../data/agents';
+import { AgentNode, USER_ID } from '../../data/agents';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { IAgentDriver } from '../../types';
 import { CharacterController } from '../CharacterController';
@@ -54,7 +54,7 @@ export class NpcAgentDriver implements IAgentDriver {
     }
 
     // Special behavior for Lead Agent (Orchestrator) when project is ready
-    const isLeadCandidate = !this.data.reportsToId;
+    const isLeadCandidate = this.data.nextId === USER_ID;
     if (isLeadCandidate && systemState.phase === 'done') {
       this._updateProjectReadyBehavior(positions, delta, currentState);
       return;
@@ -211,7 +211,7 @@ export class NpcAgentDriver implements IAgentDriver {
 
     // A. Chance to go sit (only if NOT already seated or if we explicitly want a new POI)
     // Lead agent candidates NEVER sit, they prefer to pace or stay standing
-    const isLeadCandidate = !this.data.reportsToId;
+    const isLeadCandidate = this.data.nextId === USER_ID;
     if (!isSeated && rand < 0.4 && !isLeadCandidate) {
       const pois = this.controller.poiManager.getFreePois('sit_idle', this.agentIndex);
       if (pois.length > 0) {

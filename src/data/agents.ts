@@ -6,6 +6,7 @@ export const DEFAULT_AGENTIC_SET_ID = 'marketing-agency';
 export const USER_ID = 'user';
 export const USER_NAME = 'user';
 export const USER_COLOR = '#7EACEA';
+export const DEFAULT_MAX_ITERATIONS = 5;
 
 // ─────────────────────────────────────────────────────────────
 //  Agent data types
@@ -19,7 +20,9 @@ export interface AgentNode {
   color: string;
   model: string;
   allowedTools: string[];
-  reportsToId?: string; // For hierarchy
+  parentId?: string; // Standard hierarchy (who is my boss?)
+  nextId?: string; // Target agent ID (always or on success)
+  retryId?: string; // Optional target on failure/not satisfied
   maxIterations?: number;
   position?: { x: number; y: number }; // For visual canvas storage
 }
@@ -67,6 +70,8 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       color: '#4387E2',
       model: 'gemini-3.1-flash-lite-preview',
       allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
+      parentId: USER_ID,
+      nextId: USER_ID,
     },
     subagents: [
       {
@@ -81,7 +86,10 @@ export const AGENTIC_SETS: AgenticSystem[] = [
         color: '#eab308',
         model: 'gemini-3.1-flash-lite-preview',
         allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
-        reportsToId: 'account-manager',
+        parentId: 'account-manager',
+        nextId: 'account-manager',
+        retryId: 'account-manager',
+        maxIterations: 3,
       },
       {
         id: 'developer',
@@ -95,7 +103,9 @@ export const AGENTIC_SETS: AgenticSystem[] = [
         color: '#22c55e',
         model: 'gemini-3.1-flash-lite-preview',
         allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
-        reportsToId: 'account-manager',
+        parentId: 'account-manager',
+        nextId: 'account-manager',
+        retryId: 'account-manager',
       },
       {
         id: 'marketing-expert',
@@ -109,7 +119,9 @@ export const AGENTIC_SETS: AgenticSystem[] = [
         color: '#EF52BA',
         model: 'gemini-3.1-flash-lite-preview',
         allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
-        reportsToId: 'account-manager',
+        parentId: 'account-manager',
+        nextId: 'account-manager',
+        retryId: 'account-manager',
       },
       {
         id: 'sales-lead',
@@ -123,7 +135,9 @@ export const AGENTIC_SETS: AgenticSystem[] = [
         color: '#ef4444',
         model: 'gemini-3.1-flash-lite-preview',
         allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
-        reportsToId: 'account-manager',
+        parentId: 'account-manager',
+        nextId: 'account-manager',
+        retryId: 'account-manager',
       },
     ],
   },
@@ -152,6 +166,8 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       color: '#22c55e',
       model: 'gemini-3.1-flash-lite-preview',
       allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
+      parentId: USER_ID,
+      nextId: USER_ID,
     },
     subagents: [
       {
@@ -166,7 +182,9 @@ export const AGENTIC_SETS: AgenticSystem[] = [
         color: '#4DECAC',
         model: 'gemini-3.1-flash-lite-preview',
         allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
-        reportsToId: 'game-director',
+        parentId: 'game-director',
+        nextId: 'game-director',
+        maxIterations: 3,
       },
     ],
   },
@@ -205,5 +223,9 @@ export function getAllCharacters(system: AgenticSystem): AgentNode[] {
 
 export function getAgent(index: number, agents: AgentNode[]): AgentNode | undefined {
   return agents.find((a) => a.index === index);
+}
+
+export function getAgentMaxIterations(agent: AgentNode): number {
+  return agent.maxIterations ?? DEFAULT_MAX_ITERATIONS;
 }
 
