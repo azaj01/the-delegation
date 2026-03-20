@@ -6,7 +6,7 @@ import { useCoreStore } from '../../integration/store/coreStore';
 import { useUiStore } from '../../integration/store/uiStore';
 import { getAgentSet, getAllAgents, AGENTIC_SETS } from '../../data/agents';
 import { systemToFlow, VisualAgentNode } from './flowUtils';
-import { Settings2, X, User, Edit3, Eye, Plus, Save } from 'lucide-react';
+import { Settings2, X, User, Edit3, Eye, Plus, Save, Users, Settings } from 'lucide-react';
 import { AgentConfigPanel } from './AgentConfigPanel';
 import { AgentNode } from '../../data/agents';
 import { TeamsPanel } from './TeamsPanel';
@@ -121,96 +121,20 @@ export const VisualConfigurator: React.FC = () => {
 
   return (
     <div className="w-full h-full relative bg-zinc-50 flex flex-col overflow-hidden">
-      {/* ToolBar */}
-      <div className="h-20 border-b border-zinc-100 bg-white flex items-center justify-between px-6 z-50 shrink-0">
-        <div className="flex items-center gap-4">
-          <div
-            className="p-2 rounded-xl shadow-lg shadow-black/10 transition-all duration-500 ease-in-out"
-            style={{ backgroundColor: system.color || '#18181b' }}
-          >
-            <Settings2 className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              {configMode === 'edit' ? (
-                <input
-                  value={system.teamName}
-                  onChange={(e) => updateActiveSystem({ teamName: e.target.value })}
-                  className="text-sm font-bold text-zinc-800 bg-zinc-100 px-2 py-0.5 rounded-lg outline-none focus:ring-2 ring-blue-500/30 w-48 transition-all"
-                  placeholder="Team Name"
-                />
-              ) : (
-                <h2 className="text-sm font-bold text-zinc-800 leading-none">{system.teamName}</h2>
-              )}
-
-            </div>
-            <div className="flex items-center gap-2 mt-1.5">
-              {configMode === 'edit' ? (
-                <>
-                  <input
-                    value={system.teamType}
-                    onChange={(e) => updateActiveSystem({ teamType: e.target.value })}
-                    className="text-[10px] text-zinc-500 uppercase tracking-widest font-black bg-zinc-100 px-2 py-0.5 rounded outline-none w-48"
-                    placeholder="Team Type"
-                  />
-                  <div className="relative group/color">
-                    <input
-                      type="color"
-                      value={system.color}
-                      onChange={(e) => updateActiveSystem({ color: e.target.value })}
-                      className="w-4 h-4 rounded-full overflow-hidden p-0 border-none cursor-pointer appearance-none bg-transparent"
-                    />
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-zinc-900 text-white text-[8px] font-bold rounded opacity-0 group-hover/color:opacity-100 pointer-events-none transition-opacity uppercase whitespace-nowrap">
-                      Theme Color
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-black">{system.teamType}</p>
-              )}
-            </div>
-          </div>
-        </div>
-
+      {/* Internal Header */}
+      <div className="h-14 border-b border-zinc-100 bg-white flex items-center justify-between px-6 z-50 shrink-0">
         <div className="flex items-center gap-2">
-          {isEditable && (
-            <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl border border-zinc-200 mr-2">
-              <button
-                onClick={() => {
-                  setConfigMode('view');
-                  setSelectedAgentId(null);
-                  setSelectedNpc(null);
-                }}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${configMode === 'view' ? 'bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200' : 'text-zinc-500 hover:text-zinc-700'}`}
-              >
-                <Eye size={12} strokeWidth={3} />
-                Monitor
-              </button>
-              <button
-                onClick={() => {
-                  setConfigMode('edit');
-                  setSelectedAgentId(null);
-                  setSelectedNpc(null);
-                }}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${configMode === 'edit' ? 'bg-zinc-900 text-white shadow-lg shadow-black/20' : 'text-zinc-500 hover:text-zinc-700'}`}
-              >
-                <Edit3 size={12} strokeWidth={3} />
-                Architect
-              </button>
-            </div>
-          )}
+          <Settings size={18} className="text-zinc-900" strokeWidth={2} />
+          <h2 className="text-xs font-black text-zinc-900 uppercase tracking-[0.2em] ml-2">Manage Teams</h2>
         </div>
 
         <div className="flex items-center gap-3">
-          {configMode === 'edit' && (
-            <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-lg shadow-blue-500/20 active:scale-95">
-              <Save size={12} strokeWidth={3} />
-              Publish Changes
-            </button>
-          )}
           <button
             onClick={() => {
+              setSelectedAgentId(null);
               setSelectedNpc(null);
+              setSelectedTeamId(selectedAgentSetId);
+              setConfigMode('view');
               setViewMode('simulation');
             }}
             className="p-2 hover:bg-zinc-100 rounded-xl transition-colors group border border-transparent hover:border-zinc-200"
@@ -220,18 +144,27 @@ export const VisualConfigurator: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 relative flex">
-        <TeamsPanel 
-          selectedTeamId={selectedTeamId}
-          onSelectTeam={(id) => {
-            setSelectedTeamId(id);
-            setSelectedAgentId(null);
-          }}
-          onCreateTeam={() => {
-            setConfigMode('edit');
-          }}
-        />
+      <div className="flex-1 min-h-0 relative flex overflow-hidden">
+        {/* Left Panel: Agent Config */}
+        <div className="relative shrink-0 flex border-r border-zinc-100 bg-white">
+          {activeAgent ? (
+            <AgentConfigPanel
+              agent={activeAgent}
+              onClose={() => {
+                setSelectedAgentId(null);
+              }}
+              mode={configMode === 'view' ? 'view' : 'edit'}
+            />
+          ) : (
+            <div className="w-80 flex flex-col items-center justify-center p-8 text-center text-zinc-400">
+              <User size={32} strokeWidth={1.5} className="mb-4 opacity-20" />
+              <p className="text-[10px] uppercase font-bold tracking-widest">Select an agent</p>
+              <p className="text-[9px] mt-2 leading-relaxed italic opacity-60">Click on any node in the flow to view and edit its details.</p>
+            </div>
+          )}
+        </div>
 
+        {/* Center Canvas */}
         <div className="flex-1 relative overflow-hidden">
           <ReactFlow
             nodes={nodes}
@@ -262,18 +195,19 @@ export const VisualConfigurator: React.FC = () => {
           </ReactFlow>
         </div>
 
-        <div className="relative shrink-0 flex">
-          {activeAgent && (
-            <AgentConfigPanel
-              agent={activeAgent}
-              onClose={() => {
-                setSelectedAgentId(null);
-                setSelectedNpc(null);
-              }}
-              mode={configMode === 'view' ? 'view' : 'edit'}
-            />
-          )}
-        </div>
+        {/* Right Panel: Teams */}
+        <TeamsPanel
+          selectedTeamId={selectedTeamId}
+          onSelectTeam={(id) => {
+            if (id !== selectedTeamId) {
+              setSelectedTeamId(id);
+              setSelectedAgentId(null);
+              setConfigMode('view');
+            }
+          }}
+          mode={configMode}
+          onModeChange={setConfigMode}
+        />
       </div>
     </div>
   );

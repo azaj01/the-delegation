@@ -31,25 +31,25 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
       {/* Simulation View Header */}
       <div className="h-14 border-b border-black/5 flex items-center justify-between px-5 bg-white shrink-0">
         <div className="flex-1 flex items-center gap-4">
-          <div className="flex flex-col">
-            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-tight">
-              {activeSet.teamType}
-            </span>
-            <span className="text-sm font-black text-zinc-900 leading-tight">
-              {activeSet.teamName}
-            </span>
+          <div className="flex items-center gap-3">
+            <div 
+              className="h-9 px-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-black/5"
+              style={{ backgroundColor: activeSet.color }}
+            >
+              <Users size={14} className="text-white opacity-90" strokeWidth={3} />
+              <span className="text-xs font-black text-white leading-none">
+                {agentCount}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-black text-zinc-900 leading-tight">
+                {activeSet.teamName}
+              </span>
+              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-tight">
+                {activeSet.teamType}
+              </span>
+            </div>
           </div>
-
-          <div className="h-6 w-px bg-zinc-100 mx-1" />
-
-          <button
-            onClick={() => setViewMode('design')}
-            className="flex items-center gap-2.5 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl transition-all shadow-lg shadow-black/10 active:scale-95 cursor-pointer ml-2"
-            title="Manage Teams"
-          >
-            <Users size={16} />
-            <span className="text-[11px] font-black uppercase tracking-widest">Team</span>
-          </button>
         </div>
 
         <div className="flex-1 flex items-center justify-end gap-1">

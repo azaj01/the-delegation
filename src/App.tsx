@@ -83,11 +83,13 @@ const App: React.FC = () => {
 
           {/* Center: canvas + kanban drawer stacked */}
           <div className="relative flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-zinc-50">
-            {/* Design Mode Overlay */}
+            {/* Design Mode Overlay (Modal) */}
             <div
-              className={`absolute inset-0 z-40 bg-zinc-50 transition-all duration-300 ${viewMode === 'design' ? 'opacity-100' : 'opacity-0 pointer-events-none invisible'}`}
+              className={`absolute inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-white/60 backdrop-blur-xl transition-all duration-300 ${viewMode === 'design' ? 'opacity-100' : 'opacity-0 pointer-events-none invisible'}`}
             >
-              <VisualConfigurator />
+              <div className={`w-full h-full max-w-[1800px] bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden flex flex-col transition-all duration-500 transform ${viewMode === 'design' ? 'translate-y-0 scale-100' : 'translate-y-4 scale-95'}`}>
+                <VisualConfigurator />
+              </div>
             </div>
 
             {/* Simulation Context - Persistently Mounted */}

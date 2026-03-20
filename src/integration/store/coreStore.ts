@@ -113,6 +113,7 @@ interface CoreState {
   deleteCustomSystem: (id: string) => void;
   setViewMode: (mode: 'simulation' | 'design') => void;
   updateActiveSystem: (changes: Partial<AgenticSystem>) => void;
+  updateSystem: (id: string, changes: Partial<AgenticSystem>) => void;
 }
 
 const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
@@ -162,6 +163,15 @@ export const useCoreStore = create<CoreState>()(
           customSystems: s.customSystems.some((cs) => cs.id === updatedSystem.id)
             ? s.customSystems.map((cs) => (cs.id === updatedSystem.id ? updatedSystem : cs))
             : [...s.customSystems, updatedSystem],
+        };
+      }),
+
+      updateSystem: (id, changes) => set((s) => {
+        const system = s.customSystems.find(cs => cs.id === id);
+        if (!system) return {};
+        const updatedSystem = { ...system, ...changes };
+        return {
+          customSystems: s.customSystems.map((cs) => (cs.id === id ? updatedSystem : cs)),
         };
       }),
 
@@ -332,12 +342,15 @@ export const useCoreStore = create<CoreState>()(
     {
       name: 'core-storage',
       migrate: (persistedState: any, version: number) => {
+        if (persistedState && !persistedState.selectedAgentSetId) {
+          persistedState.selectedAgentSetId = DEFAULT_AGENTIC_SET_ID;
+        }
         return persistedState;
       },
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         pauseOnCall: state.pauseOnCall,
-        selectedAgentSetId: state.selectedAgentSetId,
+        selectedAgentSetId: state.selectedAgentSetId || DEFAULT_AGENTIC_SET_ID,
       }),
     }
   )
@@ -346,5 +359,5 @@ export const useCoreStore = create<CoreState>()(
 /** Returns the currently active AgentSet. Safe to call from service/non-React contexts. */
 export function getActiveAgentSet(): AgentSet {
   const { selectedAgentSetId, customSystems } = useCoreStore.getState()
-  return getAgentSet(selectedAgentSetId, customSystems)
+  return getAgentSet(selectedAgentSetId || DEFAULT_AGENTIC_SET_ID, customSystems)
 }

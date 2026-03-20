@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useUiStore } from '../integration/store/uiStore';
 import { useCoreStore } from '../integration/store/coreStore';
-import { Maximize2, KeyRound, Info, Zap, ZapOff, Grid3X3, Play, Pause } from 'lucide-react';
+import { Maximize2, KeyRound, Info, Zap, ZapOff, Grid3X3, Play, Pause, Settings } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 import InfoModal from './InfoModal';
 import BYOKModal from './BYOKModal';
@@ -113,6 +113,15 @@ const Header: React.FC = () => {
             </>
           )}
         </div>
+
+        <button
+          onClick={() => setViewMode('design')}
+          className="flex items-center gap-2 px-3 py-1 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg transition-all shadow-lg shadow-black/10 active:scale-95 cursor-pointer h-9 shrink-0 ml-1"
+          title="Manage Teams"
+        >
+          <Settings size={14} className="group-hover:rotate-45 transition-transform" />
+          <span className="text-[10px] font-black uppercase tracking-wider ml-1 hidden sm:inline">Manage Teams</span>
+        </button>
 
         <div className="w-px h-4 bg-zinc-200" />
 
