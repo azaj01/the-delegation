@@ -11,14 +11,13 @@ import { systemToFlow, VisualAgentNode } from './flowUtils';
 import { TeamsPanel } from './TeamsPanel';
 
 // Extracted Components & Hooks
-import { AgentFlowNode } from './nodes/AgentFlowNode';
-import { UserFlowNode } from './nodes/UserFlowNode';
+import { VisualFlowNode } from './nodes/VisualFlowNode';
 import { DirectionalEdge } from './edges/DirectionalEdge';
 import { useFlowFocus } from './hooks/useFlowFocus';
 
 const nodeTypes: NodeTypes = {
-  agent: AgentFlowNode,
-  user: UserFlowNode,
+  agent: VisualFlowNode,
+  user: VisualFlowNode,
 };
 
 const edgeTypes = {

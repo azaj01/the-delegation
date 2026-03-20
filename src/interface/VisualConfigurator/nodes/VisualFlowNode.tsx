@@ -1,0 +1,68 @@
+
+import { Handle, Position } from '@xyflow/react';
+import { User } from 'lucide-react';
+import React from 'react';
+import { HandleData } from '../flowUtils';
+
+const NodeHandle = ({ h, i, total, position }: { h: HandleData, i: number, total: number, position: 'top' | 'bottom' }) => (
+  <Handle
+    type={h.role}
+    position={position === 'top' ? Position.Top : Position.Bottom}
+    id={h.id}
+    className="!w-2.5 !h-2.5 !border-white shadow-sm hover:scale-125 transition-transform"
+    style={{
+      left: `calc(50% + ${(i - (total - 1) / 2) * 14}px)`,
+      backgroundColor: h.color,
+      [position]: 0,
+      transform: `translate(-50%, ${position === 'top' ? '-50%' : '50%'})`,
+    }}
+  />
+);
+
+export const VisualFlowNode = ({ data, selected, type }: any) => {
+  const isUser = type === 'user';
+  const topHandles: HandleData[] = data.topHandles || [];
+  const bottomHandles: HandleData[] = data.bottomHandles || [];
+
+  return (
+    <div
+      className={`
+        relative px-5 py-3 shadow-sm rounded-xl border-2 pointer-events-auto transition-all duration-300 w-fit min-w-[160px]
+        ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'}
+        ${data.isDimmed ? 'opacity-20 translate-y-1' : 'opacity-100'}
+        ${isUser ? 'bg-blue-50 border-blue-200 shadow-blue-100/50' : 'bg-white shadow-zinc-100'}
+      `}
+      style={{ borderColor: !selected && !isUser ? (data.color || '#ccc') : undefined }}
+    >
+      {/* Handles */}
+      {topHandles.map((h, i) => <NodeHandle key={h.id} h={h} i={i} total={topHandles.length} position="top" />)}
+      {bottomHandles.map((h, i) => <NodeHandle key={h.id} h={h} i={i} total={bottomHandles.length} position="bottom" />)}
+
+      <div className="flex items-center mb-1 gap-2">
+        {isUser ? (
+          <div className="p-1.5 bg-blue-500 rounded-lg shadow-sm shrink-0">
+            <User size={14} className="text-white" />
+          </div>
+        ) : (
+          <div className="rounded-full w-3 h-3 shadow-inner shrink-0" style={{ backgroundColor: data.color }} />
+        )}
+        
+        <div className={`font-bold text-[11px] uppercase tracking-wider truncate max-w-[140px] ${isUser ? 'text-blue-900' : 'text-zinc-800'}`}>
+          {data.label}
+        </div>
+
+        {data.isLead && !isUser && (
+          <div className="bg-blue-100 text-blue-700 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border border-blue-200 shadow-sm leading-none flex items-center h-4 shrink-0">
+            Lead
+          </div>
+        )}
+      </div>
+
+      <div className={`text-[9px] font-mono px-1.5 py-0.5 rounded border inline-block ${
+        isUser ? 'text-blue-400 border-blue-100 bg-blue-50/50 italic' : 'text-zinc-400 border-zinc-100 bg-zinc-50'
+      }`}>
+        {isUser ? 'Control Hub' : data.agent?.model}
+      </div>
+    </div>
+  );
+};
