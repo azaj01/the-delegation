@@ -1,6 +1,6 @@
 
 import { BaseEdge, EdgeLabelRenderer } from '@xyflow/react';
-import { Check, X } from 'lucide-react';
+import { Check, Repeat2, X } from 'lucide-react';
 import React from 'react';
 
 export const DirectionalEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style, label }: any) => {
@@ -40,16 +40,23 @@ export const DirectionalEdge = ({ id, sourceX, sourceY, targetX, targetY, source
             }}
             className="flex items-center justify-center transition-opacity duration-300"
           >
-            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full shadow-sm border border-white ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`}>
+            <div className="flex items-center gap-1.5 p-0.5">
               {isSuccess ? (
-                <Check size={10} strokeWidth={4} className="text-white" />
+                <div className="flex items-center justify-center w-5 h-5 rounded-full shadow-sm border border-white bg-green-500">
+                  <Check size={10} strokeWidth={4} className="text-white" />
+                </div>
               ) : (
                 <>
-                  <X size={10} strokeWidth={4} className="text-white" />
+                  <div className="flex items-center justify-center w-5 h-5 rounded-full shadow-sm border border-white bg-red-500">
+                    <X size={10} strokeWidth={4} className="text-white" />
+                  </div>
                   {retryCount && (
-                    <span className="text-[8px] font-black text-white leading-none -ml-0.5">
-                      {retryCount}
-                    </span>
+                    <div className="flex items-center gap-1.5 pl-1.5 pr-2 py-0.5 h-5 rounded-full shadow-sm border border-white bg-gray-100">
+                      <Repeat2 size={10} strokeWidth={2.5} className="text-gray-500" />
+                      <span className="text-[10px] font-black text-gray-700 leading-none">
+                        {retryCount}
+                      </span>
+                    </div>
                   )}
                 </>
               )}
