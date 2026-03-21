@@ -5,6 +5,7 @@ import { abortAllCalls } from '../../integration/coreService';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { useSceneManager } from '../../simulation/SceneContext';
 import { getBrightness, getDarkenedColor } from './colorUtils';
+import { ColorPicker } from './ColorPicker';
 
 interface TeamCardProps {
   system: AgenticSystem;
@@ -32,8 +33,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
   const [localEditData, setLocalEditData] = useState<Partial<AgenticSystem>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [suggestedColor, setSuggestedColor] = useState<string | null>(null);
-  const [prevColor, setPrevColor] = useState<string | null>(null);
+  const [hasColorSuggestion, setHasColorSuggestion] = useState(false);
 
   const isEditing = mode === 'edit' && isSelected;
   const agentCount = useMemo(() => getAllAgents(system).length, [system]);
@@ -48,12 +48,11 @@ export const TeamCard: React.FC<TeamCardProps> = ({
       });
       setErrorMsg(null);
       setShowDeleteConfirm(false);
-      setSuggestedColor(null);
-      setPrevColor(system.color || '#A855F7');
+      setHasColorSuggestion(false);
     } else {
       setErrorMsg(null);
       setShowDeleteConfirm(false);
-      setSuggestedColor(null);
+      setHasColorSuggestion(false);
     }
   }, [isEditing, system]);
 
@@ -67,7 +66,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
   const isFormValid = !!(localEditData.teamName?.trim() &&
     localEditData.teamType?.trim() &&
     localEditData.teamDescription?.trim() &&
-    !suggestedColor);
+    !hasColorSuggestion);
 
   const handleSwitch = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -89,7 +88,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
   const handleCloseEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isFormValid) {
-      if (suggestedColor) {
+      if (hasColorSuggestion) {
         setErrorMsg('Please choose a darker color (use suggestion or pick another) before saving.');
       } else {
         setErrorMsg('Please fill Name, Type and Description or delete the team.');
@@ -123,23 +122,13 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     onModeChange('view');
   };
 
-  const handleLiveColorChange = (newColor: string) => {
+  const handleColorChange = (newColor: string) => {
     setLocalEditData(prev => ({ ...prev, color: newColor }));
-    setSuggestedColor(null);
-    setErrorMsg(null);
-  };
-
-  const handleCommitColorChange = (newColor: string) => {
+    
+    // Check if new color is too light to update form validity status
     const brightness = getBrightness(newColor);
-    if (brightness > 180) {
-      const suggested = getDarkenedColor(newColor);
-      setSuggestedColor(suggested);
-      setErrorMsg('Selected color is too light for white text.');
-    } else {
-      setSuggestedColor(null);
-      setErrorMsg(null);
-      setPrevColor(newColor);
-    }
+    setHasColorSuggestion(brightness > 180);
+    setErrorMsg(null);
   };
 
   return (
@@ -176,39 +165,6 @@ export const TeamCard: React.FC<TeamCardProps> = ({
               )}
             </div>
           )}
-
-          {suggestedColor && (
-            <div className="flex items-center gap-2 mb-3">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (prevColor) {
-                    setLocalEditData(prev => ({ ...prev, color: prevColor }));
-                  }
-                  setSuggestedColor(null);
-                  setErrorMsg(null);
-                }}
-                className="flex-1 py-2 bg-white border border-zinc-200 text-zinc-400 rounded-xl text-[9px] font-black uppercase tracking-wider hover:bg-zinc-50 transition-colors"
-                type="button"
-              >
-                Discard
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLocalEditData(prev => ({ ...prev, color: suggestedColor }));
-                  setPrevColor(suggestedColor);
-                  setSuggestedColor(null);
-                  setErrorMsg(null);
-                }}
-                className="flex-[2] py-2 text-white rounded-xl text-[9px] font-black uppercase tracking-wider hover:opacity-90 transition-all shadow-md shadow-black/5"
-                style={{ backgroundColor: suggestedColor || '#A855F7' }}
-                type="button"
-              >
-                Use this color
-              </button>
-            </div>
-          )}
         </div>
       )}
 
@@ -223,32 +179,27 @@ export const TeamCard: React.FC<TeamCardProps> = ({
       )}
 
       <div className="flex items-start gap-3.5">
-        <div className="relative shrink-0">
-          <div
-            onClick={(e) => { if (isEditing && !isPredefined) { e.stopPropagation(); colorInputRef.current?.click(); } }}
-            className={`w-8 h-8 rounded-xl shadow-sm flex items-center justify-center transition-all ${isEditing && !isPredefined ? 'cursor-pointer hover:scale-105 active:scale-95' : ''}`}
-            style={{ backgroundColor: (isEditing ? localEditData.color : system.color) || '#A855F7' }}
-          >
-            {!isPredefined && isSelected && isEditing && (
-              <Pipette size={14} className="text-white opacity-80" strokeWidth={2.5} />
-            )}
-          </div>
-          {isEditing && !isPredefined && (
-            <input
-              ref={colorInputRef}
-              type="color"
-              value={localEditData.color || '#A855F7'}
-              onInput={(e) => handleLiveColorChange((e.target as HTMLInputElement).value)}
-              onBlur={(e) => handleCommitColorChange((e.target as HTMLInputElement).value)}
-              onChange={(e) => handleCommitColorChange((e.target as HTMLInputElement).value)}
-              className="absolute inset-0 opacity-0 pointer-events-none"
+        {!isEditing && (
+          <div className="relative shrink-0">
+            <div
+              className="w-8 h-8 rounded-xl shadow-sm flex items-center justify-center transition-all"
+              style={{ backgroundColor: system.color || '#A855F7' }}
             />
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="flex-1 min-w-0 flex flex-col">
           {isEditing && !isPredefined ? (
             <div className="space-y-2 mb-3" onClick={(e) => e.stopPropagation()}>
+              <div className="space-y-1 mb-2">
+                <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Team Color</label>
+                <div className="px-1">
+                  <ColorPicker
+                    color={localEditData.color || '#A855F7'}
+                    onChange={handleColorChange}
+                  />
+                </div>
+              </div>
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Team Name</label>
                 <input value={localEditData.teamName || ''} onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamName: e.target.value })); setErrorMsg(null); }} className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none focus:border-blue-500/50" />

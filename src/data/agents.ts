@@ -36,6 +36,7 @@ export interface AgenticSystem {
   user: {
     index: number;
     model: string;
+    position?: { x: number; y: number };
   };
 
   leadAgent: AgentNode;
@@ -56,6 +57,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     user: {
       index: 0,
       model: 'Human',
+      position: { x: 0, y: 0 }
     },
 
     leadAgent: {
@@ -72,6 +74,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
       parentId: USER_ID,
       nextId: USER_ID,
+      position: { x: 0, y: 150 }
     },
     subagents: [
       {
@@ -90,6 +93,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
         nextId: 'account-manager',
         retryId: 'account-manager',
         maxIterations: 3,
+        position: { x: -450, y: 432 }
       },
       {
         id: 'developer',
@@ -106,6 +110,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
         parentId: 'account-manager',
         nextId: 'account-manager',
         retryId: 'account-manager',
+        position: { x: -150, y: 403 }
       },
       {
         id: 'marketing-expert',
@@ -122,6 +127,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
         parentId: 'account-manager',
         nextId: 'account-manager',
         retryId: 'account-manager',
+        position: { x: 150, y: 459 }
       },
       {
         id: 'sales-lead',
@@ -138,6 +144,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
         parentId: 'account-manager',
         nextId: 'account-manager',
         retryId: 'account-manager',
+        position: { x: 450, y: 369 }
       },
     ],
   },
@@ -152,6 +159,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     user: {
       index: 0,
       model: 'Human',
+      position: { x: 0, y: 0 }
     },
 
     leadAgent: {
@@ -168,6 +176,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
       parentId: USER_ID,
       nextId: USER_ID,
+      position: { x: 0, y: 150 }
     },
     subagents: [
       {
@@ -184,7 +193,9 @@ export const AGENTIC_SETS: AgenticSystem[] = [
         allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
         parentId: 'game-director',
         nextId: 'game-director',
+        retryId: 'game-director',
         maxIterations: 3,
+        position: { x: 0, y: 420 }
       },
     ],
   },

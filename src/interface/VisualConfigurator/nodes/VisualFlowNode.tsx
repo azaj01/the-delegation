@@ -28,11 +28,14 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
     <div
       className={`
         relative px-5 py-3 shadow-sm rounded-xl border-2 pointer-events-auto transition-all duration-300 w-fit min-w-[160px]
-        ${selected ? 'ring-4 ring-blue-500/30 border-blue-500 scale-105 z-20' : 'z-10'}
+        ${selected ? 'ring-4 scale-105 z-20 shadow-lg' : 'z-10'}
         ${data.isDimmed ? 'opacity-20 translate-y-1' : 'opacity-100'}
-        ${isUser ? 'bg-blue-50 border-blue-200 shadow-blue-100/50' : 'bg-white shadow-zinc-100'}
+        ${isUser ? 'bg-blue-50 border-blue-200' : 'bg-white shadow-zinc-100'}
       `}
-      style={{ borderColor: !selected && !isUser ? (data.color || '#ccc') : undefined }}
+      style={{ 
+        borderColor: selected ? (isUser ? '#3B82F6' : data.color) : (isUser ? '#BFDBFE' : data.color || '#ccc'),
+        boxShadow: selected ? `0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05), 0 0 0 4px ${isUser ? '#3B82F6' : data.color}30` : undefined
+      }}
     >
       {/* Handles */}
       {topHandles.map((h, i) => <NodeHandle key={h.id} h={h} i={i} total={topHandles.length} position="top" />)}

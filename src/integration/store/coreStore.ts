@@ -47,6 +47,7 @@ interface CoreState {
   clientBrief: string
   phase: ProjectPhase
   finalOutput: string | null
+  availableModels: string[]
 
   // ── Tasks ────────────────────────────────────────────────────
   tasks: Task[]
@@ -113,6 +114,13 @@ export const useCoreStore = create<CoreState>()(
       clientBrief: '',
       phase: 'idle',
       finalOutput: null,
+      availableModels: [
+        'gemini-2.0-flash-exp',
+        'gemini-2.0-flash-thinking-exp',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
+        'gemini-3.1-flash-lite-preview'
+      ],
       tasks: [],
       actionLog: [],
       debugLog: [],

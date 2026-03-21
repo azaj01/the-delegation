@@ -14,6 +14,7 @@ import { TeamsPanel } from './TeamsPanel';
 import { VisualFlowNode } from './nodes/VisualFlowNode';
 import { DirectionalEdge } from './edges/DirectionalEdge';
 import { useFlowFocus } from './hooks/useFlowFocus';
+import { SystemDebugOverlay } from './SystemDebugOverlay';
 
 const nodeTypes: NodeTypes = {
   agent: VisualFlowNode,
@@ -26,11 +27,15 @@ const edgeTypes = {
 
 // --- Internal Sub-components ---
 
-const InternalHeader = ({ onClose }: { onClose: () => void }) => (
+const InternalHeader = ({ onClose, system }: { onClose: () => void, system: any }) => (
   <div className="h-14 border-b border-zinc-100 bg-white flex items-center justify-between px-6 z-50 shrink-0">
     <div className="flex items-center gap-2">
       <Settings size={18} className="text-zinc-900" strokeWidth={2} />
       <h2 className="text-xs font-black text-zinc-900 uppercase tracking-[0.2em] ml-2">Manage Teams</h2>
+      
+      <div className="ml-4">
+        <SystemDebugOverlay system={system} />
+      </div>
     </div>
 
     <div className="flex items-center gap-3">
@@ -125,17 +130,74 @@ const VisualConfiguratorContent: React.FC = () => {
   const onPaneClick = useCallback(() => {
     setSelectedAgentId(null);
   }, []);
+  
+  const onNodeDragStop = useCallback((_: any, node: any) => {
+    const { id, position } = node;
+    const roundedPosition = { x: Math.round(position.x), y: Math.round(position.y) };
+    const updatedSystem = { ...system };
+
+    if (id === 'user') {
+      updatedSystem.user = { ...updatedSystem.user, position: roundedPosition };
+    } else if (id === system.leadAgent.id) {
+      updatedSystem.leadAgent = { ...updatedSystem.leadAgent, position: roundedPosition };
+    } else {
+      updatedSystem.subagents = updatedSystem.subagents.map(s => 
+        s.id === id ? { ...s, position: roundedPosition } : s
+      );
+    }
+    
+    useTeamStore.getState().saveCustomSystem(updatedSystem);
+  }, [system]);
 
   const handleClose = useCallback(() => {
     setSelectedAgentId(null);
-    setSelectedTeamId(selectedAgentSetId);
     setConfigMode('view');
     setViewMode('simulation');
   }, [selectedAgentSetId, setViewMode]);
 
+  const handleAddAgent = useCallback(() => {
+    if (system.subagents.length >= 4) return;
+    
+    const spacing = 300;
+    const subagentsCount = system.subagents.length;
+    const newX = (subagentsCount - (subagentsCount) / 2) * spacing;
+    const newId = `agent-${Date.now()}`;
+
+    const newAgent: AgentNode = {
+      id: newId,
+      index: agents.length,
+      name: `New Agent ${system.subagents.length + 1}`,
+      description: 'New team member.',
+      instruction: 'Pending instructions...',
+      color: '#A855F7',
+      model: 'gemini-3.1-flash-lite-preview',
+      allowedTools: ['complete_task'],
+      parentId: system.leadAgent.id,
+      nextId: system.leadAgent.id,
+      position: { x: Math.round(newX), y: 420 }
+    };
+
+    const updatedSystem = {
+      ...system,
+      subagents: [...system.subagents, newAgent]
+    };
+
+    useTeamStore.getState().saveCustomSystem(updatedSystem);
+    setSelectedAgentId(newId);
+  }, [system, agents.length]);
+
+  const handleRemoveAgent = useCallback((agentId: string) => {
+    const updatedSystem = {
+      ...system,
+      subagents: system.subagents.filter(s => s.id !== agentId)
+    };
+    useTeamStore.getState().saveCustomSystem(updatedSystem);
+    setSelectedAgentId(null);
+  }, [system]);
+
   return (
     <div className="w-full h-full relative bg-zinc-50 flex flex-col overflow-hidden">
-      <InternalHeader onClose={handleClose} />
+      <InternalHeader onClose={handleClose} system={system} />
 
       <div className="flex-1 min-h-0 relative flex overflow-hidden">
         {/* Left Panel: Agent Config */}
@@ -143,7 +205,9 @@ const VisualConfiguratorContent: React.FC = () => {
           {activeAgent ? (
             <AgentConfigPanel
               agent={activeAgent}
+              system={system}
               onClose={() => setSelectedAgentId(null)}
+              onRemove={activeAgent.index > 1 ? () => handleRemoveAgent(activeAgent.id) : undefined}
               mode={configMode === 'view' ? 'view' : 'edit'}
             />
           ) : (
@@ -160,6 +224,7 @@ const VisualConfiguratorContent: React.FC = () => {
             onEdgesChange={onEdgesChange}
             onNodeClick={onNodeClick}
             onPaneClick={onPaneClick}
+            onNodeDragStop={onNodeDragStop}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             nodeOrigin={[0.5, 0]}
@@ -175,9 +240,13 @@ const VisualConfiguratorContent: React.FC = () => {
             <Background gap={24} color="#bbbbbb" size={2} />
             {configMode === 'edit' && (
               <div className="absolute top-6 left-6 flex flex-col gap-2 z-10">
-                <button className="flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-600 shadow-sm transition-all hover:bg-zinc-50">
+                <button 
+                  onClick={handleAddAgent}
+                  disabled={system.subagents.length >= 4}
+                  className={`flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-600 shadow-sm transition-all hover:bg-zinc-50 ${system.subagents.length >= 4 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
                   <Plus size={14} strokeWidth={3} />
-                  Add Agent
+                  Add Agent {system.subagents.length >= 4 ? '(Max 4)' : ''}
                 </button>
               </div>
             )}

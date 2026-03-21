@@ -28,7 +28,14 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[],
 
   // 1. Define nodes and their base layout
   const allNodeData = [
-    { id: USER_ID, name: USER_NAME, color: USER_COLOR, type: 'user' as const, x: 0, y: 0 },
+    { 
+      id: USER_ID, 
+      name: USER_NAME, 
+      color: USER_COLOR, 
+      type: 'user' as const, 
+      x: system.user.position?.x ?? 0, 
+      y: system.user.position?.y ?? 0 
+    },
     { 
       id: system.leadAgent.id, 
       name: system.leadAgent.name, 
@@ -38,20 +45,15 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[],
       y: system.leadAgent.position?.y ?? 150,
       agent: system.leadAgent 
     },
-    ...system.subagents.map((agent, i) => {
-      const spacing = 300;
-      const defaultX = (i - (system.subagents.length - 1) / 2) * spacing;
-      const staggerY = 420 + (i % 2 === 0 ? 1 : -1) * (15 + i * 12);
-      return {
-        id: agent.id,
-        name: agent.name,
-        color: agent.color,
-        type: 'agent' as const,
-        x: agent.position?.x ?? defaultX,
-        y: agent.position?.y ?? staggerY,
-        agent,
-      };
-    })
+    ...system.subagents.map((agent, i) => ({
+      id: agent.id,
+      name: agent.name,
+      color: agent.color,
+      type: 'agent' as const,
+      x: agent.position?.x ?? ((i - (system.subagents.length - 1) / 2) * 300),
+      y: agent.position?.y ?? 420,
+      agent,
+    }))
   ];
 
   const metaMap = new Map(allNodeData.map(n => [n.id, n]));

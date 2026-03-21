@@ -49,7 +49,9 @@ export const TeamsPanel: React.FC<TeamsPanelProps> = ({ onSelectTeam, selectedTe
           'request_client_approval', 
           'receive_client_approval', 
           'complete_task'
-        ] 
+        ],
+        parentId: 'user',
+        nextId: 'user',
       },
       subagents: [],
     };
