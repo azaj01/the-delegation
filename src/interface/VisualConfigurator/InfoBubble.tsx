@@ -16,7 +16,7 @@ export const InfoBubble: React.FC<InfoBubbleProps> = ({ text }) => {
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
         onClick={() => setIsVisible(!isVisible)}
-        className="text-zinc-300 hover:text-blue-500 transition-colors cursor-help outline-none"
+        className="text-zinc-300 hover:text-[#7EACEA] transition-colors cursor-help outline-none"
       >
         <HelpCircle size={12} strokeWidth={2.5} />
       </button>

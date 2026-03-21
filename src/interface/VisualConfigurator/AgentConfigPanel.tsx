@@ -120,7 +120,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
       <div className="p-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
         <div className="flex items-center gap-2">
           {isUser ? (
-            <div className="p-1 bg-blue-500 rounded text-white"><User size={12} /></div>
+            <div className="p-1 bg-[#7EACEA] rounded text-white"><User size={12} /></div>
           ) : (
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: editData.color }} />
           )}
@@ -135,8 +135,8 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
 
       <div className="flex-1 overflow-y-auto p-5 space-y-8">
         {isUser ? (
-          <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 bg-blue-50/30 rounded-3xl border border-blue-100/50 italic">
-            <div className="p-4 bg-blue-500 rounded-2xl text-white shadow-lg shadow-blue-500/20">
+          <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 bg-[#7EACEA]/10 rounded-3xl border border-[#7EACEA]/20 italic">
+            <div className="p-4 bg-[#7EACEA] rounded-2xl text-white shadow-lg shadow-[#7EACEA]/20">
               <User size={32} strokeWidth={2.5} />
             </div>
             <div>

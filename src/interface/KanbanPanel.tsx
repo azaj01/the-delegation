@@ -118,7 +118,7 @@ function TaskCard({ task }: { task: Task; key?: string }) {
         {effectiveAgentIds.map(renderAgentTag)}
       </div>
       {task.status === 'in_progress' && (
-        <span className="inline-block text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5">
+        <span className="inline-block text-[10px] font-black uppercase tracking-widest text-[#5A8CC7] bg-[#7EACEA]/10 border border-[#7EACEA]/20 rounded-full px-2 py-0.5 shadow-sm">
           working
         </span>
       )}

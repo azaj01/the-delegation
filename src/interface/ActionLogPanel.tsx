@@ -85,7 +85,7 @@ ${entry.rawContent}
                                     {agent?.name}
                                 </span>
                                 <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter ${
-                                    entry.phase === 'request' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'
+                                    entry.phase === 'request' ? 'bg-[#7EACEA]/10 text-[#5A8CC7]' : 'bg-emerald-50 text-emerald-600'
                                 }`}>
                                     {entry.phase}
                                 </span>

@@ -123,7 +123,7 @@ const ChatPanel: React.FC = () => {
                       </svg>
                     </div>
                   ) : (
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-[#7EACEA]/10 flex items-center justify-center border border-[#7EACEA]/20 shadow-sm">
                       <span className="text-sm font-black" style={{ color: USER_COLOR }}>U</span>
                     </div>
                   )}
@@ -132,7 +132,7 @@ const ChatPanel: React.FC = () => {
                 <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                   <div className={`px-4 py-2.5 rounded-[20px] text-[14px] leading-relaxed shadow-sm ${
                     msg.role === 'user'
-                    ? 'bg-blue-50/50 text-zinc-800 rounded-tr-none border border-blue-100/50'
+                    ? 'bg-[#7EACEA]/10 text-zinc-800 rounded-tr-none border border-[#7EACEA]/20'
                     : 'bg-zinc-50 text-zinc-800 rounded-tl-none border border-zinc-100'
                   }`}>
                     {msg.role === 'assistant' ? (
@@ -206,7 +206,7 @@ const ChatPanel: React.FC = () => {
                 }
               }}
               placeholder="Message (↵ to send)"
-              className="w-full bg-white border border-zinc-200 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all resize-none pr-12 [scrollbar-width:none]"
+              className="w-full bg-white border border-zinc-200 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7EACEA]/20 focus:border-[#7EACEA]/50 transition-all resize-none pr-12 [scrollbar-width:none]"
             />
           </div>
           <button

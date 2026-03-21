@@ -35,7 +35,7 @@ const ProjectView: React.FC = () => {
           <h2 className="text-xl font-black text-zinc-900 leading-tight">Project Info</h2>
           <div className="flex items-center gap-2">
             <div className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
-              phase === 'working' ? 'bg-blue-500 text-white' :
+              phase === 'working' ? 'bg-[#7EACEA] text-white' :
               phase === 'done' ? 'bg-green-500 text-white' :
               phase === 'briefing' ? 'bg-amber-500 text-white' :
               'bg-zinc-100 text-zinc-400'

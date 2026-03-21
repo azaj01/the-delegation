@@ -27,14 +27,14 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
   return (
     <div
       className={`
-        relative px-5 py-3 shadow-sm rounded-xl border-2 pointer-events-auto transition-all duration-300 w-fit min-w-[160px]
+        relative px-5 py-3 shadow-sm rounded-xl border-2 pointer-events-auto transition-all duration-300 w-fit min-w-[160px] bg-white
         ${selected ? 'ring-4 scale-105 z-20 shadow-lg' : 'z-10'}
         ${data.isDimmed ? 'opacity-20 translate-y-1' : 'opacity-100'}
-        ${isUser ? 'bg-blue-50 border-blue-200' : 'bg-white shadow-zinc-100'}
+
       `}
-      style={{ 
-        borderColor: selected ? (isUser ? '#3B82F6' : data.color) : (isUser ? '#BFDBFE' : data.color || '#ccc'),
-        boxShadow: selected ? `0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05), 0 0 0 4px ${isUser ? '#3B82F6' : data.color}30` : undefined
+      style={{
+        borderColor: selected ? (isUser ? '#7EACEA' : data.color) : (isUser ? '#7EACEA' : data.color || '#ccc'),
+        boxShadow: selected ? `0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05), 0 0 0 4px ${isUser ? '#7EACEA' : data.color}30` : undefined
       }}
     >
       {/* Handles */}
@@ -43,27 +43,26 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
 
       <div className="flex items-center mb-1 gap-2">
         {isUser ? (
-          <div className="p-1.5 bg-blue-500 rounded-lg shadow-sm shrink-0">
+          <div className="p-1.5 bg-[#7EACEA] rounded-lg shadow-sm shrink-0">
             <User size={14} className="text-white" />
           </div>
         ) : (
           <div className="rounded-full w-3 h-3 shadow-inner shrink-0" style={{ backgroundColor: data.color }} />
         )}
-        
-        <div className={`font-bold text-[11px] uppercase tracking-wider truncate max-w-[140px] ${isUser ? 'text-blue-900' : 'text-zinc-800'}`}>
+
+        <div className={`font-bold text-[11px] uppercase tracking-wider truncate max-w-[140px] ${isUser ? 'text-[#5A8CC7]' : 'text-zinc-800'}`}>
           {data.label}
         </div>
 
         {data.isLead && !isUser && (
-          <div className="bg-blue-100 text-blue-700 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border border-blue-200 shadow-sm leading-none flex items-center h-4 shrink-0">
+          <div className="bg-[#7EACEA]/10 text-[#5A8CC7] text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border border-[#7EACEA]/20 shadow-sm leading-none flex items-center h-4 shrink-0">
             Lead
           </div>
         )}
       </div>
 
-      <div className={`text-[9px] font-mono px-1.5 py-0.5 rounded border inline-block ${
-        isUser ? 'text-blue-400 border-blue-100 bg-blue-50/50 italic' : 'text-zinc-400 border-zinc-100 bg-zinc-50'
-      }`}>
+      <div className={`text-[9px] font-mono px-1.5 py-0.5 rounded border inline-block ${isUser ? 'text-[#7EACEA] border-[#7EACEA]/20 bg-[#7EACEA]/10 italic' : 'text-zinc-400 border-zinc-100 bg-zinc-50'
+        }`}>
         {isUser ? 'Control Hub' : data.agent?.model}
       </div>
     </div>

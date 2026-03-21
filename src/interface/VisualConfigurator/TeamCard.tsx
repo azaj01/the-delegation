@@ -202,15 +202,15 @@ export const TeamCard: React.FC<TeamCardProps> = ({
               </div>
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Team Name</label>
-                <input value={localEditData.teamName || ''} onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamName: e.target.value })); setErrorMsg(null); }} className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none focus:border-blue-500/50" />
+                <input value={localEditData.teamName || ''} onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamName: e.target.value })); setErrorMsg(null); }} className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none focus:border-[#7EACEA]/50" />
               </div>
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Team Type</label>
-                <input value={localEditData.teamType || ''} onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamType: e.target.value })); setErrorMsg(null); }} className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none focus:border-blue-500/50" />
+                <input value={localEditData.teamType || ''} onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamType: e.target.value })); setErrorMsg(null); }} className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none focus:border-[#7EACEA]/50" />
               </div>
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Description</label>
-                <textarea value={localEditData.teamDescription || ''} onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamDescription: e.target.value })); setErrorMsg(null); }} className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl p-2.5 outline-none resize-none h-20 leading-snug focus:border-blue-500/50" />
+                <textarea value={localEditData.teamDescription || ''} onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamDescription: e.target.value })); setErrorMsg(null); }} className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl p-2.5 outline-none resize-none h-20 leading-snug focus:border-[#7EACEA]/50" />
               </div>
               <button onClick={handleSave} disabled={!isFormValid} className={`w-full py-2.5 mt-1 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all shadow-lg ${isFormValid ? 'bg-zinc-900 text-white shadow-black/10' : 'bg-zinc-50 text-zinc-300 shadow-none cursor-not-allowed'}`}>Save Changes</button>
             </div>
