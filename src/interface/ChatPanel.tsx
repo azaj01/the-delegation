@@ -3,7 +3,8 @@ import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { getAgentSet, getAllAgents, USER_COLOR } from '../data/agents';
+import { getAgentSet, getAllAgents } from '../data/agents';
+import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
@@ -123,18 +124,30 @@ const ChatPanel: React.FC = () => {
                       </svg>
                     </div>
                   ) : (
-                    <div className="w-10 h-10 rounded-xl bg-[#7EACEA]/10 flex items-center justify-center border border-[#7EACEA]/20 shadow-sm">
+                    <div 
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm border"
+                      style={{ backgroundColor: USER_COLOR_LIGHT, borderColor: USER_COLOR_SOFT }}
+                    >
                       <span className="text-sm font-black" style={{ color: USER_COLOR }}>U</span>
                     </div>
                   )}
                 </div>
 
                 <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                  <div className={`px-4 py-2.5 rounded-[20px] text-[14px] leading-relaxed shadow-sm ${
-                    msg.role === 'user'
-                    ? 'bg-[#7EACEA]/10 text-zinc-800 rounded-tr-none border border-[#7EACEA]/20'
-                    : 'bg-zinc-50 text-zinc-800 rounded-tl-none border border-zinc-100'
-                  }`}>
+                  <div 
+                    className={`px-4 py-2.5 rounded-[20px] text-[14px] leading-relaxed shadow-sm border ${
+                      msg.role === 'user' ? 'rounded-tr-none' : 'rounded-tl-none'
+                    }`}
+                    style={msg.role === 'user' ? {
+                      backgroundColor: USER_COLOR_LIGHT,
+                      borderColor: USER_COLOR_SOFT,
+                      color: '#27272a' // text-zinc-800
+                    } : {
+                      backgroundColor: '#fafafa', // bg-zinc-50
+                      borderColor: '#f4f4f5', // border-zinc-100
+                      color: '#27272a' // text-zinc-800
+                    }}
+                  >
                     {msg.role === 'assistant' ? (
                       <div className="markdown-content">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -206,7 +219,11 @@ const ChatPanel: React.FC = () => {
                 }
               }}
               placeholder="Message (↵ to send)"
-              className="w-full bg-white border border-zinc-200 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7EACEA]/20 focus:border-[#7EACEA]/50 transition-all resize-none pr-12 [scrollbar-width:none]"
+              className="w-full bg-white border border-zinc-200 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:ring-2 transition-all resize-none pr-12 [scrollbar-width:none]"
+              style={{
+                borderColor: input.trim() ? USER_COLOR : undefined,
+                boxShadow: input.trim() ? `0 0 0 2px ${USER_COLOR_LIGHT}` : undefined
+              }}
             />
           </div>
           <button

@@ -1,6 +1,7 @@
 import { HelpCircle } from 'lucide-react';
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { USER_COLOR } from '../../theme/brand';
 
 interface InfoBubbleProps {
   text: string;
@@ -16,7 +17,8 @@ export const InfoBubble: React.FC<InfoBubbleProps> = ({ text }) => {
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
         onClick={() => setIsVisible(!isVisible)}
-        className="text-zinc-300 hover:text-[#7EACEA] transition-colors cursor-help outline-none"
+        className="text-zinc-300 transition-colors cursor-help outline-none"
+        style={{ color: isVisible ? USER_COLOR : undefined }}
       >
         <HelpCircle size={12} strokeWidth={2.5} />
       </button>

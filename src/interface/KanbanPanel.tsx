@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronRight, MessageSquareWarning, Trash2 } from 'lucide-react'
 import React, { useState } from 'react'
-import { getAllAgents, USER_COLOR, USER_NAME } from '../data/agents'
+import { getAllAgents, USER_NAME } from '../data/agents'
+import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand'
 import { useCoreStore, type Task, type TaskStatus } from '../integration/store/coreStore'
 import { getActiveAgentSet, useTeamStore } from '../integration/store/teamStore'
 import { useUiStore } from '../integration/store/uiStore'
@@ -118,7 +119,14 @@ function TaskCard({ task }: { task: Task; key?: string }) {
         {effectiveAgentIds.map(renderAgentTag)}
       </div>
       {task.status === 'in_progress' && (
-        <span className="inline-block text-[10px] font-black uppercase tracking-widest text-[#5A8CC7] bg-[#7EACEA]/10 border border-[#7EACEA]/20 rounded-full px-2 py-0.5 shadow-sm">
+        <span 
+          className="inline-block text-[10px] font-black uppercase tracking-widest rounded-full px-2 py-0.5 shadow-sm border"
+          style={{ 
+            color: USER_COLOR, 
+            backgroundColor: USER_COLOR_LIGHT, 
+            borderColor: USER_COLOR_SOFT 
+          }}
+        >
           working
         </span>
       )}

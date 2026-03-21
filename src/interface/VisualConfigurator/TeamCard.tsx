@@ -1,6 +1,7 @@
 import { Edit2, Pipette, Trash2, Users, X } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AgenticSystem, DEFAULT_AGENTIC_SET_ID, getAllAgents } from '../../data/agents';
+import { USER_COLOR } from '../../theme/brand';
 import { abortAllCalls } from '../../integration/coreService';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { useSceneManager } from '../../simulation/SceneContext';
@@ -202,15 +203,34 @@ export const TeamCard: React.FC<TeamCardProps> = ({
               </div>
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Team Name</label>
-                <input value={localEditData.teamName || ''} onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamName: e.target.value })); setErrorMsg(null); }} className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none focus:border-[#7EACEA]/50" />
+                <input 
+                  value={localEditData.teamName || ''} 
+                  onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamName: e.target.value })); setErrorMsg(null); }} 
+                  className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none transition-colors" 
+                  style={{'--tw-focus-border-color': USER_COLOR} as React.CSSProperties}
+                  onFocus={(e) => e.target.style.borderColor = USER_COLOR}
+                  onBlur={(e) => e.target.style.borderColor = '#f4f4f5'}
+                />
               </div>
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Team Type</label>
-                <input value={localEditData.teamType || ''} onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamType: e.target.value })); setErrorMsg(null); }} className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none focus:border-[#7EACEA]/50" />
+                <input 
+                  value={localEditData.teamType || ''} 
+                  onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamType: e.target.value })); setErrorMsg(null); }} 
+                  className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none transition-colors" 
+                  onFocus={(e) => e.target.style.borderColor = USER_COLOR}
+                  onBlur={(e) => e.target.style.borderColor = '#f4f4f5'}
+                />
               </div>
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Description</label>
-                <textarea value={localEditData.teamDescription || ''} onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamDescription: e.target.value })); setErrorMsg(null); }} className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl p-2.5 outline-none resize-none h-20 leading-snug focus:border-[#7EACEA]/50" />
+                <textarea 
+                  value={localEditData.teamDescription || ''} 
+                  onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamDescription: e.target.value })); setErrorMsg(null); }} 
+                  className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl p-2.5 outline-none resize-none h-20 leading-snug transition-colors" 
+                  onFocus={(e) => e.target.style.borderColor = USER_COLOR}
+                  onBlur={(e) => e.target.style.borderColor = '#f4f4f5'}
+                />
               </div>
               <button onClick={handleSave} disabled={!isFormValid} className={`w-full py-2.5 mt-1 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all shadow-lg ${isFormValid ? 'bg-zinc-900 text-white shadow-black/10' : 'bg-zinc-50 text-zinc-300 shadow-none cursor-not-allowed'}`}>Save Changes</button>
             </div>

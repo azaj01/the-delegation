@@ -1,6 +1,7 @@
 import { Cpu, Save, Shield, Target, Trash2, User, X, Info, ChevronDown, Check, Pipette } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
-import { AgentNode, AgenticSystem, USER_ID, USER_NAME, USER_COLOR, DEFAULT_MAX_ITERATIONS, getAllCharacters } from '../../data/agents';
+import { AgentNode, AgenticSystem, USER_ID, USER_NAME, DEFAULT_MAX_ITERATIONS, getAllCharacters } from '../../data/agents';
+import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../../theme/brand';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { ColorPicker } from './ColorPicker';
@@ -120,7 +121,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
       <div className="p-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
         <div className="flex items-center gap-2">
           {isUser ? (
-            <div className="p-1 bg-[#7EACEA] rounded text-white"><User size={12} /></div>
+            <div className="p-1 rounded text-white" style={{ backgroundColor: USER_COLOR }}><User size={12} /></div>
           ) : (
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: editData.color }} />
           )}
@@ -135,8 +136,14 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
 
       <div className="flex-1 overflow-y-auto p-5 space-y-8">
         {isUser ? (
-          <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 bg-[#7EACEA]/10 rounded-3xl border border-[#7EACEA]/20 italic">
-            <div className="p-4 bg-[#7EACEA] rounded-2xl text-white shadow-lg shadow-[#7EACEA]/20">
+          <div 
+            className="flex flex-col items-center justify-center p-8 text-center space-y-4 rounded-3xl border italic"
+            style={{ backgroundColor: USER_COLOR_LIGHT, borderColor: USER_COLOR_SOFT }}
+          >
+            <div 
+              className="p-4 rounded-2xl text-white shadow-lg"
+              style={{ backgroundColor: USER_COLOR, boxShadow: `0 10px 15px -3px ${USER_COLOR}33` }}
+            >
               <User size={32} strokeWidth={2.5} />
             </div>
             <div>

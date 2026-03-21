@@ -1,6 +1,7 @@
 import { FolderOpen, Lock, MessageSquare, MessageSquareWarning } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { getAgentSet, getAllCharacters } from '../data/agents';
+import { USER_COLOR } from '../theme/brand';
 import { useChatAvailability } from '../integration/hooks/useChatAvailability';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore } from '../integration/store/teamStore';
@@ -102,10 +103,10 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
               {needsDiscussion && !isChatting ? (
                 <div className="flex flex-col gap-3 p-4 bg-zinc-50 border border-zinc-100 rounded-xl animate-in fade-in slide-in-from-top-1 shadow-sm">
                   <div className="flex items-center gap-1.5">
-                    <div className="flex items-center justify-center w-5 h-5 bg-[#7EACEA] rounded-md text-white">
+                    <div className="flex items-center justify-center w-5 h-5 rounded-md text-white" style={{ backgroundColor: USER_COLOR }}>
                       <MessageSquare size={12} strokeWidth={3} />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-[#7EACEA]">Needs Discussion</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: USER_COLOR }}>Needs Discussion</span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <p className="text-[12px] font-bold text-zinc-900 leading-tight">

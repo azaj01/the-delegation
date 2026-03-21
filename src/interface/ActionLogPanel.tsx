@@ -1,6 +1,7 @@
 import { Check, ChevronDown, ChevronRight, Copy, Download, Eye, Filter, MessageSquare, Terminal, Zap } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { getAgentSet, getAllAgents } from '../data/agents'
+import { USER_COLOR, USER_COLOR_LIGHT } from '../theme/brand'
 import { DebugLogEntry, useCoreStore } from '../integration/store/coreStore'
 import { useTeamStore } from '../integration/store/teamStore'
 
@@ -84,9 +85,16 @@ ${entry.rawContent}
                                 <span className="text-[10px] font-black text-zinc-800 uppercase tracking-widest leading-none">
                                     {agent?.name}
                                 </span>
-                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter ${
-                                    entry.phase === 'request' ? 'bg-[#7EACEA]/10 text-[#5A8CC7]' : 'bg-emerald-50 text-emerald-600'
-                                }`}>
+                                <span 
+                                    className="text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter"
+                                    style={entry.phase === 'request' ? {
+                                        backgroundColor: USER_COLOR_LIGHT,
+                                        color: USER_COLOR
+                                    } : {
+                                        backgroundColor: '#ecfdf5', // bg-emerald-50
+                                        color: '#059669' // text-emerald-600
+                                    }}
+                                >
                                     {entry.phase}
                                 </span>
                             </div>
