@@ -111,12 +111,18 @@ const VisualConfiguratorContent: React.FC = () => {
   }, []);
 
   const onNodeClick = useCallback((_: any, node: any) => {
-    setSelectedAgentId(node.id);
-  }, []);
+    if (node.id === 'user') {
+      setSelectedAgentId(null);
+      setNodes(nds => nds.map(n => ({ ...n, selected: false })));
+    } else {
+      setSelectedAgentId(node.id);
+    }
+  }, [setNodes]);
 
   const onPaneClick = useCallback(() => {
     setSelectedAgentId(null);
-  }, []);
+    setNodes(nds => nds.map(n => ({ ...n, selected: false })));
+  }, [setNodes]);
   
   const onNodeDragStop = useCallback((_: any, node: any) => {
     const { id, position } = node;
@@ -138,9 +144,10 @@ const VisualConfiguratorContent: React.FC = () => {
 
   const handleClose = useCallback(() => {
     setSelectedAgentId(null);
+    setNodes(nds => nds.map(n => ({ ...n, selected: false })));
     setConfigMode('view');
     setViewMode('simulation');
-  }, [selectedAgentSetId, setViewMode]);
+  }, [selectedTeamId, setViewMode, setNodes]);
 
   const handleAddAgent = useCallback(() => {
     if (system.subagents.length >= 4) return;
@@ -189,11 +196,14 @@ const VisualConfiguratorContent: React.FC = () => {
       <div className="flex-1 min-h-0 relative flex overflow-hidden">
         {/* Left Panel: Agent Config */}
         <div className="relative shrink-0 flex border-r border-zinc-100 bg-white">
-          {activeAgent ? (
+          {activeAgent && activeAgent.id !== 'user' ? (
             <AgentConfigPanel
               agent={activeAgent}
               system={system}
-              onClose={() => setSelectedAgentId(null)}
+              onClose={() => {
+                setSelectedAgentId(null);
+                setNodes(nds => nds.map(n => ({ ...n, selected: false })));
+              }}
               onRemove={activeAgent.index > 1 ? () => handleRemoveAgent(activeAgent.id) : undefined}
               mode={configMode === 'view' ? 'view' : 'edit'}
             />

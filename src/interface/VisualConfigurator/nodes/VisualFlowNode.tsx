@@ -41,7 +41,7 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
       {topHandles.map((h, i) => <NodeHandle key={h.id} h={h} i={i} total={topHandles.length} position="top" />)}
       {bottomHandles.map((h, i) => <NodeHandle key={h.id} h={h} i={i} total={bottomHandles.length} position="bottom" />)}
 
-      <div className="flex items-center mb-1 gap-2">
+      <div className="flex items-center mb-1 gap-2 w-full min-w-[140px]">
         {isUser ? (
           <div className="p-1.5 rounded-lg shadow-sm shrink-0" style={{ backgroundColor: USER_COLOR }}>
             <User size={14} className="text-white" />
@@ -51,7 +51,7 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
         )}
 
         <div 
-          className="font-bold text-[11px] uppercase tracking-wider truncate max-w-[140px]"
+          className="font-bold text-[11px] uppercase tracking-wider truncate flex-1 min-w-0"
           style={{ color: isUser ? USER_COLOR : undefined }}
         >
           {data.label}
@@ -59,7 +59,7 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
 
         {data.isLead && !isUser && (
           <div 
-            className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0"
+            className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 -mr-1"
             style={{ 
               backgroundColor: USER_COLOR_LIGHT, 
               color: USER_COLOR,
@@ -69,22 +69,33 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
             Lead
           </div>
         )}
+
+        {!data.isLead && !isUser && (
+          <div 
+            className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 -mr-1"
+            style={{ 
+              backgroundColor: `${data.color}20`, 
+              color: data.color,
+              borderColor: `${data.color}40`
+            }}
+          >
+            Subagent
+          </div>
+        )}
       </div>
 
-      <div 
-        className="text-[9px] font-mono px-1.5 py-0.5 rounded border inline-block italic" 
-        style={isUser ? {
-          color: USER_COLOR,
-          borderColor: USER_COLOR_SOFT,
-          backgroundColor: USER_COLOR_LIGHT
-        } : {
-          color: '#a1a1aa', // text-zinc-400
-          borderColor: '#f4f4f5', // border-zinc-100
-          backgroundColor: '#fafafa' // bg-zinc-50
-        }}
-      >
-        {isUser ? 'Control Hub' : data.agent?.model}
-      </div>
+      {!isUser && (
+        <div 
+          className="text-[9px] font-mono px-1.5 py-0.5 rounded border inline-block italic" 
+          style={{
+            color: '#a1a1aa', // text-zinc-400
+            borderColor: '#f4f4f5', // border-zinc-100
+            backgroundColor: '#fafafa' // bg-zinc-50
+          }}
+        >
+          {data.agent?.model}
+        </div>
+      )}
     </div>
   );
 };

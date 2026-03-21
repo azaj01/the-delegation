@@ -1,5 +1,6 @@
 import { HelpCircle } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { USER_COLOR } from '../../theme/brand';
 
@@ -9,34 +10,60 @@ interface InfoBubbleProps {
 
 export const InfoBubble: React.FC<InfoBubbleProps> = ({ text }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [coords, setCoords] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const updateCoords = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setCoords({
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      });
+    }
+  };
 
   return (
     <div className="relative inline-block ml-1">
       <button
+        ref={triggerRef}
         type="button"
-        onMouseEnter={() => setIsVisible(true)}
+        onMouseEnter={() => {
+          updateCoords();
+          setIsVisible(true);
+        }}
         onMouseLeave={() => setIsVisible(false)}
-        onClick={() => setIsVisible(!isVisible)}
+        onClick={() => {
+          updateCoords();
+          setIsVisible(!isVisible);
+        }}
         className="text-zinc-300 transition-colors cursor-help outline-none"
         style={{ color: isVisible ? USER_COLOR : undefined }}
       >
         <HelpCircle size={12} strokeWidth={2.5} />
       </button>
 
-      <AnimatePresence>
-        {isVisible && (
-          <motion.div
-            initial={{ opacity: 0, y: 5, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 5, scale: 0.95 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-3 bg-zinc-900 text-white text-[10px] font-medium leading-relaxed rounded-xl shadow-xl z-[100] pointer-events-none border border-zinc-800"
-          >
-            {text}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-zinc-900" />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
+          {isVisible && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.1 }}
+              className="fixed bg-zinc-900 text-white text-[10px] px-3 py-2 rounded-lg shadow-2xl z-[9999] pointer-events-none border border-zinc-800 w-max max-w-[200px] text-center"
+              style={{
+                left: coords.x + 8,
+                top: coords.y - 8,
+                transform: 'translate(-50%, -100%)',
+              }}
+            >
+              {text}
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };
