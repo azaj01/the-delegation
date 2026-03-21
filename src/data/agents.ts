@@ -232,11 +232,5 @@ export function getAllCharacters(system: AgenticSystem): AgentNode[] {
 }
 
 
-export function getAgent(index: number, agents: AgentNode[]): AgentNode | undefined {
-  return agents.find((a) => a.index === index);
-}
 
-export function getAgentMaxIterations(agent: AgentNode): number {
-  return agent.maxIterations ?? DEFAULT_MAX_ITERATIONS;
-}
 

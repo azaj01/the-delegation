@@ -3,7 +3,7 @@ import { applyEdgeChanges, applyNodeChanges, Background, Edge, EdgeChange, NodeC
 import '@xyflow/react/dist/style.css';
 import { Plus, Settings, User, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AgentNode, getAgentSet, getAllAgents, USER_COLOR, USER_NAME } from '../../data/agents';
+import { AgentNode, getAllCharacters, getAgentSet, USER_COLOR, USER_NAME } from '../../data/agents';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { AgentConfigPanel } from './AgentConfigPanel';
@@ -75,20 +75,7 @@ const VisualConfiguratorContent: React.FC = () => {
 
   const system = useMemo(() => getAgentSet(selectedTeamId, customSystems), [selectedTeamId, customSystems]);
   
-  const agents = useMemo(() => {
-    const all = getAllAgents(system);
-    const userAgent: AgentNode = {
-      id: 'user',
-      index: 0,
-      name: USER_NAME,
-      color: USER_COLOR,
-      description: 'The primary user and project visionary.',
-      instruction: 'Provide approvals and feedback to the team.',
-      model: 'Human',
-      allowedTools: [],
-    };
-    return [userAgent, ...all];
-  }, [system]);
+  const agents = useMemo(() => getAllCharacters(system), [system]);
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => systemToFlow(system), [system]);
 

@@ -1,6 +1,6 @@
 import { Cpu, Save, Shield, Target, Trash2, User, X, Info, ChevronDown, Check, Pipette } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
-import { AgentNode, AgenticSystem, USER_ID, USER_NAME, USER_COLOR, DEFAULT_MAX_ITERATIONS } from '../../data/agents';
+import { AgentNode, AgenticSystem, USER_ID, USER_NAME, USER_COLOR, DEFAULT_MAX_ITERATIONS, getAllCharacters } from '../../data/agents';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { ColorPicker } from './ColorPicker';
@@ -35,14 +35,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
     setEditData(agent);
   }, [agent]);
 
-  const allCharacters = useMemo(() => {
-    const list = [
-      { id: USER_ID, name: USER_NAME, index: 0 },
-      activeSystem.leadAgent,
-      ...activeSystem.subagents
-    ];
-    return list;
-  }, [activeSystem]);
+  const allCharacters = useMemo(() => getAllCharacters(activeSystem), [activeSystem]);
 
   const availableParents = useMemo(() => {
     if (isLead) return [{ id: USER_ID, name: USER_NAME }];
