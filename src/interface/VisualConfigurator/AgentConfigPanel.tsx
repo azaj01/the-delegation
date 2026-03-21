@@ -1,4 +1,4 @@
-import { Cpu, Save, Shield, Target, Trash2, User, X, Info, ChevronDown, Check, Pipette } from 'lucide-react';
+import { Cpu, Save, Shield, Target, Trash2, User, X, Check, Pipette } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
 import { AgentNode, AgenticSystem, USER_ID, USER_NAME, DEFAULT_MAX_ITERATIONS, getAllCharacters } from '../../data/agents';
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../../theme/brand';
@@ -17,12 +17,12 @@ interface AgentConfigPanelProps {
   mode?: 'view' | 'edit';
 }
 
-export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({ 
-  agent, 
+export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
+  agent,
   system: activeSystem,
-  onClose, 
+  onClose,
   onRemove,
-  mode = 'edit' 
+  mode = 'edit'
 }) => {
   const isView = mode === 'view';
   const { availableModels } = useCoreStore();
@@ -53,16 +53,27 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
     return allCharacters.filter(c => c.id !== agent.id || c.id === agent.id);
   }, [allCharacters, agent.id, isLead]);
 
-  const handleSave = () => {
+  const nameCollision = useMemo(() => {
+    return allCharacters.some(c =>
+      c.id !== agent.id && c.name.toLowerCase().trim() === editData.name.toLowerCase().trim()
+    );
+  }, [allCharacters, agent.id, editData.name]);
+
+  const isValid = useMemo(() => {
     const brightness = getBrightness(editData.color);
-    if (brightness > 180) return; // Block save if color is too light
+    const isNameEmpty = editData.name.trim() === '';
+    return brightness <= 180 && !nameCollision && !isNameEmpty;
+  }, [editData.color, editData.name, nameCollision]);
+
+  const handleSave = () => {
+    if (!isValid) return;
 
     const oldId = agent.id;
     const newId = editData.id;
 
     // 1. Create a base for lead agent and subagents with the updated agent
     let newLeadAgent = isLead ? editData : { ...activeSystem.leadAgent };
-    let newSubagents = activeSystem.subagents.map(s => 
+    let newSubagents = activeSystem.subagents.map(s =>
       s.index === editData.index ? editData : { ...s }
     );
 
@@ -92,7 +103,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
   const handleNameChange = (name: string) => {
     // Limit to letters, numbers and spaces
     const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '');
-    const id = sanitizedName.toLowerCase().replace(/ /g, '-');
+    const id = sanitizedName.trim().toLowerCase().replace(/ /g, '-');
     setEditData(prev => ({ ...prev, name: sanitizedName, id }));
   };
 
@@ -107,7 +118,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
   const renderField = (label: string, icon: React.ReactNode, value: React.ReactNode, helpText?: string, inline?: boolean) => (
     <div className={inline ? "flex items-center justify-between" : "space-y-1.5"}>
       <div className="flex items-center gap-1.5">
-        <div className="text-zinc-400">{icon}</div>
+        {icon && <div className="text-zinc-400 shrink-0">{icon}</div>}
         <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block">{label}</label>
         {helpText && <InfoBubble text={helpText} />}
       </div>
@@ -136,11 +147,11 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
 
       <div className="flex-1 overflow-y-auto p-5 space-y-8">
         {isUser ? (
-          <div 
+          <div
             className="flex flex-col items-center justify-center p-8 text-center space-y-4 rounded-3xl border italic"
             style={{ backgroundColor: USER_COLOR_LIGHT, borderColor: USER_COLOR_SOFT }}
           >
-            <div 
+            <div
               className="p-4 rounded-2xl text-white shadow-lg"
               style={{ backgroundColor: USER_COLOR, boxShadow: `0 10px 15px -3px ${USER_COLOR}33` }}
             >
@@ -157,13 +168,13 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
             <div className="space-y-6">
               {!isView && (
                 <div className="space-y-1.5 px-1">
-                   <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5">
                     <Pipette size={12} className="text-zinc-400" />
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Agent Color</label>
                   </div>
-                  <ColorPicker 
-                    color={editData.color} 
-                    onChange={(val) => setEditData(prev => ({ ...prev, color: val }))} 
+                  <ColorPicker
+                    color={editData.color}
+                    onChange={(val) => setEditData(prev => ({ ...prev, color: val }))}
                   />
                 </div>
               )}
@@ -171,23 +182,32 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
               {renderField('Name', <User size={12} />, isView ? (
                 <p className="text-sm font-bold text-zinc-900">{editData.name}</p>
               ) : (
-                <input
-                  type="text"
-                  value={editData.name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-black/5"
-                />
+                <div className="space-y-1">
+                  <input
+                    type="text"
+                    value={editData.name}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    className={`w-full px-3 py-2 bg-zinc-50 border rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-black/5 ${
+                      nameCollision ? 'border-red-500 text-red-600' : 'border-zinc-200'
+                    }`}
+                  />
+                  {nameCollision && (
+                    <p className="text-[9px] text-red-500 font-bold uppercase tracking-tight px-1">
+                      This name is already used in the team
+                    </p>
+                  )}
+                </div>
               ), 'Limit characters to letters, numbers and spaces. The ID is auto-generated.')}
 
               {renderField('LLM Model', <Cpu size={12} />, isView ? (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 border border-zinc-200 rounded-lg text-xs font-mono text-zinc-600 w-fit">
-                   {editData.model || 'gemini-3.1-flash-lite-preview'}
+                  {editData.model || 'gemini-3.1-flash-lite-preview'}
                 </div>
               ) : (
                 <select
                   value={editData.model || 'gemini-3.1-flash-lite-preview'}
                   onChange={(e) => setEditData(prev => ({ ...prev, model: e.target.value }))}
-                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-black/5 appearance-none cursor-pointer"
+                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-black/5 cursor-pointer"
                 >
                   {availableModels.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
@@ -228,62 +248,62 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
 
             {/* Hierarchy Group */}
             <div className="space-y-4 pt-4 border-t border-zinc-100">
-               <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300 mb-4">Flow & Hierarchy</h4>
-               
-               <div className="grid grid-cols-2 gap-4">
-                 {renderField('Reports to', <ChevronDown size={12} />, isLead || isView ? (
-                   <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100">{isLead ? 'User' : allCharacters.find(c => c.id === editData.parentId)?.name || 'N/A'}</div>
-                 ) : (
-                   <select
-                     value={editData.parentId}
-                     onChange={(e) => setEditData(prev => ({ ...prev, parentId: e.target.value }))}
-                     className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none"
-                   >
-                     {availableParents.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                   </select>
-                 ))}
+              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300 mb-4">Flow & Hierarchy</h4>
 
-                 {renderField('Target', <ChevronDown size={12} />, isLead || isView ? (
-                   <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100">{isLead ? 'User' : allCharacters.find(c => c.id === editData.nextId)?.name || 'N/A'}</div>
-                 ) : (
-                   <select
-                     value={editData.nextId}
-                     onChange={(e) => setEditData(prev => ({ ...prev, nextId: e.target.value }))}
-                     className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none"
-                   >
-                     {availableNext.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                   </select>
-                 ))}
-               </div>
-
-               <div className="grid grid-cols-2 gap-4">
-                 {renderField('Retry on fail', <ChevronDown size={12} />, isLead || isView ? (
-                   <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100">{isLead ? (editData.retryId === editData.id ? 'Self' : 'N/A') : allCharacters.find(c => c.id === editData.retryId)?.name || 'None'}</div>
-                 ) : (
-                   <select
-                     value={editData.retryId || ''}
-                     onChange={(e) => setEditData(prev => ({ ...prev, retryId: e.target.value || undefined }))}
-                     className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none"
-                   >
-                     <option value="">None</option>
-                     {availableRetry.map(c => <option key={c.id} value={c.id}>{c.id === agent.id ? 'Self' : c.name}</option>)}
-                   </select>
-                 ))}
-
-                {!!editData.retryId && renderField('Max Retries', <ChevronDown size={12} />, isView ? (
-                   <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100">{editData.maxIterations || DEFAULT_MAX_ITERATIONS}</div>
+              <div className="grid grid-cols-2 gap-4">
+                {renderField('Reports to', null, isLead || isView ? (
+                  <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100 truncate">{isLead ? 'User' : allCharacters.find(c => c.id === editData.parentId)?.name || 'N/A'}</div>
                 ) : (
-                   <select
-                     value={editData.maxIterations || DEFAULT_MAX_ITERATIONS}
-                     onChange={(e) => setEditData(prev => ({ ...prev, maxIterations: parseInt(e.target.value) }))}
-                     className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none appearance-none cursor-pointer"
-                   >
-                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                       <option key={n} value={n}>{n}</option>
-                     ))}
-                   </select>
+                  <select
+                    value={editData.parentId}
+                    onChange={(e) => setEditData(prev => ({ ...prev, parentId: e.target.value }))}
+                    className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
+                  >
+                    {availableParents.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
                 ))}
-               </div>
+
+                {renderField('Target', null, isLead || isView ? (
+                  <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100 truncate">{isLead ? 'User' : allCharacters.find(c => c.id === editData.nextId)?.name || 'N/A'}</div>
+                ) : (
+                  <select
+                    value={editData.nextId}
+                    onChange={(e) => setEditData(prev => ({ ...prev, nextId: e.target.value }))}
+                    className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
+                  >
+                    {availableNext.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {renderField('Retry on fail', null, isLead || isView ? (
+                  <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100 truncate">{isLead ? (editData.retryId === editData.id ? 'Self' : 'N/A') : allCharacters.find(c => c.id === editData.retryId)?.name || 'None'}</div>
+                ) : (
+                  <select
+                    value={editData.retryId || ''}
+                    onChange={(e) => setEditData(prev => ({ ...prev, retryId: e.target.value || undefined }))}
+                    className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
+                  >
+                    <option value="">None</option>
+                    {availableRetry.map(c => <option key={c.id} value={c.id}>{c.id === agent.id ? 'Self' : c.name}</option>)}
+                  </select>
+                ))}
+
+                {!!editData.retryId && renderField('Max Retries', null, isView ? (
+                  <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100 truncate">{editData.maxIterations || DEFAULT_MAX_ITERATIONS}</div>
+                ) : (
+                  <select
+                    value={editData.maxIterations || DEFAULT_MAX_ITERATIONS}
+                    onChange={(e) => setEditData(prev => ({ ...prev, maxIterations: parseInt(e.target.value) }))}
+                    className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                ))}
+              </div>
             </div>
 
             {/* Tools Group */}
@@ -308,11 +328,10 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                       <button
                         key={tool.function.name}
                         onClick={() => toggleTool(tool.function.name)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all border ${
-                          isSelected 
-                            ? 'bg-zinc-900 text-white border-zinc-900 shadow-md shadow-zinc-200' 
-                            : 'bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300'
-                        }`}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all border ${isSelected
+                          ? 'bg-zinc-900 text-white border-zinc-900 shadow-md shadow-zinc-200'
+                          : 'bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300'
+                          }`}
                       >
                         {isSelected && <Check size={10} strokeWidth={3} />}
                         {tool.function.name}
@@ -335,16 +354,16 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
       {/* Footer Actions */}
       {!isView && !isUser && (
         <div className="p-4 border-t border-zinc-100 bg-zinc-50/30 flex flex-col gap-2">
-          <button 
+          <button
             onClick={handleSave}
-            disabled={getBrightness(editData.color) > 180}
-            className={`w-full py-3 bg-zinc-900 hover:bg-black text-white rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-black/5 active:scale-95 ${getBrightness(editData.color) > 180 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={!isValid}
+            className={`w-full py-3 bg-zinc-900 hover:bg-black text-white rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-black/5 active:scale-95 ${!isValid ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Save size={16} strokeWidth={2.5} />
             Update Agent
           </button>
           {onRemove && (
-            <button 
+            <button
               onClick={onRemove}
               className="w-full py-2.5 text-red-500 hover:bg-red-50 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
             >
