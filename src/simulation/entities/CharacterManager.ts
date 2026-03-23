@@ -2,10 +2,10 @@
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {
-    atan,
-    attribute, cos, float, Fn, If, instanceIndex, mat3,
-    mat4, positionLocal, sin, storage, texture, uint, uniform, uv, vec3,
-    vec4
+  atan,
+  attribute, cos, float, Fn, If, instanceIndex, mat3,
+  mat4, positionLocal, sin, storage, texture, uint, uniform, uv, vec3,
+  vec4
 } from 'three/tsl';
 import * as THREE from 'three/webgpu';
 import { getAllAgents, getAllCharacters } from '../../data/agents';
@@ -24,6 +24,7 @@ export class CharacterManager {
   private posAttribute: THREE.StorageInstancedBufferAttribute | null = null;
   private velAttribute: THREE.StorageInstancedBufferAttribute | null = null;
   private colorAttribute: THREE.InstancedBufferAttribute | null = null;
+  private accessoryAttribute: THREE.InstancedBufferAttribute | null = null;
   private positionStorage: any;
   private velocityStorage: any;
 
@@ -52,13 +53,14 @@ export class CharacterManager {
   private bakedAnimationsBuffer: THREE.StorageBufferAttribute | null = null;
   private metaBuffer: THREE.StorageBufferAttribute | null = null;
   private numBones = 0;
+  private headBoneIndex = -1;
 
   // Uniforms
   private uSpeed = uniform(0.015);
 
   public isLoaded = false;
 
-  constructor(private scene: THREE.Scene) {}
+  constructor(private scene: THREE.Scene) { }
 
   public setPoiManager(poiManager: PoiManager) {
     this.poiManager = poiManager;
@@ -74,25 +76,33 @@ export class CharacterManager {
       const model = gltf.scene;
 
       const skinnedMeshes: THREE.SkinnedMesh[] = [];
+      const allMeshes: THREE.Mesh[] = [];
       model.traverse((child) => {
-        if ((child as any).isSkinnedMesh) {
-          skinnedMeshes.push(child as THREE.SkinnedMesh);
+        if ((child as any).isMesh) {
+          allMeshes.push(child as THREE.Mesh);
+          if ((child as any).isSkinnedMesh) {
+            skinnedMeshes.push(child as THREE.SkinnedMesh);
+          }
         }
       });
 
-      if (skinnedMeshes.length === 0) {
-        console.warn("CharacterManager: No skinned meshes found.");
+      if (allMeshes.length === 0) {
+        console.warn("CharacterManager: No meshes found.");
         return;
       }
 
-      this.meshData = skinnedMeshes.map(m => ({
+      this.meshData = allMeshes.map(m => ({
         name: m.name,
         geometry: m.geometry,
         material: m.material as THREE.MeshStandardMaterial
       }));
 
-      const firstMesh = skinnedMeshes[0];
-      this.numBones = firstMesh.skeleton.bones.length;
+      const firstSkinnedMesh = skinnedMeshes[0];
+      if (firstSkinnedMesh) {
+        this.numBones = firstSkinnedMesh.skeleton.bones.length;
+        const headBone = firstSkinnedMesh.skeleton.bones.find(b => b.name.toLowerCase() === 'head');
+        this.headBoneIndex = headBone ? firstSkinnedMesh.skeleton.bones.indexOf(headBone) : -1;
+      }
 
       const animations = gltf.animations;
       const animNames = Object.values(AnimationName);
@@ -108,7 +118,7 @@ export class CharacterManager {
           else clip = animations.find(a => a.name === AnimationName.IDLE) || animations[0];
         }
 
-        const baked = this.bakeAnimation(firstMesh, clip!, model);
+        const baked = this.bakeAnimation(firstSkinnedMesh, clip!, model);
         bakedDataList.push(baked.data);
 
         this.animationsMeta[name] = {
@@ -198,6 +208,7 @@ export class CharacterManager {
     const posArray = new Float32Array(this.instanceCount * 4);
     const velArray = new Float32Array(this.instanceCount * 4);
     const colorArray = new Float32Array(this.instanceCount * 3);
+    const accessoryArray = new Float32Array(this.instanceCount);
 
     const tempColor = new THREE.Color();
     const spawnRadius = 8; // Default spawn area
@@ -211,36 +222,45 @@ export class CharacterManager {
     const allCharacters = getAllCharacters(system);
 
     for (let i = 0; i < this.instanceCount; i++) {
-        const agentNode = allCharacters.find(a => a.index === i) || system.leadAgent;
-        const colorOverride = agentNode.color;
-        tempColor.set(colorOverride);
+      const agentNode = allCharacters.find(a => a.index === i) || system.leadAgent;
+      const colorOverride = agentNode.color;
+      tempColor.set(colorOverride);
 
-        if (i === system.user.index) {
-            // Player spawns at (0,0,0)
-            posArray[i * 4 + 0] = 0;
-            posArray[i * 4 + 2] = 0;
-            agentsBuffer[i] = null;
+      if (i === system.user.index) {
+        // Player spawns at (0,0,0)
+        posArray[i * 4 + 0] = 0;
+        posArray[i * 4 + 2] = 0;
+        agentsBuffer[i] = null;
+      } else {
+        const poi = spawnPois[spawnIndex % spawnPois.length];
+        if (poi) {
+          this.poiManager?.occupy(poi.id, i);
+          posArray[i * 4 + 0] = poi.position.x;
+          posArray[i * 4 + 2] = poi.position.z;
+          spawnIndex++;
+          agentsBuffer[i] = poi;
         } else {
-            const poi = spawnPois[spawnIndex % spawnPois.length];
-            if (poi) {
-                this.poiManager?.occupy(poi.id, i);
-                posArray[i * 4 + 0] = poi.position.x;
-                posArray[i * 4 + 2] = poi.position.z;
-                spawnIndex++;
-                agentsBuffer[i] = poi;
-            } else {
-                posArray[i * 4 + 0] = (Math.random() - 0.5) * spawnRadius * 2;
-                posArray[i * 4 + 2] = (Math.random() - 0.5) * spawnRadius * 2;
-                agentsBuffer[i] = null;
-            }
-            posArray[i * 4 + 3] = 1;
-            velArray[i * 4 + 0] = (Math.random() - 0.5) * 0.1;
-            velArray[i * 4 + 2] = (Math.random() - 0.5) * 0.1;
+          posArray[i * 4 + 0] = (Math.random() - 0.5) * spawnRadius * 2;
+          posArray[i * 4 + 2] = (Math.random() - 0.5) * spawnRadius * 2;
+          agentsBuffer[i] = null;
         }
+        posArray[i * 4 + 3] = 1;
+        velArray[i * 4 + 0] = (Math.random() - 0.5) * 0.1;
+        velArray[i * 4 + 2] = (Math.random() - 0.5) * 0.1;
+      }
 
-        colorArray[i * 3 + 0] = tempColor.r;
-        colorArray[i * 3 + 1] = tempColor.g;
-        colorArray[i * 3 + 2] = tempColor.b;
+      colorArray[i * 3 + 0] = tempColor.r;
+      colorArray[i * 3 + 1] = tempColor.g;
+      colorArray[i * 3 + 2] = tempColor.b;
+
+      // Accessory logic: 0=None, 1=Headphones, 2=Cap
+      if (i === system.user.index) {
+        accessoryArray[i] = 0;
+      } else if (i === system.leadAgent.index) {
+        accessoryArray[i] = 1;
+      } else {
+        accessoryArray[i] = 2;
+      }
     }
 
 
@@ -249,6 +269,7 @@ export class CharacterManager {
     this.posAttribute = new THREE.StorageInstancedBufferAttribute(posArray, 4);
     this.velAttribute = new THREE.StorageInstancedBufferAttribute(velArray, 4);
     this.colorAttribute = new THREE.InstancedBufferAttribute(colorArray, 3);
+    this.accessoryAttribute = new THREE.InstancedBufferAttribute(accessoryArray, 1);
 
     this.positionStorage = storage(this.posAttribute, 'vec4', this.instanceCount);
     this.velocityStorage = storage(this.velAttribute, 'vec4', this.instanceCount);
@@ -256,19 +277,19 @@ export class CharacterManager {
     // Physics & state buffer — all start at mode 0 (IDLE)
     this.agentStateBuffer = new AgentStateBuffer(this.instanceCount);
     for (let i = 0; i < this.instanceCount; i++) {
-        this.setPhysicsMode(i, AgentBehavior.IDLE);
+      this.setPhysicsMode(i, AgentBehavior.IDLE);
 
-        // Initial animation: start with a random negative time so they are out of sync
-        const meta = this.animationsMeta[AnimationName.IDLE];
-        if (meta) {
-            this.agentStateBuffer.setAnimation(i, meta.index, true, -Math.random() * 10);
-        }
+      // Initial animation: start with a random negative time so they are out of sync
+      const meta = this.animationsMeta[AnimationName.IDLE];
+      if (meta) {
+        this.agentStateBuffer.setAnimation(i, meta.index, true, -Math.random() * 10);
+      }
 
-        // APPLY POI ORIENTATION
-        const poi = agentsBuffer[i];
-        if (poi && (poi.id.includes('spawn') || poi.id.includes('sit'))) {
-          this.setOrientation(i, poi.quaternion);
-        }
+      // APPLY POI ORIENTATION
+      const poi = agentsBuffer[i];
+      if (poi && (poi.id.includes('spawn') || poi.id.includes('sit'))) {
+        this.setOrientation(i, poi.quaternion);
+      }
     }
 
     this.expressionBuffer = new ExpressionBuffer(this.instanceCount);
@@ -285,7 +306,7 @@ export class CharacterManager {
 
       const posElement = this.positionStorage.element(index);
       const velElement = this.velocityStorage.element(index);
-      const agentData  = agentStorage.element(index.mul(2));   // Buffer 0: (wpX, anim, wpZ, state)
+      const agentData = agentStorage.element(index.mul(2));   // Buffer 0: (wpX, anim, wpZ, state)
       const agentState = agentData.w;                         // float: 0=IDLE 1=GOTO 2=SEATED
 
       const pos = posElement.xyz.toVar();
@@ -337,7 +358,8 @@ export class CharacterManager {
       instancedGeometry.instanceCount = this.instanceCount;
 
       // Solo dejamos el atributo que NO se calcula en el Compute Shader
-      if (this.colorAttribute) instancedGeometry.setAttribute('instanceColor', this.colorAttribute);
+      instancedGeometry.setAttribute('instanceColor', this.colorAttribute);
+      if (this.accessoryAttribute) instancedGeometry.setAttribute('accessoryType', this.accessoryAttribute);
 
       const material = new THREE.MeshStandardNodeMaterial();
       material.roughness = 1;
@@ -349,9 +371,12 @@ export class CharacterManager {
       const expressionData = this.expressionBuffer!.storageNode.element(instanceIndex);
       const animParams = this.agentStateBuffer!.storageNode.element(instanceIndex.mul(2).add(1));
       const instanceAlpha = animParams.z;
+      const accessoryType = attribute('accessoryType', 'float');
 
       const isEyes = name.toLowerCase().includes('eyes');
       const isMouth = name.toLowerCase().includes('mouth');
+      const isHeadphones = name.toLowerCase().includes('headphones');
+      const isCap = name.toLowerCase().includes('cap');
 
       if (isEyes) {
         material.uvNode = uv().add(expressionData.xy);
@@ -359,16 +384,29 @@ export class CharacterManager {
         material.uvNode = uv().add(expressionData.zw);
       }
 
-      // Solo coloreamos el mesh cuyo nombre sea 'body'
+      // Solo coloreamos el mesh cuyo nombre sea 'body' o accesorios
       material.transparent = true;
-      if (name.toLowerCase().includes('body')) {
+
+      const isAccessory = isHeadphones || isCap;
+      const isBody = name.toLowerCase().includes('body');
+
+      if (isHeadphones) {
+        material.opacityNode = accessoryType.equal(float(1)).select(instanceAlpha, float(0));
+      } else if (isCap) {
+        material.opacityNode = accessoryType.equal(float(2)).select(instanceAlpha, float(0));
+      }
+
+      if (isBody || isAccessory) {
         material.depthWrite = true;
         material.depthTest = true;
+
+        const baseAlpha = isAccessory ? material.opacityNode : (map ? texture(map).a.mul(instanceAlpha) : instanceAlpha);
+
         if (map) {
           const texColor = texture(map);
-          material.colorNode = vec4(texColor.rgb.mul(instanceColor), texColor.a.mul(instanceAlpha));
+          material.colorNode = vec4(texColor.rgb.mul(instanceColor), baseAlpha);
         } else {
-          material.colorNode = vec4(instanceColor, instanceAlpha);
+          material.colorNode = vec4(instanceColor, baseAlpha);
         }
       } else {
         // Eyes / mouth: rendered on top of the body surface with polygon offset to avoid
@@ -378,18 +416,28 @@ export class CharacterManager {
         material.polygonOffset = true;
         material.polygonOffsetFactor = -1;
         material.polygonOffsetUnits = -1;
-        // Los otros respetan la transparencia original de su mapa PNG
+
         if (map) {
           const texColor = isEyes || isMouth ? texture(map, material.uvNode) : texture(map);
-          material.colorNode = vec4(texColor.rgb, texColor.a.mul(instanceAlpha)); // Usa el color y el canal alfa original de la textura
+          material.colorNode = vec4(texColor.rgb, texColor.a.mul(instanceAlpha));
         } else {
           material.opacityNode = float(0);
         }
       }
 
-      const vertexNode = this.createVertexNode();
+      // Special skinning for static accessories
+      if ((isHeadphones || isCap) && this.headBoneIndex !== -1 && !geometry.attributes.skinIndex) {
+        const skinIndices = new Float32Array(geometry.attributes.position.count * 4).fill(this.headBoneIndex);
+        const skinWeights = new Float32Array(geometry.attributes.position.count * 4).fill(0);
+        for (let i = 0; i < geometry.attributes.position.count; i++) skinWeights[i * 4] = 1.0;
+        instancedGeometry.setAttribute('skinIndex', new THREE.BufferAttribute(skinIndices, 4));
+        instancedGeometry.setAttribute('skinWeight', new THREE.BufferAttribute(skinWeights, 4));
+      }
+
+      const isVisible = isHeadphones ? accessoryType.equal(float(1)) : (isCap ? accessoryType.equal(float(2)) : float(1));
+      const vertexNode = this.createVertexNode(isVisible.and(instanceAlpha.greaterThan(0)));
       material.positionNode = vertexNode;
-      // (material as any).castShadowPositionNode = vertexNode;
+      (material as any).castShadowPositionNode = vertexNode;
 
       const instancedMesh = new THREE.Mesh(instancedGeometry, material);
       instancedMesh.frustumCulled = false;
@@ -402,7 +450,7 @@ export class CharacterManager {
     }
   }
 
-  private createVertexNode() {
+  private createVertexNode(isVisibleNode: any) {
     return Fn(() => {
       const instancePos = this.positionStorage.element(instanceIndex).xyz;
       const rawVel = this.velocityStorage.element(instanceIndex).xyz;
@@ -470,7 +518,8 @@ export class CharacterManager {
         finalPosition.assign(skinMat.mul(vec4(positionLocal, 1.0)).xyz);
       }
 
-      return rotationMat.mul(finalPosition).add(instancePos);
+      const vertexScale = isVisibleNode.select(float(1), float(0));
+      return rotationMat.mul(finalPosition.mul(vertexScale)).add(instancePos);
     })();
   }
 
