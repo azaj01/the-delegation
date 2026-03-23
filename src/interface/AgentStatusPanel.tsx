@@ -32,7 +32,6 @@ const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
             <div className="h-px flex-1 bg-zinc-100" />
           </div>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-50 rounded-lg border border-zinc-100/60 font-mono">
-            <Avatar color={agent.color} size={16} />
             <p className="text-[11px] font-bold text-zinc-800 uppercase tracking-tighter">
               {agent.model}
             </p>

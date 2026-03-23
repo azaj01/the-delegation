@@ -119,9 +119,9 @@ const ChatPanel: React.FC = () => {
                 {/* Avatar / Icon */}
                 <div className="shrink-0 mt-1">
                   {msg.role === 'assistant' ? (
-                    <Avatar color={agent?.color} size={28} />
+                    <Avatar type={agent?.id === getAgentSet(selectedAgentSetId).leadAgent.id ? 'lead' : 'sub'} color={agent?.color} size={32} />
                   ) : (
-                    <Avatar color={USER_COLOR} size={28} />
+                    <Avatar type="user" color={USER_COLOR} size={32} />
                   )}
                 </div>
 

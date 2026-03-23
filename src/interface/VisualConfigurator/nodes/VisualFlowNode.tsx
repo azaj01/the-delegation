@@ -28,7 +28,7 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
   return (
     <div
       className={`
-        relative px-5 py-3 shadow-sm rounded-xl border-2 pointer-events-auto transition-all duration-300 w-fit min-w-[160px] bg-white
+        relative px-3 py-2.5 shadow-sm rounded-2xl border-2 pointer-events-auto transition-all duration-300 w-fit min-w-[220px] bg-white
         ${selected ? 'ring-4 scale-105 z-20 shadow-lg' : 'z-10'}
         ${data.isDimmed ? 'opacity-20 translate-y-1' : 'opacity-100'}
 
@@ -42,63 +42,65 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
       {topHandles.map((h, i) => <NodeHandle key={h.id} h={h} i={i} total={topHandles.length} position="top" />)}
       {bottomHandles.map((h, i) => <NodeHandle key={h.id} h={h} i={i} total={bottomHandles.length} position="bottom" />)}
 
-      <div className="flex items-center mb-1 gap-2 w-full min-w-[140px]">
-        {isUser ? (
-          <div className="shrink-0">
-            <Avatar color={USER_COLOR} size={32} />
-          </div>
-        ) : (
-          <div className="shrink-0">
-            <Avatar color={data.color} size={32} />
-          </div>
-        )}
-
-        <div
-          className="font-bold text-[11px] uppercase tracking-wider truncate flex-1 min-w-0"
-          style={{ color: isUser ? USER_COLOR : undefined }}
-        >
-          {data.label}
+      <div className="flex items-center gap-3">
+        <div className="shrink-0 p-0.5 rounded-xl bg-zinc-50 border border-zinc-100/50">
+          <Avatar 
+            type={isUser ? "user" : (data.isLead ? "lead" : "sub")} 
+            color={isUser ? USER_COLOR : data.color} 
+            size={48} 
+          />
         </div>
 
-        {data.isLead && !isUser && (
+        <div className="flex flex-col min-w-0 flex-1 gap-1">
           <div
-            className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 -mr-1"
-            style={{
-              backgroundColor: USER_COLOR_LIGHT,
-              color: USER_COLOR,
-              borderColor: USER_COLOR_SOFT
-            }}
+            className="font-black text-[13px] tracking-tight truncate min-w-0"
+            style={{ color: isUser ? USER_COLOR : undefined }}
           >
-            Lead
+            {data.label}
           </div>
-        )}
 
-        {!data.isLead && !isUser && (
-          <div
-            className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 -mr-1"
-            style={{
-              backgroundColor: `${data.color}20`,
-              color: data.color,
-              borderColor: `${data.color}40`
-            }}
-          >
-            Subagent
+          <div className="flex flex-col gap-1.5">
+            {data.isLead && !isUser && (
+              <div
+                className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 w-fit"
+                style={{
+                  backgroundColor: USER_COLOR_LIGHT,
+                  color: USER_COLOR,
+                  borderColor: USER_COLOR_SOFT
+                }}
+              >
+                Lead Agent
+              </div>
+            )}
+
+            {!data.isLead && !isUser && (
+              <div
+                className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 w-fit"
+                style={{
+                  backgroundColor: `${data.color}20`,
+                  color: data.color,
+                  borderColor: `${data.color}40`
+                }}
+              >
+                Subagent
+              </div>
+            )}
+
+            {!isUser && (
+              <div
+                className="text-[9px] font-mono px-1.5 py-0.5 rounded border inline-block italic w-fit"
+                style={{
+                  color: '#a1a1aa', // text-zinc-400
+                  borderColor: '#f4f4f5', // border-zinc-100
+                  backgroundColor: '#fafafa' // bg-zinc-50
+                }}
+              >
+                {data.agent?.model}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
-
-      {!isUser && (
-        <div
-          className="text-[9px] font-mono px-1.5 py-0.5 rounded border inline-block italic"
-          style={{
-            color: '#a1a1aa', // text-zinc-400
-            borderColor: '#f4f4f5', // border-zinc-100
-            backgroundColor: '#fafafa' // bg-zinc-50
-          }}
-        >
-          {data.agent?.model}
-        </div>
-      )}
     </div>
   );
 };

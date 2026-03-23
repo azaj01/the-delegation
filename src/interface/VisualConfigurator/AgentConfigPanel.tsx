@@ -130,12 +130,12 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
   return (
     <div className="w-80 h-full bg-white border-l border-zinc-100 flex flex-col pointer-events-auto overflow-hidden animate-in slide-in-from-right-full duration-300">
       {/* Header */}
-      <div className="p-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
+      <div className="px-4 py-2.5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
         <div className="flex items-center gap-2">
           {isUser ? (
-            <Avatar color={USER_COLOR} size={28} />
+            <Avatar type="user" color={USER_COLOR} size={32} />
           ) : (
-            <Avatar color={editData.color} size={24} />
+            <Avatar type={isLead ? 'lead' : 'sub'} color={editData.color} size={32} />
           )}
           <h3 className="font-bold text-sm text-zinc-800 uppercase tracking-tight truncate">
             {isUser ? 'User Info' : (isLead ? 'Lead Agent Info' : 'Subagent Info')}
@@ -156,7 +156,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
               className="p-1 rounded-2xl text-white shadow-lg"
               style={{ backgroundColor: 'transparent', boxShadow: `0 10px 15px -3px ${USER_COLOR}33` }}
             >
-              <Avatar color={USER_COLOR} size={64} />
+              <Avatar type="user" color={USER_COLOR} size={64} />
             </div>
             <div>
               <h4 className="text-sm font-black text-zinc-800 uppercase tracking-widest mb-1">Primary User</h4>

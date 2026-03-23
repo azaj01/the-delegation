@@ -1,7 +1,7 @@
 import { FolderOpen, Lock, MessageSquare, MessageSquareWarning } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { getAgentSet, getAllCharacters } from '../data/agents';
-import { USER_COLOR } from '../theme/brand';
+import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand';
 import { useChatAvailability } from '../integration/hooks/useChatAvailability';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore } from '../integration/store/teamStore';
@@ -61,22 +61,53 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
         !isFloating && <ProjectView />
       ) : (
         <>
-          {/* Header with Role and Department */}
-          <div className={`p-4 pb-1 border-b border-zinc-50 bg-white ${isFloating ? 'bg-zinc-50/50' : ''}`}>
+          {/* Header Section */}
+          <div className={`px-4 py-3 border-b border-zinc-100 bg-white ${isFloating ? 'bg-zinc-50/50' : ''}`}>
             <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <Avatar color={agent.color} size={16} />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                      {agent.index === system.user.index ? 'You' : agent.name}
-                    </p>
-                  </div>
-                  <h2 className="text-xl font-black text-zinc-900 leading-tight">
+              {/* Agent Title Row */}
+              <div className="flex items-center gap-4">
+                <div className="shrink-0 rounded-2xl p-0.5 bg-zinc-50 border border-zinc-100/50">
+                  <Avatar 
+                    type={agent.index === system.user.index ? 'user' : (agent.index === system.leadAgent.index ? 'lead' : 'sub')} 
+                    color={agent.color} 
+                    size={48} 
+                  />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <h2 className="text-xl font-black text-zinc-900 leading-tight truncate">
                     {agent.name}
                   </h2>
+                  {agent.index !== system.user.index && (
+                    <div className="flex mt-1">
+                      {agent.index === system.leadAgent.index ? (
+                        <div
+                          className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0"
+                          style={{
+                            backgroundColor: USER_COLOR_LIGHT,
+                            color: USER_COLOR,
+                            borderColor: USER_COLOR_SOFT
+                          }}
+                        >
+                          Lead Agent
+                        </div>
+                      ) : (
+                        <div
+                          className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0"
+                          style={{
+                            backgroundColor: `${agent.color}15`,
+                            color: agent.color,
+                            borderColor: `${agent.color}30`
+                          }}
+                        >
+                          Subagent
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* Conditional Discussion/Chat Actions */}
               {needsDiscussion && isChatting && (
                 <div className="bg-[#FFF9F2] border border-[#FFE4CC]/50 rounded-xl p-3 shadow-sm animate-in fade-in slide-in-from-top-1">
                   <div className="flex items-center justify-between gap-2">
@@ -98,10 +129,11 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                   </p>
                 </div>
               )}
+
               {needsDiscussion && !isChatting ? (
                 <div className="flex flex-col gap-3 p-4 bg-zinc-50 border border-zinc-100 rounded-xl animate-in fade-in slide-in-from-top-1 shadow-sm">
                   <div className="flex items-center gap-1.5">
-                    <Avatar color={USER_COLOR} size={24} />
+                    <Avatar type="user" color={USER_COLOR} size={32} />
                     <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: USER_COLOR }}>Needs Discussion</span>
                   </div>
                   <div className="flex flex-col gap-2">
@@ -114,7 +146,8 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                     <button
                       onClick={handleStartChat}
                       disabled={!canChat}
-                      className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 active:scale-95 disabled:opacity-50 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm mt-1"
+                      style={{ backgroundColor: agent.color }}
+                      className="flex items-center justify-center gap-2 hover:brightness-90 active:scale-95 disabled:opacity-50 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm mt-1"
                     >
                       <MessageSquareWarning size={14} strokeWidth={3} />
                       Chat about {isOrchestratorIdle ? 'briefing' : 'approval'}
