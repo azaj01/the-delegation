@@ -2,6 +2,7 @@ import React from 'react';
 import { getAgentSet, getAllCharacters } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore } from '../integration/store/teamStore';
+import { Avatar } from './components/Avatar';
 
 interface AgentStatusPanelProps {
   agentIndex: number;
@@ -30,9 +31,9 @@ const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Model</p>
             <div className="h-px flex-1 bg-zinc-100" />
           </div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-50 rounded-lg border border-zinc-100/60">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: agent.color }} />
-            <p className="text-[11px] font-mono font-bold text-zinc-800 uppercase tracking-tighter">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-50 rounded-lg border border-zinc-100/60 font-mono">
+            <Avatar color={agent.color} size={16} />
+            <p className="text-[11px] font-bold text-zinc-800 uppercase tracking-tighter">
               {agent.model}
             </p>
           </div>

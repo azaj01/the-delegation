@@ -9,6 +9,7 @@ import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
 import { useSceneManager } from '../simulation/SceneContext';
+import { Avatar } from './components/Avatar';
 
 
 
@@ -118,18 +119,9 @@ const ChatPanel: React.FC = () => {
                 {/* Avatar / Icon */}
                 <div className="shrink-0 mt-1">
                   {msg.role === 'assistant' ? (
-                    <div className="w-5 h-5 text-zinc-400">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" />
-                      </svg>
-                    </div>
+                    <Avatar color={agent?.color} size={28} />
                   ) : (
-                    <div 
-                      className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm border"
-                      style={{ backgroundColor: USER_COLOR_LIGHT, borderColor: USER_COLOR_SOFT }}
-                    >
-                      <span className="text-sm font-black" style={{ color: USER_COLOR }}>U</span>
-                    </div>
+                    <Avatar color={USER_COLOR} size={28} />
                   )}
                 </div>
 

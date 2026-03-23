@@ -7,6 +7,7 @@ import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
 import { useSceneManager } from '../simulation/SceneContext';
+import { Avatar } from './components/Avatar';
 import AgentStatusPanel from './AgentStatusPanel';
 import ChatPanel from './ChatPanel';
 import ProjectView from './ProjectView';
@@ -66,10 +67,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
-                    <div
-                       className="w-2 h-2 rounded-full"
-                       style={{ backgroundColor: agent.color }}
-                    />
+                    <Avatar color={agent.color} size={16} />
                     <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                       {agent.index === system.user.index ? 'You' : agent.name}
                     </p>
@@ -103,9 +101,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
               {needsDiscussion && !isChatting ? (
                 <div className="flex flex-col gap-3 p-4 bg-zinc-50 border border-zinc-100 rounded-xl animate-in fade-in slide-in-from-top-1 shadow-sm">
                   <div className="flex items-center gap-1.5">
-                    <div className="flex items-center justify-center w-5 h-5 rounded-md text-white" style={{ backgroundColor: USER_COLOR }}>
-                      <MessageSquare size={12} strokeWidth={3} />
-                    </div>
+                    <Avatar color={USER_COLOR} size={24} />
                     <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: USER_COLOR }}>Needs Discussion</span>
                   </div>
                   <div className="flex flex-col gap-2">

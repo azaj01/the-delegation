@@ -4,6 +4,7 @@ import { AgentNode, AgenticSystem, USER_ID, USER_NAME, DEFAULT_MAX_ITERATIONS, g
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../../theme/brand';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useTeamStore } from '../../integration/store/teamStore';
+import { Avatar } from '../components/Avatar';
 import { ColorPicker } from './ColorPicker';
 import { InfoBubble } from './InfoBubble';
 import { CORE_TOOLS } from '../../core/llm/toolDefinitions';
@@ -132,9 +133,9 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
       <div className="p-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
         <div className="flex items-center gap-2">
           {isUser ? (
-            <div className="p-1 rounded text-white" style={{ backgroundColor: USER_COLOR }}><User size={12} /></div>
+            <Avatar color={USER_COLOR} size={28} />
           ) : (
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: editData.color }} />
+            <Avatar color={editData.color} size={24} />
           )}
           <h3 className="font-bold text-sm text-zinc-800 uppercase tracking-tight truncate">
             {isUser ? 'User Info' : (isLead ? 'Lead Agent Info' : 'Subagent Info')}
@@ -152,10 +153,10 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
             style={{ backgroundColor: USER_COLOR_LIGHT, borderColor: USER_COLOR_SOFT }}
           >
             <div
-              className="p-4 rounded-2xl text-white shadow-lg"
-              style={{ backgroundColor: USER_COLOR, boxShadow: `0 10px 15px -3px ${USER_COLOR}33` }}
+              className="p-1 rounded-2xl text-white shadow-lg"
+              style={{ backgroundColor: 'transparent', boxShadow: `0 10px 15px -3px ${USER_COLOR}33` }}
             >
-              <User size={32} strokeWidth={2.5} />
+              <Avatar color={USER_COLOR} size={64} />
             </div>
             <div>
               <h4 className="text-sm font-black text-zinc-800 uppercase tracking-widest mb-1">Primary User</h4>

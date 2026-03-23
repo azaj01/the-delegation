@@ -125,7 +125,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
 
   const handleColorChange = (newColor: string) => {
     setLocalEditData(prev => ({ ...prev, color: newColor }));
-    
+
     // Check if new color is too light to update form validity status
     const brightness = getBrightness(newColor);
     setHasColorSuggestion(brightness > 180);
@@ -183,9 +183,14 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         {!isEditing && (
           <div className="relative shrink-0">
             <div
-              className="w-8 h-8 rounded-xl shadow-sm flex items-center justify-center transition-all"
-              style={{ backgroundColor: system.color || '#A855F7' }}
-            />
+              className="h-9 px-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-black/5"
+              style={{ backgroundColor: system.color }}
+            >
+              <Users size={14} className="text-white opacity-90" strokeWidth={3} />
+              <span className="text-xs font-black text-white leading-none">
+                {agentCount}
+              </span>
+            </div>
           </div>
         )}
 
@@ -203,31 +208,31 @@ export const TeamCard: React.FC<TeamCardProps> = ({
               </div>
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Team Name</label>
-                <input 
-                  value={localEditData.teamName || ''} 
-                  onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamName: e.target.value })); setErrorMsg(null); }} 
-                  className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none transition-colors" 
-                  style={{'--tw-focus-border-color': USER_COLOR} as React.CSSProperties}
+                <input
+                  value={localEditData.teamName || ''}
+                  onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamName: e.target.value })); setErrorMsg(null); }}
+                  className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none transition-colors"
+                  style={{ '--tw-focus-border-color': USER_COLOR } as React.CSSProperties}
                   onFocus={(e) => e.target.style.borderColor = USER_COLOR}
                   onBlur={(e) => e.target.style.borderColor = '#f4f4f5'}
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Team Type</label>
-                <input 
-                  value={localEditData.teamType || ''} 
-                  onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamType: e.target.value })); setErrorMsg(null); }} 
-                  className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none transition-colors" 
+                <input
+                  value={localEditData.teamType || ''}
+                  onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamType: e.target.value })); setErrorMsg(null); }}
+                  className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl px-2.5 py-1.5 outline-none transition-colors"
                   onFocus={(e) => e.target.style.borderColor = USER_COLOR}
                   onBlur={(e) => e.target.style.borderColor = '#f4f4f5'}
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Description</label>
-                <textarea 
-                  value={localEditData.teamDescription || ''} 
-                  onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamDescription: e.target.value })); setErrorMsg(null); }} 
-                  className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl p-2.5 outline-none resize-none h-20 leading-snug transition-colors" 
+                <textarea
+                  value={localEditData.teamDescription || ''}
+                  onChange={(e) => { setLocalEditData(prev => ({ ...prev, teamDescription: e.target.value })); setErrorMsg(null); }}
+                  className="w-full bg-white border border-zinc-100 text-[13px] font-medium rounded-xl p-2.5 outline-none resize-none h-20 leading-snug transition-colors"
                   onFocus={(e) => e.target.style.borderColor = USER_COLOR}
                   onBlur={(e) => e.target.style.borderColor = '#f4f4f5'}
                 />

@@ -3,6 +3,7 @@ import { User } from 'lucide-react';
 import React from 'react';
 import { HandleData } from '../flowUtils';
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../../../theme/brand';
+import { Avatar } from '../../components/Avatar';
 
 const NodeHandle = ({ h, i, total, position }: { h: HandleData, i: number, total: number, position: 'top' | 'bottom' }) => (
   <Handle
@@ -43,14 +44,16 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
 
       <div className="flex items-center mb-1 gap-2 w-full min-w-[140px]">
         {isUser ? (
-          <div className="p-1.5 rounded-lg shadow-sm shrink-0" style={{ backgroundColor: USER_COLOR }}>
-            <User size={14} className="text-white" />
+          <div className="shrink-0">
+            <Avatar color={USER_COLOR} size={32} />
           </div>
         ) : (
-          <div className="rounded-full w-3 h-3 shadow-inner shrink-0" style={{ backgroundColor: data.color }} />
+          <div className="shrink-0">
+            <Avatar color={data.color} size={32} />
+          </div>
         )}
 
-        <div 
+        <div
           className="font-bold text-[11px] uppercase tracking-wider truncate flex-1 min-w-0"
           style={{ color: isUser ? USER_COLOR : undefined }}
         >
@@ -58,10 +61,10 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
         </div>
 
         {data.isLead && !isUser && (
-          <div 
+          <div
             className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 -mr-1"
-            style={{ 
-              backgroundColor: USER_COLOR_LIGHT, 
+            style={{
+              backgroundColor: USER_COLOR_LIGHT,
               color: USER_COLOR,
               borderColor: USER_COLOR_SOFT
             }}
@@ -71,10 +74,10 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
         )}
 
         {!data.isLead && !isUser && (
-          <div 
+          <div
             className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 -mr-1"
-            style={{ 
-              backgroundColor: `${data.color}20`, 
+            style={{
+              backgroundColor: `${data.color}20`,
               color: data.color,
               borderColor: `${data.color}40`
             }}
@@ -85,8 +88,8 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
       </div>
 
       {!isUser && (
-        <div 
-          className="text-[9px] font-mono px-1.5 py-0.5 rounded border inline-block italic" 
+        <div
+          className="text-[9px] font-mono px-1.5 py-0.5 rounded border inline-block italic"
           style={{
             color: '#a1a1aa', // text-zinc-400
             borderColor: '#f4f4f5', // border-zinc-100
