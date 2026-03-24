@@ -28,22 +28,22 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[],
 
   // 1. Define nodes and their base layout
   const allNodeData = [
-    { 
-      id: USER_ID, 
-      name: USER_NAME, 
-      color: USER_COLOR, 
-      type: 'user' as const, 
-      x: system.user.position?.x ?? 0, 
-      y: system.user.position?.y ?? 0 
+    {
+      id: USER_ID,
+      name: USER_NAME + " (You)",
+      color: USER_COLOR,
+      type: 'user' as const,
+      x: system.user.position?.x ?? 0,
+      y: system.user.position?.y ?? 0
     },
-    { 
-      id: system.leadAgent.id, 
-      name: system.leadAgent.name, 
-      color: system.leadAgent.color, 
-      type: 'agent' as const, 
-      x: system.leadAgent.position?.x ?? 0, 
+    {
+      id: system.leadAgent.id,
+      name: system.leadAgent.name,
+      color: system.leadAgent.color,
+      type: 'agent' as const,
+      x: system.leadAgent.position?.x ?? 0,
       y: system.leadAgent.position?.y ?? 150,
-      agent: system.leadAgent 
+      agent: system.leadAgent
     },
     ...system.subagents.map((agent, i) => ({
       id: agent.id,
@@ -61,8 +61,8 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[],
   // 2. Connections
   const conns = [
     ...(system.leadAgent.parentId === USER_ID ? [{ id: 'h-user-lead', from: USER_ID, to: system.leadAgent.id, type: 'hierarchy' as const }] : []),
-    ...system.subagents.filter(a => a.parentId && metaMap.has(a.parentId)).map(a => ({ 
-      id: `h-${a.parentId}-${a.id}`, from: a.parentId!, to: a.id, type: 'hierarchy' as const 
+    ...system.subagents.filter(a => a.parentId && metaMap.has(a.parentId)).map(a => ({
+      id: `h-${a.parentId}-${a.id}`, from: a.parentId!, to: a.id, type: 'hierarchy' as const
     })),
     ...allAgents.flatMap(a => [
       ...(a.nextId && metaMap.has(a.nextId) ? [{ id: `f-success-${a.id}-${a.nextId}`, from: a.id, to: a.nextId, type: 'success' as const }] : []),

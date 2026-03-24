@@ -6,7 +6,7 @@ import { USER_COLOR } from '../theme/brand';
 
 export const DEFAULT_AGENTIC_SET_ID = 'marketing-agency';
 export const USER_ID = 'user';
-export const USER_NAME = 'user';
+export const USER_NAME = 'User';
 export { USER_COLOR };
 export const DEFAULT_MAX_ITERATIONS = 5;
 

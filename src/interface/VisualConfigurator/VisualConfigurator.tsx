@@ -3,7 +3,7 @@ import { applyEdgeChanges, applyNodeChanges, Background, Edge, EdgeChange, NodeC
 import '@xyflow/react/dist/style.css';
 import { Plus, Settings, User, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AgentNode, getAllCharacters, getAgentSet, USER_COLOR, USER_NAME } from '../../data/agents';
+import { AgentNode, getAllCharacters, getAgentSet } from '../../data/agents';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { AgentConfigPanel } from './AgentConfigPanel';
@@ -32,7 +32,7 @@ const InternalHeader = ({ onClose, system }: { onClose: () => void, system: any 
     <div className="flex items-center gap-2">
       <Settings size={18} className="text-zinc-900" strokeWidth={2} />
       <h2 className="text-xs font-black text-zinc-900 uppercase tracking-[0.2em] ml-2">Manage Teams</h2>
-      
+
       <div className="ml-4">
         <SystemDebugOverlay system={system} />
       </div>
@@ -74,7 +74,7 @@ const VisualConfiguratorContent: React.FC = () => {
   }, [selectedAgentSetId]);
 
   const system = useMemo(() => getAgentSet(selectedTeamId, customSystems), [selectedTeamId, customSystems]);
-  
+
   const agents = useMemo(() => getAllCharacters(system), [system]);
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => systemToFlow(system), [system]);
@@ -123,7 +123,7 @@ const VisualConfiguratorContent: React.FC = () => {
     setSelectedAgentId(null);
     setNodes(nds => nds.map(n => ({ ...n, selected: false })));
   }, [setNodes]);
-  
+
   const onNodeDragStop = useCallback((_: any, node: any) => {
     const { id, position } = node;
     const roundedPosition = { x: Math.round(position.x), y: Math.round(position.y) };
@@ -134,11 +134,11 @@ const VisualConfiguratorContent: React.FC = () => {
     } else if (id === system.leadAgent.id) {
       updatedSystem.leadAgent = { ...updatedSystem.leadAgent, position: roundedPosition };
     } else {
-      updatedSystem.subagents = updatedSystem.subagents.map(s => 
+      updatedSystem.subagents = updatedSystem.subagents.map(s =>
         s.id === id ? { ...s, position: roundedPosition } : s
       );
     }
-    
+
     useTeamStore.getState().saveCustomSystem(updatedSystem);
   }, [system]);
 
@@ -151,7 +151,7 @@ const VisualConfiguratorContent: React.FC = () => {
 
   const handleAddAgent = useCallback(() => {
     if (system.subagents.length >= 4) return;
-    
+
     const spacing = 300;
     const subagentsCount = system.subagents.length;
     const newX = (subagentsCount - (subagentsCount) / 2) * spacing;
@@ -237,7 +237,7 @@ const VisualConfiguratorContent: React.FC = () => {
             <Background gap={24} color="#bbbbbb" size={2} />
             {configMode === 'edit' && (
               <div className="absolute top-6 left-6 flex flex-col gap-2 z-10">
-                <button 
+                <button
                   onClick={handleAddAgent}
                   disabled={system.subagents.length >= 4}
                   className={`flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-600 shadow-sm transition-all hover:bg-zinc-50 ${system.subagents.length >= 4 ? 'opacity-50 cursor-not-allowed' : ''}`}
