@@ -113,8 +113,8 @@ const App: React.FC = () => {
           className={`fixed inset-0 z-[60] flex items-center justify-center p-3 md:p-6 bg-white/40 backdrop-blur-xl transition-all duration-300 ${viewMode === 'design' ? 'opacity-100' : 'opacity-0 pointer-events-none invisible'}`}
           onClick={() => setViewMode('simulation')}
         >
-          <div 
-            className={`w-full h-full max-w-[1800px] bg-white rounded-2xl shadow-2xl border border-zinc-200/50 overflow-hidden flex flex-col transition-all duration-500 transform ${viewMode === 'design' ? 'translate-y-0 scale-100' : 'translate-y-4 scale-95'}`}
+          <div
+            className={`w-full h-full bg-white rounded-2xl shadow-2xl border border-zinc-200/50 overflow-hidden flex flex-col transition-all duration-500 transform ${viewMode === 'design' ? 'translate-y-0 scale-100' : 'translate-y-4 scale-95'}`}
             onClick={(e) => e.stopPropagation()}
           >
             <VisualConfigurator />
