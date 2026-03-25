@@ -68,11 +68,11 @@ export class CoreOrchestrator {
 
   private async checkAllTasksDone() {
     const store = useCoreStore.getState();
-    if (store.phase !== 'working' && store.phase !== 'awaiting_approval') return;
+    if (store.phase !== 'working') return;
 
     const hasTasks = store.tasks.length > 0;
     const allDone = hasTasks && store.tasks.every((t) => t.status === 'done');
-    const isEmptyWorking = !hasTasks && (store.phase === 'working' || store.phase === 'awaiting_approval');
+    const isEmptyWorking = !hasTasks && store.phase === 'working';
 
     if (!allDone && !isEmptyWorking) return;
     if (store.finalOutput) return;
@@ -192,9 +192,6 @@ export class CoreOrchestrator {
     const leadAgentIndex = getActiveAgentSet().leadAgent.index;
 
     if (npcIndex === leadAgentIndex) {
-      if (store.phase === 'idle') {
-        store.setPhase('briefing');
-      }
 
       const orchestratorPendingTask = store.tasks.find(
         (t) => t.status === 'on_hold' && t.assignedAgentIds.includes(leadAgentIndex)

@@ -1,5 +1,4 @@
 import { Send } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -107,65 +106,59 @@ const ChatPanel: React.FC = () => {
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-1 space-y-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:display-none"
       >
-        <AnimatePresence initial={false}>
-          {chatMessages.map((msg, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
-            >
-              <div className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} max-w-[90%]`}>
-                {/* Avatar / Icon */}
-                <div className="shrink-0 mt-1">
+        {chatMessages.map((msg, i) => (
+          <div
+            key={i}
+            className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+          >
+            <div className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} max-w-[90%]`}>
+              {/* Avatar / Icon */}
+              <div className="shrink-0 mt-1">
+                {msg.role === 'assistant' ? (
+                  <Avatar type={agent?.id === getAgentSet(selectedAgentSetId).leadAgent.id ? 'lead' : 'sub'} color={agent?.color} size={32} />
+                ) : (
+                  <Avatar type="user" color={USER_COLOR} size={32} />
+                )}
+              </div>
+
+              <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                <div 
+                  className={`px-4 py-2.5 rounded-[20px] text-[14px] leading-relaxed shadow-sm border ${
+                    msg.role === 'user' ? 'rounded-tr-none' : 'rounded-tl-none'
+                  }`}
+                  style={msg.role === 'user' ? {
+                    backgroundColor: USER_COLOR_LIGHT,
+                    borderColor: USER_COLOR_SOFT,
+                    color: '#27272a' // text-zinc-800
+                  } : {
+                    backgroundColor: '#fafafa', // bg-zinc-50
+                    borderColor: '#f4f4f5', // border-zinc-100
+                    color: '#27272a' // text-zinc-800
+                  }}
+                >
                   {msg.role === 'assistant' ? (
-                    <Avatar type={agent?.id === getAgentSet(selectedAgentSetId).leadAgent.id ? 'lead' : 'sub'} color={agent?.color} size={32} />
+                    <div className="markdown-content">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
                   ) : (
-                    <Avatar type="user" color={USER_COLOR} size={32} />
+                    <div className="whitespace-pre-wrap">{msg.content}</div>
                   )}
                 </div>
 
-                <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                  <div 
-                    className={`px-4 py-2.5 rounded-[20px] text-[14px] leading-relaxed shadow-sm border ${
-                      msg.role === 'user' ? 'rounded-tr-none' : 'rounded-tl-none'
-                    }`}
-                    style={msg.role === 'user' ? {
-                      backgroundColor: USER_COLOR_LIGHT,
-                      borderColor: USER_COLOR_SOFT,
-                      color: '#27272a' // text-zinc-800
-                    } : {
-                      backgroundColor: '#fafafa', // bg-zinc-50
-                      borderColor: '#f4f4f5', // border-zinc-100
-                      color: '#27272a' // text-zinc-800
-                    }}
-                  >
-                    {msg.role === 'assistant' ? (
-                      <div className="markdown-content">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {msg.content}
-                        </ReactMarkdown>
-                      </div>
-                    ) : (
-                      <div className="whitespace-pre-wrap">{msg.content}</div>
-                    )}
-                  </div>
-
-                  <div className={`flex items-center gap-2 mt-2 px-1`}>
-                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                      {msg.role === 'user' ? 'You' : (agent?.name?.split(' ')[0] || 'AI')}
-                    </span>
-                  </div>
+                <div className={`flex items-center gap-2 mt-2 px-1`}>
+                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                    {msg.role === 'user' ? 'You' : (agent?.name?.split(' ')[0] || 'AI')}
+                  </span>
                 </div>
               </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+            </div>
+          </div>
+        ))}
 
         {isThinking && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+          <div
             className="flex items-start gap-3"
           >
             <div className="w-4 h-4 text-zinc-300 animate-pulse mt-1">
@@ -180,7 +173,7 @@ const ChatPanel: React.FC = () => {
                 <div className="w-1.5 h-1.5 bg-zinc-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
 

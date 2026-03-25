@@ -21,20 +21,7 @@ export class GeminiProvider implements LLMProvider {
       functionDeclarations: tools.map(t => ({
         name: t.function.name,
         description: t.function.description,
-        parameters: {
-          type: Type.OBJECT,
-          properties: Object.keys(t.function.parameters.properties).reduce((acc, key) => {
-            const prop = t.function.parameters.properties[key];
-            const typeStr = prop.type.toUpperCase() as keyof typeof Type;
-            acc[key] = {
-              type: Type[typeStr] || Type.STRING,
-              description: prop.description,
-              ...(prop.items && { items: { type: Type[prop.items.type.toUpperCase() as keyof typeof Type] || Type.STRING } })
-            };
-            return acc;
-          }, {} as Record<string, any>),
-          required: t.function.parameters.required || [],
-        }
+        parameters: this.mapToGeminiSchema(t.function.parameters)
       } as FunctionDeclaration))
     }] : undefined;
 
@@ -74,9 +61,22 @@ export class GeminiProvider implements LLMProvider {
       }
     }
 
+    const usage = result.usageMetadata ? {
+      promptTokens: result.usageMetadata.promptTokenCount || 0,
+      completionTokens: (result.usageMetadata.candidatesTokenCount || 0) + (result.usageMetadata.thoughtsTokenCount || 0),
+      totalTokens: result.usageMetadata.totalTokenCount || 0
+    } : undefined;
+
     return {
       content: contentStr,
-      tool_calls: toolCalls.length > 0 ? toolCalls : undefined
+      tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
+      usage,
+      raw: result, // Return the original SDK result for technical logging
+      request: {
+        contents,
+        systemInstruction,
+        tools: systemTools
+      }
     };
   }
 
@@ -113,5 +113,38 @@ export class GeminiProvider implements LLMProvider {
 
         return { role, parts };
       });
+  }
+
+  private mapToGeminiSchema(schema: any): any {
+    if (!schema) return undefined;
+
+    const typeStr = (schema.type || 'string').toUpperCase();
+    const mappedType = Type[typeStr as keyof typeof Type] || Type.STRING;
+
+    const result: any = {
+      type: mappedType,
+      description: schema.description,
+    };
+
+    if (schema.properties) {
+      result.properties = Object.keys(schema.properties).reduce((acc, key) => {
+        acc[key] = this.mapToGeminiSchema(schema.properties[key]);
+        return acc;
+      }, {} as Record<string, any>);
+    }
+
+    if (schema.required) {
+      result.required = schema.required;
+    }
+
+    if (schema.items) {
+      result.items = this.mapToGeminiSchema(schema.items);
+    }
+
+    if (schema.enum) {
+      result.enum = schema.enum;
+    }
+
+    return result;
   }
 }

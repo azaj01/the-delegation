@@ -32,9 +32,24 @@ export interface LLMConfig {
   model: string;
 }
 
+export interface LLMRequestDetails {
+  contents: any[];
+  systemInstruction?: string;
+  tools?: any[];
+}
+
+export interface LLMTokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
 export interface LLMResponse {
   content: string | null;
   tool_calls?: LLMToolCall[];
+  usage?: LLMTokenUsage;
+  raw?: any; // The original provider response
+  request?: LLMRequestDetails;
 }
 
 export interface LLMProvider {

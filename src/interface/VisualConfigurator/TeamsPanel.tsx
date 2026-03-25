@@ -1,7 +1,7 @@
 
 import { Plus } from 'lucide-react';
 import React, { useMemo } from 'react';
-import { AGENTIC_SETS } from '../../data/agents';
+import { AGENTIC_SETS, AgenticSystem } from '../../data/agents';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { TeamCard } from './TeamCard';
 
@@ -24,36 +24,28 @@ export const TeamsPanel: React.FC<TeamsPanelProps> = ({ onSelectTeam, selectedTe
 
   const handleCreateNew = () => {
     const newId = `team-${Date.now()}`;
-    const newSystem = {
-      id: newId, 
-      teamName: '', 
-      teamType: '', 
-      teamDescription: '', 
+    const newSystem: AgenticSystem = {
+      id: newId,
+      teamName: 'New Team',
+      teamType: 'Custom',
+      teamDescription: 'A custom agentic team.',
       color: '#A855F7',
-      user: { 
-        index: 0, 
-        model: 'Human', 
+      user: {
+        index: 0,
+        model: 'Human',
+        position: { x: 0, y: 0 }
       },
-      leadAgent: { 
-        id: `agent-${Date.now()}`, 
-        index: 1, 
-        name: 'Lead Agent', 
-        description: 'Team coordinator.', 
-        instruction: 'Coordinate the team to finish the project.', 
-        color: '#A855F7', 
-        model: 'gemini-3.1-flash-lite-preview', 
-        allowedTools: [
-          'propose_task', 
-          'notify_client_project_ready', 
-          'update_client_brief', 
-          'request_client_approval', 
-          'receive_client_approval', 
-          'complete_task'
-        ],
-        parentId: 'user',
-        nextId: 'user',
-      },
-      subagents: [],
+      leadAgent: {
+        id: `agent-${Date.now()}`,
+        index: 1,
+        name: 'Lead Agent',
+        description: 'Team coordinator.',
+        instruction: 'Coordinate the team to finish the project.',
+        color: '#A855F7',
+        model: 'gemini-3-flash-preview',
+        position: { x: 0, y: 150 },
+        subagents: []
+      }
     };
     saveCustomSystem(newSystem);
     onSelectTeam(newId);
@@ -83,8 +75,8 @@ export const TeamsPanel: React.FC<TeamsPanelProps> = ({ onSelectTeam, selectedTe
         })}
       </div>
       <div className="p-4 border-t border-zinc-50 bg-white">
-        <button 
-          onClick={handleCreateNew} 
+        <button
+          onClick={handleCreateNew}
           className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all shadow-lg shadow-black/5 active:scale-[0.98]"
         >
           <Plus size={14} strokeWidth={3} />

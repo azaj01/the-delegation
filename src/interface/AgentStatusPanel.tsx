@@ -1,8 +1,10 @@
 import React from 'react';
-import { getAgentSet, getAllCharacters } from '../data/agents';
+import { getAgentSet, getAllAgents, getAllCharacters } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore } from '../integration/store/teamStore';
 import { Avatar } from './components/Avatar';
+
+import { formatTokens } from './ProjectView';
 
 interface AgentStatusPanelProps {
   agentIndex: number;
@@ -12,7 +14,7 @@ const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
   const { tasks } = useCoreStore();
   const { selectedAgentSetId } = useTeamStore();
   const system = getAgentSet(selectedAgentSetId);
-  const agents = getAllCharacters(system);
+  const agents = getAllAgents(system);
 
   const agent = agents.find(a => a.index === agentIndex);
   if (!agent) return null;
@@ -21,23 +23,12 @@ const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
     (t) => t.assignedAgentIds.includes(agentIndex) && t.status === 'in_progress'
   ) ?? null;
 
+  const usage = useCoreStore.getState().agentTokenUsage[agentIndex] || { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+
   return (
     <div className="flex flex-col h-full p-6">
       {/* Agent Info */}
       <div className="mb-8 space-y-6">
-        {/* Model */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Model</p>
-            <div className="h-px flex-1 bg-zinc-100" />
-          </div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-50 rounded-lg border border-zinc-100/60 font-mono">
-            <p className="text-[11px] font-bold text-zinc-800 uppercase tracking-tighter">
-              {agent.model}
-            </p>
-          </div>
-        </div>
-
         {/* Description */}
         {agent.description && agent.index !== 0 && (
           <div>
@@ -59,6 +50,30 @@ const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
             <p className="text-xs text-zinc-600 leading-relaxed italic font-medium">{agent.instruction}</p>
           </div>
         )}
+        {/* Model */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Model</p>
+            <div className="h-px flex-1 bg-zinc-100" />
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-50 rounded-lg border border-zinc-100/60 font-mono">
+            <p className="text-[11px] font-bold text-zinc-800 uppercase tracking-tighter">
+              {agent.model}
+            </p>
+          </div>
+        </div>
+        {/* Token Usage */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Token Usage</p>
+            <div className="h-px flex-1 bg-zinc-100" />
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] font-bold font-mono">
+            <span className="text-zinc-700">{formatTokens(usage.promptTokens)} <span className="text-zinc-400 font-medium">input</span></span>
+            <span className="text-zinc-300">+</span>
+            <span className="text-zinc-700">{formatTokens(usage.completionTokens)} <span className="text-zinc-400 font-medium">output</span></span>
+          </div>
+        </div>
       </div>
 
       <div className="h-px bg-zinc-100 w-full mb-6" />

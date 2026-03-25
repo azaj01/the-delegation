@@ -1,7 +1,6 @@
 import { HelpCircle } from 'lucide-react';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'motion/react';
 import { USER_COLOR } from '../../theme/brand';
 
 interface InfoBubbleProps {
@@ -44,13 +43,9 @@ export const InfoBubble: React.FC<InfoBubbleProps> = ({ text }) => {
       </button>
 
       {createPortal(
-        <AnimatePresence>
+        <>
           {isVisible && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.1 }}
+            <div
               className="fixed bg-zinc-900 text-white text-[10px] px-3 py-2 rounded-lg shadow-2xl z-[9999] pointer-events-none border border-zinc-800 w-max max-w-[200px] text-center"
               style={{
                 left: coords.x + 8,
@@ -59,9 +54,9 @@ export const InfoBubble: React.FC<InfoBubbleProps> = ({ text }) => {
               }}
             >
               {text}
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>,
+        </>,
         document.body
       )}
     </div>

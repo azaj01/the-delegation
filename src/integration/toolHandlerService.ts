@@ -31,7 +31,7 @@ export class ToolHandlerService {
           requiresClientApproval: requiresApproval ?? false,
         });
 
-        const assignedRoles = agentIds
+        const assignedRoles = (agentIds || [])
           .map(i => getAllAgents(getActiveAgentSet()).find(a => a.index === i)?.name || `Agent #${i}`)
           .join(', ');
 
@@ -41,7 +41,7 @@ export class ToolHandlerService {
           taskId: task.id,
         });
 
-        if (store.phase === 'briefing' || store.phase === 'idle') {
+        if (store.phase === 'idle') {
           store.setPhase('working');
         }
         return true;
@@ -91,12 +91,72 @@ export class ToolHandlerService {
 
         store.updateTaskStatus(taskId, 'done');
         store.setTaskOutput(taskId, output);
+        
+        // --- AUTOMATIC FLOW TRIGGER ---
+        const activeSet = getActiveAgentSet();
+        const agents = getAllAgents(activeSet);
+        const callerAgent = agents.find(a => a.index === callerIndex);
+
+        if (callerAgent && callerAgent.nextId) {
+          const nextAgent = agents.find(a => a.id === callerAgent.nextId);
+          if (nextAgent) {
+            store.addTask({
+              title: `Follow-up: ${task.title}`,
+              description: `Previous task output: ${output.slice(0, 100)}...\n\nPlease continue the workflow.`,
+              assignedAgentIds: [nextAgent.index],
+              status: 'scheduled',
+              requiresClientApproval: false,
+            });
+            
+            store.addLogEntry({
+              agentIndex: callerIndex,
+              action: `completed task → auto-triggering ${nextAgent.name}`,
+              taskId,
+            });
+            return true;
+          }
+        }
+
         store.addLogEntry({
           agentIndex: callerIndex,
           action: `completed task`,
           taskId,
         });
         return true;
+      }
+
+      case 'request_revision': {
+        const { taskId, feedback } = fn.args as { taskId: string; feedback: string };
+        const task = store.tasks.find(t => t.id === taskId);
+        if (!task) return false;
+
+        const activeSet = getActiveAgentSet();
+        const agents = getAllAgents(activeSet);
+        const callerAgent = agents.find(a => a.index === callerIndex);
+
+        if (callerAgent && callerAgent.retryId) {
+          const retryAgent = agents.find(a => a.id === callerAgent.retryId);
+          if (retryAgent) {
+            // Move current task to done (it failed but we are creating a new one or looping)
+            store.updateTaskStatus(taskId, 'done'); 
+            
+            store.addTask({
+              title: `Revision: ${task.title}`,
+              description: `Feedback: ${feedback}\n\nPlease revise the previous work.`,
+              assignedAgentIds: [retryAgent.index],
+              status: 'scheduled',
+              requiresClientApproval: false,
+            });
+
+            store.addLogEntry({
+              agentIndex: callerIndex,
+              action: `requested revision → sending back to ${retryAgent.name}`,
+              taskId,
+            });
+            return true;
+          }
+        }
+        return false;
       }
 
       case 'notify_client_project_ready': {
@@ -106,15 +166,6 @@ export class ToolHandlerService {
         store.addLogEntry({
           agentIndex: callerIndex,
           action: `delivered final prompt to client`,
-        });
-        return true;
-      }
-      case 'update_client_brief': {
-        const { brief } = fn.args as { brief: string };
-        store.setClientBrief(brief);
-        store.addLogEntry({
-          agentIndex: callerIndex,
-          action: `updated client brief`,
         });
         return true;
       }

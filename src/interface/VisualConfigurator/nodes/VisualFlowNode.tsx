@@ -12,7 +12,7 @@ const NodeHandle = ({ h, i, total, position }: { h: HandleData, i: number, total
     id={h.id}
     className="!w-2.5 !h-2.5 !border-white shadow-sm hover:scale-125 transition-transform"
     style={{
-      left: `calc(50% + ${(i - (total - 1) / 2) * 14}px)`,
+      left: `calc(50% + ${(i - (total - 1) / 2) * 28}px)`,
       backgroundColor: h.color,
       [position]: 0,
       transform: `translate(-50%, ${position === 'top' ? '-50%' : '50%'})`,

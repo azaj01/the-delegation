@@ -13,7 +13,8 @@ import { getBrightness } from './colorUtils';
 interface AgentConfigPanelProps {
   agent: AgentNode;
   system: AgenticSystem;
-  onClose: () => void;
+  onClose: (wasSaved: boolean) => void;
+  onUpdate: (updatedAgent: AgentNode) => void;
   onRemove?: () => void;
   mode?: 'view' | 'edit';
 }
@@ -22,12 +23,13 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
   agent,
   system: activeSystem,
   onClose,
+  onUpdate,
   onRemove,
   mode = 'edit'
 }) => {
   const isView = mode === 'view';
   const { availableModels } = useCoreStore();
-  const { updateActiveSystem, saveCustomSystem } = useTeamStore();
+  const { saveCustomSystem } = useTeamStore();
 
   const [editData, setEditData] = useState<AgentNode>(agent);
   const isUser = agent.index === 0;
@@ -37,12 +39,13 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
     setEditData(agent);
   }, [agent]);
 
-  const allCharacters = useMemo(() => getAllCharacters(activeSystem), [activeSystem]);
+  const updateDraft = (changes: Partial<AgentNode>) => {
+    const newData = { ...editData, ...changes };
+    setEditData(newData);
+    onUpdate(newData);
+  };
 
-  const availableParents = useMemo(() => {
-    if (isLead) return [{ id: USER_ID, name: USER_NAME }];
-    return allCharacters.filter(c => c.id !== agent.id);
-  }, [allCharacters, agent.id, isLead]);
+  const allCharacters = useMemo(() => getAllCharacters(activeSystem), [activeSystem]);
 
   const availableNext = useMemo(() => {
     if (isLead) return [{ id: USER_ID, name: USER_NAME }];
@@ -50,9 +53,20 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
   }, [allCharacters, agent.id, isLead]);
 
   const availableRetry = useMemo(() => {
-    if (isLead) return [agent];
-    return allCharacters.filter(c => c.id !== agent.id || c.id === agent.id);
-  }, [allCharacters, agent.id, isLead]);
+    const list = [...allCharacters.filter(c => c.id !== agent.id || c.id === agent.id)];
+    // Always allow retrying to the User (HITL)
+    if (!list.some(c => c.id === USER_ID)) {
+      list.unshift({
+        id: USER_ID,
+        name: USER_NAME,
+        index: 0,
+        instruction: '',
+        color: USER_COLOR,
+        model: 'Human'
+      } as AgentNode);
+    }
+    return list;
+  }, [allCharacters, agent.id]);
 
   const nameCollision = useMemo(() => {
     return allCharacters.some(c =>
@@ -72,49 +86,46 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
     const oldId = agent.id;
     const newId = editData.id;
 
-    // 1. Create a base for lead agent and subagents with the updated agent
-    let newLeadAgent = isLead ? editData : { ...activeSystem.leadAgent };
-    let newSubagents = activeSystem.subagents.map(s =>
-      s.index === editData.index ? editData : { ...s }
-    );
+    // 1. Recursive update function
+    const updateRecursive = (node: AgentNode): AgentNode => {
+      // If this is the node being edited
+      let updatedNode = node.id === agent.id ? { ...editData } : { ...node };
 
-    // 2. If ID changed, update all references in the system
-    if (oldId !== newId) {
-      const updateAgentRefs = (a: AgentNode): AgentNode => ({
-        ...a,
-        parentId: a.parentId === oldId ? newId : a.parentId,
-        nextId: a.nextId === oldId ? newId : a.nextId,
-        retryId: a.retryId === oldId ? newId : a.retryId,
-      });
+      // Update references if ID changed
+      if (oldId !== newId) {
+        updatedNode = {
+          ...updatedNode,
+          nextId: updatedNode.nextId === oldId ? newId : updatedNode.nextId,
+          retryId: updatedNode.retryId === oldId ? newId : updatedNode.retryId,
+        };
+      }
 
-      newLeadAgent = updateAgentRefs(newLeadAgent);
-      newSubagents = newSubagents.map(updateAgentRefs);
-    }
+      // Recurse subagents
+      if (updatedNode.subagents) {
+        updatedNode.subagents = updatedNode.subagents.map(updateRecursive);
+      }
+
+      return updatedNode;
+    };
+
+    const newLeadAgent = updateRecursive(activeSystem.leadAgent);
 
     const updatedSystem: AgenticSystem = {
       ...activeSystem,
       leadAgent: newLeadAgent,
-      subagents: newSubagents,
     };
 
     saveCustomSystem(updatedSystem);
-    onClose();
+    onClose(true); // SAVED
   };
 
   const handleNameChange = (name: string) => {
     // Limit to letters, numbers and spaces
     const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '');
     const id = sanitizedName.trim().toLowerCase().replace(/ /g, '-');
-    setEditData(prev => ({ ...prev, name: sanitizedName, id }));
+    updateDraft({ name: sanitizedName, id });
   };
 
-  const toggleTool = (toolName: string) => {
-    const current = editData.allowedTools || [];
-    const updated = current.includes(toolName)
-      ? current.filter(t => t !== toolName)
-      : [...current, toolName];
-    setEditData(prev => ({ ...prev, allowedTools: updated }));
-  };
 
   const renderField = (label: string, icon: React.ReactNode, value: React.ReactNode, helpText?: string, inline?: boolean) => (
     <div className={inline ? "flex items-center justify-between" : "space-y-1.5"}>
@@ -141,7 +152,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
             {isUser ? 'User Info' : (isLead ? 'Lead Agent Info' : 'Subagent Info')}
           </h3>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-zinc-200 rounded-md transition-colors text-zinc-400">
+        <button onClick={() => onClose(false)} className="p-1 hover:bg-zinc-200 rounded-md transition-colors text-zinc-400">
           <X size={18} />
         </button>
       </div>
@@ -175,7 +186,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                   </div>
                   <ColorPicker
                     color={editData.color}
-                    onChange={(val) => setEditData(prev => ({ ...prev, color: val }))}
+                    onChange={(val) => updateDraft({ color: val })}
                   />
                 </div>
               )}
@@ -188,9 +199,8 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                     type="text"
                     value={editData.name}
                     onChange={(e) => handleNameChange(e.target.value)}
-                    className={`w-full px-3 py-2 bg-zinc-50 border rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-black/5 ${
-                      nameCollision ? 'border-red-500 text-red-600' : 'border-zinc-200'
-                    }`}
+                    className={`w-full px-3 py-2 bg-zinc-50 border rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-black/5 ${nameCollision ? 'border-red-500 text-red-600' : 'border-zinc-200'
+                      }`}
                   />
                   {nameCollision && (
                     <p className="text-[9px] text-red-500 font-bold uppercase tracking-tight px-1">
@@ -202,12 +212,12 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
 
               {renderField('LLM Model', <Cpu size={12} />, isView ? (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 border border-zinc-200 rounded-lg text-xs font-mono text-zinc-600 w-fit">
-                  {editData.model || 'gemini-3.1-flash-lite-preview'}
+                  {editData.model || 'gemini-3-flash-preview'}
                 </div>
               ) : (
                 <select
-                  value={editData.model || 'gemini-3.1-flash-lite-preview'}
-                  onChange={(e) => setEditData(prev => ({ ...prev, model: e.target.value }))}
+                  value={editData.model || 'gemini-3-flash-preview'}
+                  onChange={(e) => updateDraft({ model: e.target.value })}
                   className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-black/5 cursor-pointer"
                 >
                   {availableModels.map(m => <option key={m} value={m}>{m}</option>)}
@@ -225,7 +235,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                 <input
                   type="text"
                   value={editData.description}
-                  onChange={(e) => setEditData(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) => updateDraft({ description: e.target.value })}
                   className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-black/5"
                   placeholder="Concise summary of capabilities..."
                 />
@@ -240,7 +250,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
               ) : (
                 <textarea
                   value={editData.instruction}
-                  onChange={(e) => setEditData(prev => ({ ...prev, instruction: e.target.value }))}
+                  onChange={(e) => updateDraft({ instruction: e.target.value })}
                   className="w-full h-48 px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-black/5 resize-none font-medium text-zinc-600"
                   placeholder="Core task, persona, and constraints..."
                 />
@@ -251,27 +261,16 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
             <div className="space-y-4 pt-4 border-t border-zinc-100">
               <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300 mb-4">Flow & Hierarchy</h4>
 
-              <div className="grid grid-cols-2 gap-4">
-                {renderField('Reports to', null, isLead || isView ? (
-                  <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100 truncate">{isLead ? 'User' : allCharacters.find(c => c.id === editData.parentId)?.name || 'N/A'}</div>
+              <div className="grid grid-cols-1 gap-4">
+                {renderField('Next Step (Success)', null, isLead || isView ? (
+                  <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100 truncate">{allCharacters.find(c => c.id === editData.nextId)?.name || 'None'}</div>
                 ) : (
                   <select
-                    value={editData.parentId}
-                    onChange={(e) => setEditData(prev => ({ ...prev, parentId: e.target.value }))}
+                    value={editData.nextId || ''}
+                    onChange={(e) => updateDraft({ nextId: e.target.value })}
                     className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
                   >
-                    {availableParents.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                ))}
-
-                {renderField('Target', null, isLead || isView ? (
-                  <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100 truncate">{isLead ? 'User' : allCharacters.find(c => c.id === editData.nextId)?.name || 'N/A'}</div>
-                ) : (
-                  <select
-                    value={editData.nextId}
-                    onChange={(e) => setEditData(prev => ({ ...prev, nextId: e.target.value }))}
-                    className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
-                  >
+                    <option value="">None</option>
                     {availableNext.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 ))}
@@ -283,7 +282,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                 ) : (
                   <select
                     value={editData.retryId || ''}
-                    onChange={(e) => setEditData(prev => ({ ...prev, retryId: e.target.value || undefined }))}
+                    onChange={(e) => updateDraft({ retryId: e.target.value || undefined })}
                     className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
                   >
                     <option value="">None</option>
@@ -296,7 +295,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                 ) : (
                   <select
                     value={editData.maxIterations || DEFAULT_MAX_ITERATIONS}
-                    onChange={(e) => setEditData(prev => ({ ...prev, maxIterations: parseInt(e.target.value) }))}
+                    onChange={(e) => updateDraft({ maxIterations: parseInt(e.target.value) })}
                     className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
                   >
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
@@ -307,44 +306,34 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
               </div>
             </div>
 
-            {/* Tools Group */}
+            {/* Capabilities Info */}
             <div className="space-y-4 pt-4 border-t border-zinc-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300">Allowed Tools</h4>
-                  <InfoBubble text="Select which capabilities this agent has access to." />
-                </div>
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300">Capabilities</h4>
+                <InfoBubble text="Tools are enabled automatically based on the agent's position and connections." />
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {isView ? (
-                  (editData.allowedTools || []).map(tool => (
-                    <span key={tool} className="px-2 py-1 bg-zinc-100 text-zinc-600 text-[10px] font-bold rounded-lg border border-zinc-200">
-                      {tool}
-                    </span>
-                  ))
-                ) : (
-                  CORE_TOOLS.map(tool => {
-                    const isSelected = (editData.allowedTools || []).includes(tool.function.name);
-                    return (
-                      <button
-                        key={tool.function.name}
-                        onClick={() => toggleTool(tool.function.name)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all border ${isSelected
-                          ? 'bg-zinc-900 text-white border-zinc-900 shadow-md shadow-zinc-200'
-                          : 'bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300'
-                          }`}
-                      >
-                        {isSelected && <Check size={10} strokeWidth={3} />}
-                        {tool.function.name}
-                      </button>
-                    );
-                  })
+              <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center gap-2 opacity-60">
+                  <Check size={12} className="text-zinc-400" />
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Complete Task</span>
+                </div>
+                {(editData.subagents?.length || 0) > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Check size={12} className="text-zinc-900" />
+                    <span className="text-[10px] font-bold text-zinc-900 uppercase">Propose Task (Manager)</span>
+                  </div>
                 )}
-                {!isView && (editData.allowedTools || []).length === 0 && (
-                  <p className="text-[10px] text-zinc-400 italic font-medium w-full text-center py-4 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200">No tools selected.</p>
+                {editData.retryId === USER_ID && (
+                  <div className="flex items-center gap-2">
+                    <Check size={12} className="text-zinc-900" />
+                    <span className="text-[10px] font-bold text-zinc-900 uppercase">Human Approval (HITL)</span>
+                  </div>
                 )}
-                {isView && (editData.allowedTools || []).length === 0 && (
-                  <p className="text-[10px] text-zinc-400 italic font-medium">None</p>
+                {editData.retryId && editData.retryId !== USER_ID && (
+                  <div className="flex items-center gap-2">
+                    <Check size={12} className="text-zinc-900" />
+                    <span className="text-[10px] font-bold text-zinc-900 uppercase">Request Revision (Critic)</span>
+                  </div>
                 )}
               </div>
             </div>

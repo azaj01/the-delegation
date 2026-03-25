@@ -36,7 +36,7 @@ export const useUiStore = create<CharacterState>()(
       return {
         provider: 'gemini',
         apiKey: '',
-        model: 'gemini-3.1-flash-lite-preview'
+        model: 'gemini-3-flash-preview'
       };
     })(),
 

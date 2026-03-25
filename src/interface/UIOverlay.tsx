@@ -58,13 +58,13 @@ function getAgentPhaseLabel(
     return { text: 'Project Ready!', className: 'text-yellow-400' };
   }
   const holdTask = tasks.find(
-    t => t.assignedAgentIds.includes(agentIndex) && t.status === 'on_hold',
+    t => t.assignedAgentIds?.includes(agentIndex) && t.status === 'on_hold',
   );
   if (holdTask && phase !== 'done') {
     return { text: 'Approval Needed', className: 'text-orange-400' };
   }
   const activeTask = tasks.find(
-    t => t.assignedAgentIds.includes(agentIndex) && t.status === 'in_progress',
+    t => t.assignedAgentIds?.includes(agentIndex) && t.status === 'in_progress',
   );
   if (activeTask) {
     return { text: 'Working', className: 'text-emerald-400' };
@@ -124,7 +124,7 @@ const UIOverlay: React.FC = () => {
         // - Any agent waiting for approval: message-square-warning
         else {
           const hasTaskOnHold = tasks.some(
-            t => t.assignedAgentIds.includes(agent.index) && t.status === 'on_hold'
+            t => t.assignedAgentIds?.includes(agent.index) && t.status === 'on_hold'
           );
           if (hasTaskOnHold) {
             alertIcon = <MessageSquareWarning size={18} />;

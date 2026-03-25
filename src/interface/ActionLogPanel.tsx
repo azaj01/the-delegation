@@ -4,6 +4,7 @@ import { getAgentSet, getAllAgents } from '../data/agents'
 import { USER_COLOR, USER_COLOR_LIGHT } from '../theme/brand'
 import { DebugLogEntry, useCoreStore } from '../integration/store/coreStore'
 import { useTeamStore } from '../integration/store/teamStore'
+import { formatTokens } from './ProjectView'
 
 function formatTime(ts: number): string {
   return new Date(ts).toLocaleTimeString('en-GB', {
@@ -38,37 +39,32 @@ const DebugEntryView: React.FC<{ entry: DebugLogEntry }> = ({ entry }) => {
     const [isOpen, setIsOpen] = useState(false);
     const selectedAgentSetId = useTeamStore((s) => s.selectedAgentSetId);
     const agents = getAllAgents(getAgentSet(selectedAgentSetId));
-    const agent = agents.find(a => a.index === entry.agentIndex);
+    const agent = entry.agentIndex === -1 
+        ? { name: 'System', color: '#71717a' } 
+        : agents.find(a => a.index === entry.agentIndex);
 
-    // Parse tool calls from rawContent (only available in response entries)
-    // Structure: { text: string, toolCalls: LLMToolCall[] }
-    // where LLMToolCall = { id, type, function: { name, arguments (JSON string) } }
-    let toolCalls: any[] = [];
-    let parsedResponse: any = null;
-    if (entry.phase === 'response') {
-        try {
-            parsedResponse = JSON.parse(entry.rawContent);
-            if (Array.isArray(parsedResponse.toolCalls)) {
-                toolCalls = parsedResponse.toolCalls;
-            }
-        } catch (e) {
-            // rawContent is not valid JSON
-        }
-    }
+    const totalTools = entry.phase === 'request'
+        ? entry.systemTools?.reduce((acc: number, t: any) => acc + (t.functionDeclarations?.length || 0), 0) || 0
+        : 0;
 
     const fullContent = `
 AGENT: ${agent?.name} (${entry.phase})
 TIME: ${formatTime(entry.timestamp)}
 PHASE: ${entry.phase}
 
-SYSTEM PROMPT:
-${entry.systemPrompt}
+${entry.phase === 'request' ? `
+SYSTEM INSTRUCTION:
+${entry.systemInstruction || 'None'}
 
-DYNAMIC CONTEXT:
-${entry.dynamicContext}
+CONTENTS:
+${JSON.stringify(entry.contents, null, 2)}
+` : `
+CONTENT:
+${entry.content || 'None'}
 
-${entry.phase === 'request' ? 'REQUEST MESSAGE' : 'RAW RESPONSE'}:
-${entry.rawContent}
+RAW RESPONSE:
+${JSON.stringify(entry.raw, null, 2)}
+`}
     `.trim();
 
     return (
@@ -97,6 +93,11 @@ ${entry.rawContent}
                                 >
                                     {entry.phase}
                                 </span>
+                                {entry.phase === 'response' && entry.usage && (
+                                    <span className="text-[8px] font-mono font-bold text-zinc-400 bg-zinc-50 border border-zinc-100 px-1 py-0.5 rounded leading-none">
+                                        T: {formatTokens(entry.usage.totalTokens)}
+                                    </span>
+                                )}
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-[8px] font-mono text-zinc-400">{formatTime(entry.timestamp)}</span>
@@ -105,12 +106,12 @@ ${entry.rawContent}
                         </div>
 
                         {/* Summary of tool calls in preview */}
-                        {toolCalls.length > 0 && !isOpen && (
+                        {entry.phase === 'response' && entry.tool_calls && entry.tool_calls.length > 0 && !isOpen && (
                             <div className="flex flex-wrap gap-1 pl-4">
-                                {toolCalls.map((tc, i) => (
+                                {entry.tool_calls.map((tc, i) => (
                                     <span key={i} className="flex items-center gap-1 text-[8px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded shadow-sm">
                                         <Zap size={8} />
-                                        {tc.function?.name ?? tc.name}
+                                        {tc.function?.name || '(unknown)'}
                                     </span>
                                 ))}
                             </div>
@@ -124,137 +125,206 @@ ${entry.rawContent}
 
             {isOpen && (
                 <div className="mt-2 space-y-2 pl-4 border-l border-zinc-100">
-                    {/* System Prompt — collapsed by default */}
-                    <details className="group/sp">
-                        <summary className="flex items-center justify-between gap-1.5 py-1 cursor-pointer list-none">
-                            <div className="flex items-center gap-1.5 opacity-50 hover:opacity-100 transition-opacity">
-                                <ChevronRight size={10} className="text-zinc-400 group-open/sp:rotate-90 transition-transform" />
-                                <Terminal size={10} />
-                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">System Prompt</span>
-                            </div>
-                            <div onClick={e => e.stopPropagation()}>
-                                <CopyButton text={entry.systemPrompt} />
-                            </div>
-                        </summary>
-                        <pre className="mt-1.5 text-[10px] bg-zinc-50 p-2 rounded leading-relaxed text-zinc-600 whitespace-pre-wrap font-mono border border-zinc-100/50">
-                            {entry.systemPrompt}
-                        </pre>
-                    </details>
-
-                    {/* Dynamic Context — collapsed by default */}
-                    <details className="group/dc">
-                        <summary className="flex items-center justify-between gap-1.5 py-1 cursor-pointer list-none">
-                            <div className="flex items-center gap-1.5 opacity-50 hover:opacity-100 transition-opacity">
-                                <ChevronRight size={10} className="text-zinc-400 group-open/dc:rotate-90 transition-transform" />
-                                <Zap size={10} />
-                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">Dynamic Context</span>
-                            </div>
-                            <div onClick={e => e.stopPropagation()}>
-                                <CopyButton text={entry.dynamicContext} />
-                            </div>
-                        </summary>
-                        <pre className="mt-1.5 text-[10px] bg-amber-50/30 p-2 rounded leading-relaxed text-amber-900/70 whitespace-pre-wrap font-mono border border-amber-100/20">
-                            {entry.dynamicContext}
-                        </pre>
-                    </details>
-
-                    <div className="pt-2">
-                        <div className="flex items-center justify-between gap-1.5 mb-1.5 opacity-50">
-                            <div className="flex items-center gap-1.5">
-                                <MessageSquare size={10} />
-                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">
-                                    {entry.phase === 'request' ? 'Request Message' : 'Response Details'}
-                                </span>
-                            </div>
-                            <CopyButton text={entry.rawContent} />
-                        </div>
-                        {entry.phase === 'response' ? (
-                            <div className="space-y-3">
-                                {parsedResponse ? (
-                                    <>
-                                        {/* Formatted Text Content */}
-                                        {parsedResponse.text && (
-                                            <div className="text-[11px] bg-white p-3 rounded leading-relaxed text-zinc-700 border border-zinc-100 shadow-sm relative italic whitespace-pre-wrap">
-                                                <div className="absolute -top-2 left-2 bg-white px-1 text-[8px] font-black uppercase text-zinc-400 border border-zinc-100 rounded">Text</div>
-                                                {parsedResponse.text}
-                                            </div>
-                                        )}
-
-                                        {/* Formatted Tool Calls */}
-                                        {toolCalls.length > 0 && (
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-1.5 ml-1">
-                                                    <Zap size={10} className="text-emerald-500" />
-                                                    <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">Tool calls</span>
-                                                </div>
-                                                {toolCalls.map((tc, i) => {
-                                                    const name = tc.function?.name ?? tc.name ?? '(unknown)';
-                                                    let args: Record<string, unknown> | null = null;
-                                                    try { args = JSON.parse(tc.function?.arguments ?? '{}'); } catch { args = tc.args ?? null; }
-                                                    return (
-                                                        <div key={i} className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 shadow-lg">
-                                                            <div className="bg-zinc-800 px-2.5 py-1.5 flex items-center justify-between">
-                                                                <span className="text-[10px] font-black text-emerald-400 font-mono tracking-wider">{name}</span>
-                                                                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter">Arguments</span>
-                                                            </div>
-                                                            <div className="p-2.5 bg-zinc-900/50">
-                                                                {args && Object.keys(args).length > 0 ? (
-                                                                    <div className="space-y-1.5">
-                                                                        {Object.entries(args).map(([key, value]) => (
-                                                                            <div key={key} className="flex flex-col gap-0.5">
-                                                                                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter">{key}</span>
-                                                                                <div className="text-[9px] text-zinc-300 font-mono bg-zinc-800/50 p-1.5 rounded border border-zinc-700/50 wrap-break-word whitespace-pre-wrap">
-                                                                                    {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
-                                                                                </div>
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                ) : (
-                                                                    <span className="text-[9px] text-zinc-500 italic">No arguments</span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-
-                                        {/* Raw JSON fallback */}
-                                        <details className="mt-2">
-                                            <summary className="text-[8px] font-bold text-zinc-300 uppercase cursor-pointer hover:text-zinc-500 transition-colors ml-1">View Full Raw JSON</summary>
-                                            <pre className="mt-1 text-[9px] bg-zinc-50/50 p-2 rounded text-zinc-400 whitespace-pre overflow-x-auto border border-zinc-100 font-mono">
-                                                {entry.rawContent}
-                                            </pre>
-                                        </details>
-                                    </>
-                                ) : (
-                                    <pre className="text-[10px] bg-white p-2 rounded leading-relaxed text-zinc-600 whitespace-pre-wrap font-mono border border-zinc-100 shadow-sm">
-                                        {entry.rawContent}
+                    {entry.phase === 'request' ? (
+                        <>
+                            {/* System Instruction — collapsed by default */}
+                            {entry.systemInstruction && (
+                                <details className="group/sp">
+                                    <summary className="flex items-center justify-between gap-1.5 py-1 cursor-pointer list-none">
+                                        <div className="flex items-center gap-1.5 opacity-50 hover:opacity-100 transition-opacity">
+                                            <ChevronRight size={10} className="text-zinc-400 group-open/sp:rotate-90 transition-transform" />
+                                            <Terminal size={10} />
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">System Instruction</span>
+                                        </div>
+                                        <div onClick={e => e.stopPropagation()}>
+                                            <CopyButton text={entry.systemInstruction} />
+                                        </div>
+                                    </summary>
+                                    <pre className="mt-1.5 text-[10px] bg-zinc-50 p-2 rounded leading-relaxed text-zinc-600 whitespace-pre-wrap font-mono border border-zinc-100/50">
+                                        {entry.systemInstruction}
                                     </pre>
-                                )}
-                            </div>
-                        ) : (
-                            <pre className="text-[10px] bg-white p-2 rounded leading-relaxed text-zinc-600 whitespace-pre-wrap font-mono border border-zinc-100 shadow-sm">
-                                {entry.rawContent}
-                            </pre>
-                        )}
-                    </div>
+                                </details>
+                            )}
 
-                    {entry.messages.length > 1 && (
-                        <div>
-                             <div className="flex items-center gap-1.5 mb-1.5 opacity-50">
-                                <Eye size={10} />
-                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">History Snapshot ({entry.messages.length} msgs)</span>
-                            </div>
-                            <div className="max-h-40 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                                {entry.messages.map((m, i) => (
-                                    <div key={i} className={`p-1.5 rounded text-[9px] ${m.role === 'user' ? 'bg-zinc-50 border border-zinc-100' : 'bg-emerald-50/30 border border-emerald-100/30'}`}>
-                                        <div className="font-bold uppercase tracking-tighter mb-0.5 opacity-40">{m.role}</div>
-                                        <div className="line-clamp-3 hover:line-clamp-none transition-all">{typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}</div>
+                            {/* Tools — collapsed by default */}
+                            <details className={`group/tools ${totalTools === 0 ? 'pointer-events-none' : ''}`}>
+                                <summary className="flex items-center justify-between gap-1.5 py-1 cursor-pointer list-none">
+                                    <div className={`flex items-center gap-1.5 ${totalTools === 0 ? 'opacity-20' : 'opacity-50 hover:opacity-100 transition-opacity'}`}>
+                                        <ChevronRight size={10} className={`text-zinc-400 group-open/tools:rotate-90 transition-transform ${totalTools === 0 ? 'invisible' : ''}`} />
+                                        <Zap size={10} />
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">System Tools ({totalTools})</span>
                                     </div>
-                                ))}
+                                    {totalTools > 0 && (
+                                        <div onClick={e => e.stopPropagation()}>
+                                            <CopyButton text={JSON.stringify(entry.systemTools, null, 2)} />
+                                        </div>
+                                    )}
+                                </summary>
+                                {totalTools > 0 && (
+                                    <div className="mt-1.5 flex flex-wrap gap-1 bg-emerald-50/20 p-2 rounded border border-emerald-100/20">
+                                        {entry.systemTools.map((toolGroup, i) => (
+                                            <React.Fragment key={i}>
+                                                {toolGroup.functionDeclarations?.map((fd: any, j: number) => (
+                                                    <span key={j} className="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50 shadow-xs">
+                                                        {fd.name}
+                                                    </span>
+                                                ))}
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
+                                )}
+                            </details>
+
+                            {/* Contents Array — collapsed by default */}
+                            {entry.contents && entry.contents.length > 0 && (
+                                <details className="group/msgs" open>
+                                    <summary className="flex items-center justify-between gap-1.5 py-1 cursor-pointer list-none">
+                                        <div className="flex items-center gap-1.5 opacity-50 hover:opacity-100 transition-opacity">
+                                            <ChevronRight size={10} className="text-zinc-400 group-open/msgs:rotate-90 transition-transform" />
+                                            <MessageSquare size={10} />
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">Contents / Messages ({entry.contents.length})</span>
+                                        </div>
+                                        <div onClick={e => e.stopPropagation()}>
+                                            <CopyButton text={JSON.stringify(entry.contents, null, 2)} />
+                                        </div>
+                                    </summary>
+                                    <div className="mt-2 space-y-2 max-h-80 overflow-y-auto pr-1 customize-scrollbar border-l-2 border-zinc-50 pl-2">
+                                        {entry.contents.map((m, i) => (
+                                            <div key={i} className={`p-2 rounded border group/msg transition-all ${
+                                                m.role === 'user' ? 'bg-white border-zinc-100' : 
+                                                'bg-emerald-50/20 border-emerald-100/30'
+                                            }`}>
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className={`text-[8px] font-black uppercase tracking-widest ${
+                                                        m.role === 'user' ? 'text-zinc-400' : 
+                                                        'text-emerald-600'
+                                                    }`}>{m.role}</span>
+                                                    <div className="opacity-0 group-hover/msg:opacity-100 transition-opacity">
+                                                        <CopyButton text={JSON.stringify(m, null, 2)} />
+                                                    </div>
+                                                </div>
+                                                <div className="mt-1.5 space-y-2">
+                                                    {(m.parts || []).map((part: any, idx: number) => (
+                                                        <div key={idx}>
+                                                            {part.text && (
+                                                                <div className="text-[10px] text-zinc-700 leading-relaxed font-sans whitespace-pre-wrap py-1">
+                                                                    {part.text}
+                                                                </div>
+                                                            )}
+                                                            {part.functionCall && (
+                                                                <div className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 shadow-lg">
+                                                                    <div className="bg-zinc-800 px-2.5 py-1.5 flex items-center justify-between">
+                                                                        <span className="text-[9px] font-black text-emerald-400 font-mono tracking-wider">{part.functionCall.name}</span>
+                                                                        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter">Call</span>
+                                                                    </div>
+                                                                    <div className="p-2.5 bg-zinc-900/50">
+                                                                        <pre className="text-[9px] text-zinc-300 font-mono wrap-break-word whitespace-pre-wrap">
+                                                                            {JSON.stringify(part.functionCall.args, null, 2)}
+                                                                        </pre>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {part.functionResponse && (
+                                                                <div className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 shadow-lg">
+                                                                    <div className="bg-zinc-800 px-2.5 py-1.5 flex items-center justify-between">
+                                                                        <span className="text-[9px] font-black text-amber-400 font-mono tracking-wider">{part.functionResponse.name}</span>
+                                                                        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter">Response</span>
+                                                                    </div>
+                                                                    <div className="p-2.5 bg-zinc-900/50">
+                                                                        <pre className="text-[9px] text-zinc-300 font-mono wrap-break-word whitespace-pre-wrap">
+                                                                            {JSON.stringify(part.functionResponse.response, null, 2)}
+                                                                        </pre>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </details>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <div className="pt-2">
+                                <div className="flex items-center justify-between gap-1.5 mb-1.5 opacity-50">
+                                    <div className="flex items-center gap-1.5">
+                                        <MessageSquare size={10} />
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">Response Details</span>
+                                    </div>
+                                    <CopyButton text={entry.content || ''} />
+                                </div>
+                                <div className="space-y-3">
+                                    {/* Formatted Text Content */}
+                                    {entry.content && (
+                                        <div className="text-[11px] bg-white p-3 rounded leading-relaxed text-zinc-700 border border-zinc-100 shadow-sm relative italic whitespace-pre-wrap">
+                                            <div className="absolute -top-2 left-2 bg-white px-1 text-[8px] font-black uppercase text-zinc-400 border border-zinc-100 rounded">Text</div>
+                                            {entry.content}
+                                        </div>
+                                    )}
+
+                                    {/* Formatted Tool Calls */}
+                                    {entry.tool_calls && entry.tool_calls.length > 0 && (
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-1.5 ml-1">
+                                                <Zap size={10} className="text-emerald-500" />
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">Tool calls</span>
+                                            </div>
+                                            {entry.tool_calls.map((tc, i) => {
+                                                const name = tc.function?.name || '(unknown)';
+                                                let args: Record<string, unknown> | null = null;
+                                                try { args = JSON.parse(tc.function?.arguments ?? '{}'); } catch { args = (tc as any).args ?? null; }
+                                                return (
+                                                    <div key={i} className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 shadow-lg">
+                                                        <div className="bg-zinc-800 px-2.5 py-1.5 flex items-center justify-between">
+                                                            <span className="text-[10px] font-black text-emerald-400 font-mono tracking-wider">{name}</span>
+                                                            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter">Arguments</span>
+                                                        </div>
+                                                        <div className="p-2.5 bg-zinc-900/50">
+                                                            {args && Object.keys(args).length > 0 ? (
+                                                                <div className="space-y-1.5">
+                                                                    {Object.entries(args).map(([key, value]) => (
+                                                                        <div key={key} className="flex flex-col gap-0.5">
+                                                                            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter">{key}</span>
+                                                                            <div className="text-[9px] text-zinc-300 font-mono bg-zinc-800/50 p-1.5 rounded border border-zinc-700/50 wrap-break-word whitespace-pre-wrap">
+                                                                                {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-[9px] text-zinc-500 italic">No arguments</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+
+                            {/* Raw LLM Response — collapsed by default */}
+                            {entry.raw && (
+                                <details className="group/raw">
+                                    <summary className="flex items-center justify-between gap-1.5 py-1 cursor-pointer list-none">
+                                        <div className="flex items-center gap-1.5 opacity-50 hover:opacity-100 transition-opacity">
+                                            <ChevronRight size={10} className="text-zinc-400 group-open/raw:rotate-90 transition-transform" />
+                                            <Download size={10} />
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">Raw LLM Response</span>
+                                        </div>
+                                        <div onClick={e => e.stopPropagation()}>
+                                            <CopyButton text={JSON.stringify(entry.raw, null, 2)} />
+                                        </div>
+                                    </summary>
+                                    <pre className="mt-1.5 text-[9px] bg-zinc-900 text-zinc-400 p-2 rounded leading-relaxed whitespace-pre overflow-x-auto font-mono border border-zinc-800">
+                                        {JSON.stringify(entry.raw, null, 2)}
+                                    </pre>
+                                </details>
+                            )}
+                        </>
                     )}
                 </div>
             )}
@@ -272,7 +342,9 @@ export function ActionLogPanel() {
 
   const handleDownloadAll = () => {
     const content = debugLog.map(entry => {
-      const agent = agents.find(a => a.index === entry.agentIndex);
+      const agent = entry.agentIndex === -1 
+        ? { name: 'System' } 
+        : agents.find(a => a.index === entry.agentIndex);
       return `
 =========================================
 AGENT: ${agent?.name} (${entry.phase})
@@ -280,17 +352,25 @@ TIME: ${new Date(entry.timestamp).toLocaleString()}
 PHASE: ${entry.phase}
 =========================================
 
-SYSTEM PROMPT:
-${entry.systemPrompt}
+${entry.phase === 'request' ? `
+SYSTEM INSTRUCTION:
+${entry.systemInstruction || 'None'}
 
------------------------------------------
-DYNAMIC CONTEXT:
-${entry.dynamicContext}
+CONTENTS:
+${JSON.stringify(entry.contents, null, 2)}
 
------------------------------------------
-${entry.phase === 'request' ? 'REQUEST MESSAGE' : 'RAW RESPONSE'}:
-${entry.rawContent}
+SYSTEM TOOLS:
+${JSON.stringify(entry.systemTools, null, 2)}
+` : `
+CONTENT:
+${entry.content || 'None'}
 
+TOOL CALLS:
+${JSON.stringify(entry.tool_calls || [], null, 2)}
+
+RAW RESPONSE:
+${JSON.stringify(entry.raw, null, 2)}
+`}
 `.trim();
     }).join('\n\n\n');
 

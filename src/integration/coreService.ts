@@ -3,8 +3,8 @@ import { LLMFactory } from '../core/llm/LLMFactory'
 import { CORE_TOOLS } from '../core/llm/toolDefinitions'
 import { LLMMessage } from '../core/llm/types'
 import {
-    buildChatSystemPrompt,
-    buildDynamicContext, buildSystemPrompt
+  buildChatSystemPrompt,
+  buildDynamicContext, buildSystemPrompt
 } from '../core/prompts/agentPrompts'
 import { getAllAgents } from '../data/agents'
 import { useCoreStore } from './store/coreStore'
@@ -45,18 +45,54 @@ function abortRace(signal: AbortSignal): Promise<never> {
 }
 
 const waitForResume = (signal: AbortSignal) => {
-    return new Promise<void>((resolve, reject) => {
-      if (signal.aborted) { reject(new DOMException('LLM call aborted by reset', 'AbortError')); return; }
-      const unsub = useCoreStore.subscribe((state, prevState) => {
-        if (prevState.isPaused && !state.isPaused) {
-          unsub();
-          if (signal.aborted) reject(new DOMException('LLM call aborted by reset', 'AbortError'));
-          else resolve();
-        }
-      });
-      signal.addEventListener('abort', () => { unsub(); reject(new DOMException('LLM call aborted by reset', 'AbortError')); }, { once: true });
+  return new Promise<void>((resolve, reject) => {
+    if (signal.aborted) { reject(new DOMException('LLM call aborted by reset', 'AbortError')); return; }
+    const unsub = useCoreStore.subscribe((state, prevState) => {
+      if (prevState.isPaused && !state.isPaused) {
+        unsub();
+        if (signal.aborted) reject(new DOMException('LLM call aborted by reset', 'AbortError'));
+        else resolve();
+      }
     });
-  };
+    signal.addEventListener('abort', () => { unsub(); reject(new DOMException('LLM call aborted by reset', 'AbortError')); }, { once: true });
+  });
+};
+
+export function handleLLMError(e: any): void {
+  const error = e as any;
+  let errorMessage = '';
+
+  if (typeof error === 'string') {
+    errorMessage = error;
+  } else if (error instanceof Error) {
+    errorMessage = error.message;
+  } else {
+    errorMessage = JSON.stringify(error);
+  }
+
+  const isQuotaError = errorMessage.includes('429') ||
+    errorMessage.includes('RESOURCE_EXHAUSTED') ||
+    errorMessage.includes('quota');
+
+  if (isQuotaError) {
+    let displayMessage = 'API Quota exceeded. Please wait a moment or use your own API key to continue.';
+    // Try to extract a more descriptive message from the API error JSON if present
+    try {
+      const jsonMatch = errorMessage.match(/\{.*\}/s);
+      if (jsonMatch) {
+        const errorData = JSON.parse(jsonMatch[0]);
+        if (errorData.error?.message) {
+          displayMessage = errorData.error.message;
+        }
+      }
+    } catch (parseError) {
+      // Fallback to generic if parsing fails
+    }
+    useUiStore.getState().setBYOKOpen(true, displayMessage);
+  } else if (errorMessage.includes('API key') || errorMessage.includes('400') || errorMessage.includes('401')) {
+    useUiStore.getState().setBYOKOpen(true, 'API key not valid. Please check your key and try again.');
+  }
+}
 
 export async function callAgent(params: {
   agentIndex: number;
@@ -75,9 +111,7 @@ export async function callAgent(params: {
   try {
     provider = LLMFactory.getProvider(llmConfig);
   } catch (e) {
-    if (e instanceof Error && e.message.includes('API key')) {
-      useUiStore.getState().setBYOKOpen(true, e.message);
-    }
+    handleLLMError(e);
     throw e;
   }
 
@@ -138,18 +172,27 @@ export async function callAgent(params: {
     { role: 'user', content: fullUserMessage }
   ];
 
-  // Always log the request for the technical log panel
-  useCoreStore.getState().addDebugLogEntry({
-      agentIndex,
-      agentName: agentData?.name || 'Unknown',
-      phase: 'request',
-      systemPrompt: fullSystemPrompt,
-      dynamicContext,
-      messages,
-      rawContent: userMessage,
-      status: 'pending',
-      taskId: boardroomTaskId || currentTask?.id
-  });
+  // 3. Call LLM — using declarative tool permissions based on topology
+  const isLead = agentData?.index === 1;
+  const canDelegate = (agentData?.subagents?.length || 0) > 0;
+  const hasRetry = !!agentData?.retryId;
+  const isHITL = agentData?.retryId === 'user';
+
+  const allowedToolNames = new Set<string>(['complete_task', 'receive_client_approval']);
+  if (isLead) {
+    allowedToolNames.add('notify_client_project_ready');
+  }
+  if (canDelegate) allowedToolNames.add('propose_task');
+  if (hasRetry) {
+    if (isHITL) {
+      allowedToolNames.add('request_client_approval');
+    } else {
+      allowedToolNames.add('request_revision');
+    }
+  }
+
+  const tools = CORE_TOOLS.filter((t) => allowedToolNames.has(t.function.name));
+
   // PAUSE BEFORE CALL (only when debug mode on)
   if (useCoreStore.getState().pauseOnCall) {
     useCoreStore.getState().setPaused(true);
@@ -157,11 +200,6 @@ export async function callAgent(params: {
   }
   throwIfAborted(signal);
 
-  // 3. Call LLM — using declarative tool permissions
-  let tools = CORE_TOOLS;
-  if (agentData?.allowedTools) {
-    tools = CORE_TOOLS.filter((t) => agentData.allowedTools!.includes(t.function.name));
-  }
 
   // Use agent.model if available, else fallback to llmConfig.model
   const modelToUse = agentData?.model || llmConfig.model;
@@ -173,9 +211,7 @@ export async function callAgent(params: {
       abortRace(signal),
     ]);
   } catch (e) {
-    if (e instanceof Error && (e.message.includes('API key') || e.message.includes('400') || e.message.includes('401'))) {
-       useUiStore.getState().setBYOKOpen(true, 'API key not valid. Please check your key and try again.');
-    }
+    handleLLMError(e);
     throw e;
   }
 
@@ -194,17 +230,27 @@ export async function callAgent(params: {
     args: JSON.parse(tc.function.arguments)
   }));
 
-  // Always log the response for the technical log panel
-  useCoreStore.getState().addDebugLogEntry({
+  // Log the request (mapped by provider)
+  if (response.request) {
+    useCoreStore.getState().addRequestLog({
       agentIndex,
       agentName: agentData?.name || 'Unknown',
-      phase: 'response',
-      systemPrompt: fullSystemPrompt,
-      dynamicContext,
-      messages,
-      rawContent: JSON.stringify({ text, toolCalls }, null, 2),
-      status: 'completed',
+      systemInstruction: response.request.systemInstruction,
+      contents: response.request.contents,
+      systemTools: response.request.tools,
       taskId: boardroomTaskId || currentTask?.id
+    });
+  }
+
+  // Log the response
+  useCoreStore.getState().addResponseLog({
+    agentIndex,
+    agentName: agentData?.name || 'Unknown',
+    content: response.content,
+    tool_calls: response.tool_calls,
+    usage: response.usage,
+    raw: response.raw,
+    taskId: boardroomTaskId || currentTask?.id
   });
   // PAUSE AFTER RESPONSE (only when debug mode on)
   if (useCoreStore.getState().pauseOnCall) {
@@ -238,17 +284,16 @@ export async function callAgent(params: {
 
   const assistantMessage: LLMMessage | null = assistantContent.trim() || (response.tool_calls && response.tool_calls.length > 0)
     ? {
-        role: 'assistant',
-        content: assistantContent,
-        tool_calls: response.tool_calls
-      }
+      role: 'assistant',
+      content: assistantContent,
+      tool_calls: response.tool_calls
+    }
     : null;
 
   // ONLY push to persistent history (the one shown in ChatPanel) if:
-  // 1. We are explicitly in chatMode
-  // 2. OR the assistant actually said something (assistantContent is not empty)
+  // 1. We have actual text content to show.
   // This prevents the "system-like" logs from autonomous cycles from polluting the chat history.
-  const shouldUpdateHistory = chatMode || (assistantContent.trim().length > 0);
+  const shouldUpdateHistory = (assistantContent.trim().length > 0);
 
   if (shouldUpdateHistory) {
     // Only push assistant message if it exists (user message is now handled immediately in SceneManager for UI snappiness)
@@ -274,8 +319,10 @@ export async function callAgent(params: {
   }
 
   // 5. Trigger Summary Update for Agent Chats
-  if (!isBoardroom && chatMode && (store.agentHistories[agentIndex]?.length || 0) > 12) {
-      MemoryService.updateAgentSummary(agentIndex);
+  // We trigger it every turn for the Lead Agent during briefing to keep the Project Brief fresh
+  const isLeadInChat = (agentIndex === 1) && chatMode;
+  if (!isBoardroom && (isLeadInChat || (chatMode && (store.agentHistories[agentIndex]?.length || 0) > 12))) {
+    MemoryService.updateAgentSummary(agentIndex);
   }
 
   return { text, functionCalls };

@@ -1,32 +1,24 @@
-// ─────────────────────────────────────────────────────────────
-//  Constants
-// ─────────────────────────────────────────────────────────────
-
 import { USER_COLOR } from '../theme/brand';
 
-export const DEFAULT_AGENTIC_SET_ID = 'marketing-agency';
 export const USER_ID = 'user';
-export const USER_NAME = 'User';
+export const USER_NAME = 'Client';
 export { USER_COLOR };
+export const DEFAULT_AGENTIC_SET_ID = 'single-agent';
 export const DEFAULT_MAX_ITERATIONS = 5;
 
-// ─────────────────────────────────────────────────────────────
-//  Agent data types
-// ─────────────────────────────────────────────────────────────
 export interface AgentNode {
   id: string;
-  index: number; // For 3D simulation character mapping
-  name: string; // Unique identifier and display name
-  description?: string; // Concise summary of capabilities
-  instruction: string; // Core task, persona, and constraints
+  index: number;
+  name: string;
+  description?: string;
+  instruction: string;
   color: string;
   model: string;
-  allowedTools: string[];
-  parentId?: string; // Standard hierarchy (who is my boss?)
-  nextId?: string; // Target agent ID (always or on success)
-  retryId?: string; // Optional target on failure/not satisfied
+  nextId?: string;
+  retryId?: string;
   maxIterations?: number;
-  position?: { x: number; y: number }; // For visual canvas storage
+  position?: { x: number; y: number };
+  subagents?: AgentNode[];
 }
 
 export interface AgenticSystem {
@@ -40,172 +32,292 @@ export interface AgenticSystem {
     model: string;
     position?: { x: number; y: number };
   };
-
   leadAgent: AgentNode;
-  subagents: AgentNode[];
 }
 
-// ─────────────────────────────────────────────────────────────
-//  Agent Sets (Agentic Systems)
-// ─────────────────────────────────────────────────────────────
 export const AGENTIC_SETS: AgenticSystem[] = [
-  // ── 1. Unboring dot net ─────────────────────────
+  // 1. Single Agent (The Solo Expert)
   {
-    id: 'marketing-agency',
-    teamName: 'Unboring.net',
-    teamType: 'Creative & Strategy Agency',
-    teamDescription: 'A full-service creative agency covering branding, design, development and go-to-market strategy.',
-    color: '#4387E2',
-    user: {
-      index: 0,
-      model: 'Human',
-      position: { x: 0, y: 0 }
-    },
-
+    id: 'single-agent',
+    teamName: 'Solo Expert',
+    teamType: 'Consultancy',
+    teamDescription: 'A single specialized agent for quick tasks.',
+    color: '#7EACEA',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
-      id: 'account-manager',
+      id: 'expert',
       index: 1,
-      name: 'Account Manager',
-      description: 'Central orchestrator who breaks down client requests into actionable team tasks.',
-      instruction: `You are the central point of contact. Your goal is to coordinate the team to deliver a perfect proposal.
-
-- Mission: Break down the client's request into actionable missions for the team.
-- Personality: Organized, efficient, and central orchestrator.`,
-      color: '#4387E2',
-      model: 'gemini-3.1-flash-lite-preview',
-      allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
-      parentId: USER_ID,
-      nextId: USER_ID,
+      name: 'Expert',
+      description: 'Generalized expert agent.',
+      instruction: 'Provide direct and concise answers.',
+      color: '#7EACEA',
+      model: 'gemini-3-flash-preview',
       position: { x: 0, y: 150 }
-    },
-    subagents: [
-      {
-        id: 'designer',
-        index: 2,
-        name: 'Designer',
-        description: 'Focuses on UI/UX, aesthetics, and branding consistency.',
-        instruction: `Design beautiful interfaces and ensure brand consistency.
-
-- Mission: Ensure the aesthetics and user experience are exceptional.
-- Personality: Creative, detail-oriented, and focused on visual harmony.`,
-        color: '#eab308',
-        model: 'gemini-3.1-flash-lite-preview',
-        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
-        parentId: 'account-manager',
-        nextId: 'account-manager',
-        retryId: 'account-manager',
-        maxIterations: 3,
-        position: { x: -450, y: 432 }
-      },
-      {
-        id: 'developer',
-        index: 3,
-        name: 'Developer',
-        description: 'Handles technical feasibility, architecture, and tech stack decisions.',
-        instruction: `Focus on technical execution and documentation.
-
-- Mission: Evaluate technical feasibility and define the necessary architecture.
-- Personality: Pragmatic, technical, and focused on robustness.`,
-        color: '#22c55e',
-        model: 'gemini-3.1-flash-lite-preview',
-        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
-        parentId: 'account-manager',
-        nextId: 'account-manager',
-        retryId: 'account-manager',
-        position: { x: -150, y: 403 }
-      },
-      {
-        id: 'marketing-expert',
-        index: 4,
-        name: 'Marketing Expert',
-        description: 'Specializes in market analysis, target audience, and sales narratives.',
-        instruction: `Create a compelling narrative and analyze market trends.
-
-- Mission: Analyze the target audience and build the sales narrative.
-- Personality: Strategic, persuasive, and market-savvy.`,
-        color: '#EF52BA',
-        model: 'gemini-3.1-flash-lite-preview',
-        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
-        parentId: 'account-manager',
-        nextId: 'account-manager',
-        retryId: 'account-manager',
-        position: { x: 150, y: 459 }
-      },
-      {
-        id: 'sales-lead',
-        index: 5,
-        name: 'Sales Lead',
-        description: 'Ensures profitability and business viability of all proposals.',
-        instruction: `Vet all proposals for business viability.
-
-- Mission: Act as the final filter, ensuring the plan is profitable and viable.
-- Personality: Critical, realistic, and focused on return on investment.`,
-        color: '#ef4444',
-        model: 'gemini-3.1-flash-lite-preview',
-        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
-        parentId: 'account-manager',
-        nextId: 'account-manager',
-        retryId: 'account-manager',
-        position: { x: 450, y: 369 }
-      },
-    ],
+    }
   },
 
-  // ── 2. Game Studio ──────────────────────────────────────────
+  // 2. Sequential Pipeline (The Content Factory)
   {
-    id: 'game-studio',
-    teamName: 'Pixxel AI Games',
-    teamType: 'Indie Game Studio',
-    teamDescription: 'A specialized game development studio focused on creating the next viral hit.',
-    color: '#22c55e',
-    user: {
-      index: 0,
-      model: 'Human',
-      position: { x: 0, y: 0 }
-    },
-
+    id: 'sequential-pipeline',
+    teamName: 'Content Factory',
+    teamType: 'Production Line',
+    teamDescription: 'A multi-step process: Research -> Write -> Translate.',
+    color: '#f97316',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
-      id: 'game-director',
+      id: 'researcher',
       index: 1,
-      name: 'Game Director',
-      description: 'Visionary who turns game ideas into structured mechanics and systems.',
-      instruction: `You lead the creative vision and system architecture.
-
-- Mission: Turn raw ideas into structured game mechanics and loop systems.
-- Personality: Analytical, visionary, and balanced.`,
-      color: '#22c55e',
-      model: 'gemini-3.1-flash-lite-preview',
-      allowedTools: ['propose_task', 'notify_client_project_ready', 'update_client_brief', 'request_client_approval', 'receive_client_approval', 'complete_task'],
-      parentId: USER_ID,
-      nextId: USER_ID,
-      position: { x: 0, y: 150 }
-    },
-    subagents: [
-      {
-        id: 'tech-architect',
-        index: 2,
-        name: 'Technical Architect',
-        description: 'Translates game vision into high-fidelity technical specs and AI prompts.',
-        instruction: `Translate vision into technical specs.
-
-- Mission: Ensure the game concept is technically feasible and translate it into a high-fidelity generation prompt.
-- Personality: Calculated, tech-obsessed, and precise.`,
-        color: '#4DECAC',
-        model: 'gemini-3.1-flash-lite-preview',
-        allowedTools: ['request_client_approval', 'receive_client_approval', 'complete_task', 'propose_task'],
-        parentId: 'game-director',
-        nextId: 'game-director',
-        retryId: 'game-director',
-        maxIterations: 3,
-        position: { x: 0, y: 420 }
-      },
-    ],
+      name: 'Researcher',
+      description: 'Gathers information.',
+      instruction: 'Find key facts about the topic.',
+      color: '#f97316',
+      model: 'gemini-3-flash-preview',
+      nextId: 'writer',
+      position: { x: 0, y: 150 },
+      subagents: [
+        {
+          id: 'writer',
+          index: 2,
+          name: 'Writer',
+          description: 'Drafts the content.',
+          instruction: 'Convert facts into a narrative.',
+          color: '#eab308',
+          model: 'gemini-3-flash-preview',
+          nextId: 'translator',
+          position: { x: 0, y: 400 }
+        },
+        {
+          id: 'translator',
+          index: 3,
+          name: 'Translator',
+          description: 'Translates to Spanish.',
+          instruction: 'Translate the draft into professional Spanish.',
+          color: '#22c55e',
+          model: 'gemini-3-flash-preview',
+          position: { x: 0, y: 650 }
+        }
+      ]
+    }
   },
+
+  // 3. Parallel Team (The Creative Squad)
+  {
+    id: 'parallel-team',
+    teamName: 'Creative Squad',
+    teamType: 'Creative Agency',
+    teamDescription: 'Lead manages multiple workers simultaneously.',
+    color: '#a855f7',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'director',
+      index: 1,
+      name: 'Art Director',
+      description: 'Orchestrates the creative vision.',
+      instruction: 'Delegate design and copy tasks to your team.',
+      color: '#a855f7',
+      model: 'gemini-3-flash-preview',
+      position: { x: 0, y: 150 },
+      subagents: [
+        {
+          id: 'designer',
+          index: 2,
+          name: 'Designer',
+          description: 'Creates visual assets.',
+          instruction: 'Design a modern UI layout.',
+          color: '#ec4899',
+          model: 'gemini-3-flash-preview',
+          position: { x: -200, y: 400 }
+        },
+        {
+          id: 'copywriter',
+          index: 3,
+          name: 'Copywriter',
+          description: 'Writes marketing text.',
+          instruction: 'Write compelling copy for the landing page.',
+          color: '#3b82f6',
+          model: 'gemini-3-flash-preview',
+          position: { x: 200, y: 400 }
+        }
+      ]
+    }
+  },
+
+  // 4. Generator / Critic (The Quality Loop)
+  {
+    id: 'generator-critic',
+    teamName: 'Code Quality',
+    teamType: 'Engineering',
+    teamDescription: 'Iterative refinement cycle between Coder and Reviewer.',
+    color: '#06b6d4',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'coder',
+      index: 1,
+      name: 'Coder',
+      description: 'Writes the initial implementation.',
+      instruction: 'Write robust Python code for the requested feature.',
+      color: '#06b6d4',
+      model: 'gemini-3-flash-preview',
+      nextId: 'reviewer',
+      position: { x: 0, y: 150 },
+      subagents: [
+        {
+          id: 'reviewer',
+          index: 2,
+          name: 'Reviewer',
+          description: 'Ensures quality and style standards.',
+          instruction: 'Check for bugs. If found, use request_revision.',
+          color: '#ef4444',
+          model: 'gemini-3-flash-preview',
+          retryId: 'coder',
+          position: { x: 0, y: 400 }
+        }
+      ]
+    }
+  },
+
+  // 5. Multi-Level Org (Recursive Hierarchy)
+  {
+    id: 'recursive-hierarchy',
+    teamName: 'Global Corp',
+    teamType: 'Corporate',
+    teamDescription: 'Director -> Manager -> Worker hierarchy.',
+    color: '#64748b',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'ceo',
+      index: 1,
+      name: 'CEO',
+      description: 'Strategic lead.',
+      instruction: 'Lead the organization towards long-term goals.',
+      color: '#64748b',
+      model: 'gemini-3-flash-preview',
+      position: { x: 0, y: 150 },
+      subagents: [
+        {
+          id: 'manager',
+          index: 2,
+          name: 'Manager',
+          description: 'Operational lead.',
+          instruction: 'Manage day-to-day operations and delegate to workers.',
+          color: '#94a3b8',
+          model: 'gemini-3-flash-preview',
+          position: { x: 0, y: 400 },
+          subagents: [
+            {
+              id: 'worker',
+              index: 3,
+              name: 'Worker',
+              description: 'Execution specialist.',
+              instruction: 'Execute the tasks assigned by the manager.',
+              color: '#cbd5e1',
+              model: 'gemini-3-flash-preview',
+              position: { x: 0, y: 650 }
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  // 6. Human Evaluation (HITL)
+  {
+    id: 'hitl-system',
+    teamName: 'Guided Agent',
+    teamType: 'Assisted Search',
+    teamDescription: 'Agent performs task but requires human sign-off.',
+    color: '#10b981',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'assisted-agent',
+      index: 1,
+      name: 'Explorer',
+      description: 'Autonomous searcher with human safety.',
+      instruction: 'Find data but wait for human approval before proceeding.',
+      color: '#10b981',
+      model: 'gemini-3-flash-preview',
+      retryId: 'user',
+      position: { x: 0, y: 150 }
+    }
+  },
+
+  // 7. Circular Refinement (State Machine)
+  {
+    id: 'circular-refinement',
+    teamName: 'Double Loop',
+    teamType: 'Refinement',
+    teamDescription: 'Two agents improving each other in a circle.',
+    color: '#8b5cf6',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'agent-a',
+      index: 1,
+      name: 'Synthesizer',
+      description: 'Part A of the circle.',
+      instruction: 'Create content and pass it to Agent B.',
+      color: '#8b5cf6',
+      model: 'gemini-3-flash-preview',
+      nextId: 'agent-b',
+      position: { x: -150, y: 150 },
+      subagents: [
+        {
+          id: 'agent-b',
+          index: 2,
+          name: 'Refiner',
+          description: 'Part B of the circle.',
+          instruction: 'Improve content and pass it back to Agent A.',
+          color: '#d946ef',
+          model: 'gemini-3-flash-preview',
+          nextId: 'agent-a',
+          position: { x: 150, y: 150 }
+        }
+      ]
+    }
+  },
+
+  // 8. Orchestrator-Workers (Complex Router)
+  {
+    id: 'orchestrator-router',
+    teamName: 'Smart Router',
+    teamType: 'Dispatcher',
+    teamDescription: 'Lead acts as a router for different domains.',
+    color: '#14b8a6',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'dispatcher',
+      index: 1,
+      name: 'Dispatcher',
+      description: 'Roots tasks to the right specialist.',
+      instruction: 'Identify task type and delegate to Code or Art.',
+      color: '#14b8a6',
+      model: 'gemini-3-flash-preview',
+      position: { x: 0, y: 150 },
+      subagents: [
+        {
+          id: 'code-team',
+          index: 2,
+          name: 'Code Specialist',
+          description: 'Handles technical requests.',
+          instruction: 'Execute code-related tasks.',
+          color: '#0d9488',
+          model: 'gemini-3-flash-preview',
+          position: { x: -200, y: 400 }
+        },
+        {
+          id: 'art-team',
+          index: 3,
+          name: 'Art Specialist',
+          description: 'Handles creative requests.',
+          instruction: 'Execute art-related tasks.',
+          color: '#f43f5e',
+          model: 'gemini-3-flash-preview',
+          position: { x: 200, y: 400 }
+        }
+      ]
+    }
+  }
 ];
 
-// ─────────────────────────────────────────────────────────────
-//  Helpers
-// ─────────────────────────────────────────────────────────────
 export function getAgentSet(id: string, customSystems: AgenticSystem[] = []): AgenticSystem {
   return (
     customSystems.find((s) => s.id === id) ||
@@ -215,12 +327,18 @@ export function getAgentSet(id: string, customSystems: AgenticSystem[] = []): Ag
 }
 
 export function getAllAgents(system: AgenticSystem): AgentNode[] {
-  // Returns ONLY the AI agents (lead + subagents)
-  return [system.leadAgent, ...system.subagents];
+  const agents: AgentNode[] = [];
+  const traverse = (node: AgentNode) => {
+    agents.push(node);
+    if (node.subagents) {
+      node.subagents.forEach(traverse);
+    }
+  };
+  traverse(system.leadAgent);
+  return agents;
 }
 
 export function getAllCharacters(system: AgenticSystem): AgentNode[] {
-  // Returns ALL characters in the simulation (User + AI agents)
   const userNode: AgentNode = {
     id: USER_ID,
     index: system.user.index,
@@ -228,11 +346,6 @@ export function getAllCharacters(system: AgenticSystem): AgentNode[] {
     color: USER_COLOR,
     model: system.user.model,
     instruction: '',
-    allowedTools: [],
   };
-  return [userNode, system.leadAgent, ...system.subagents];
+  return [userNode, ...getAllAgents(system)];
 }
-
-
-
-

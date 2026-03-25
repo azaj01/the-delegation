@@ -143,7 +143,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
           : (isActive ? `${system.color}50` : 'transparent')
       }}
     >
-      {isEditing && !isPredefined && (
+      {isEditing && (
         <div className="mb-3">
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100">
             <div className="flex items-center gap-2">
@@ -169,7 +169,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         </div>
       )}
 
-      {!isPredefined && isSelected && !isEditing && (
+      {isSelected && !isEditing && (
         <button
           onClick={(e) => { e.stopPropagation(); onModeChange('edit'); }}
           className="absolute top-3.5 right-3.5 flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 rounded-xl text-zinc-800 text-[9px] font-black uppercase tracking-widest transition-all opacity-0 group-hover:opacity-100 z-10"
@@ -195,7 +195,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         )}
 
         <div className="flex-1 min-w-0 flex flex-col">
-          {isEditing && !isPredefined ? (
+          {isEditing ? (
             <div className="space-y-2 mb-3" onClick={(e) => e.stopPropagation()}>
               <div className="space-y-1 mb-2">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Team Color</label>
@@ -259,7 +259,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
               {isSelected && !isActive && !isEditing && (
                 <button onClick={handleSwitch} className="px-3 py-1.5 bg-zinc-900 text-white rounded-full text-[9px] font-black uppercase tracking-wider shadow-md">Switch</button>
               )}
-              {isEditing && !isPredefined && (
+              {isEditing && (
                 <button onClick={handleDelete} className="flex items-center gap-1.5 px-2 py-1 text-red-500 hover:bg-red-50 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
                   <Trash2 size={12} />
                   Delete Team

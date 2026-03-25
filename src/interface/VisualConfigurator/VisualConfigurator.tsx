@@ -1,8 +1,7 @@
-
 import { applyEdgeChanges, applyNodeChanges, Background, Edge, EdgeChange, NodeChange, NodeTypes, ReactFlow, ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Plus, Settings, User, X } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { AgentNode, getAllCharacters, getAgentSet } from '../../data/agents';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { useCoreStore } from '../../integration/store/coreStore';
@@ -23,6 +22,8 @@ const nodeTypes: NodeTypes = {
 
 const edgeTypes = {
   default: DirectionalEdge,
+  hierarchy: DirectionalEdge,
+  smoothstep: DirectionalEdge,
 };
 
 // --- Internal Sub-components ---
@@ -67,6 +68,7 @@ const VisualConfiguratorContent: React.FC = () => {
   const [configMode, setConfigMode] = useState<'view' | 'edit'>('view');
   const [selectedTeamId, setSelectedTeamId] = useState<string>(selectedAgentSetId);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const initialSystemRef = useRef<any>(null);
 
   // Sync selectedTeamId when the active one changes
   useEffect(() => {
@@ -110,19 +112,32 @@ const VisualConfiguratorContent: React.FC = () => {
     setEdges((eds) => applyEdgeChanges(changes, eds));
   }, []);
 
-  const onNodeClick = useCallback((_: any, node: any) => {
-    if (node.id === 'user') {
-      setSelectedAgentId(null);
-      setNodes(nds => nds.map(n => ({ ...n, selected: false })));
-    } else {
-      setSelectedAgentId(node.id);
-    }
-  }, [setNodes]);
+  // Recursive helpers for tree mutation
+  const updateAgentInTree = useCallback((node: AgentNode, id: string, changes: Partial<AgentNode>): AgentNode => {
+    if (node.id === id) return { ...node, ...changes };
+    if (!node.subagents) return node;
+    return {
+      ...node,
+      subagents: node.subagents.map(s => updateAgentInTree(s, id, changes))
+    };
+  }, []);
 
-  const onPaneClick = useCallback(() => {
-    setSelectedAgentId(null);
-    setNodes(nds => nds.map(n => ({ ...n, selected: false })));
-  }, [setNodes]);
+  const removeAgentFromTree = useCallback((node: AgentNode, id: string): AgentNode | null => {
+    if (node.id === id) return null;
+    if (!node.subagents) return node;
+    return {
+      ...node,
+      subagents: node.subagents
+        .map(s => removeAgentFromTree(s, id))
+        .filter((s): s is AgentNode => s !== null)
+    };
+  }, []);
+
+  const handleAgentLiveUpdate = useCallback((updatedAgent: AgentNode) => {
+    const updatedSystem = { ...system };
+    updatedSystem.leadAgent = updateAgentInTree(updatedSystem.leadAgent, updatedAgent.id, updatedAgent);
+    useTeamStore.getState().updateActiveSystem(updatedSystem);
+  }, [system, updateAgentInTree]);
 
   const onNodeDragStop = useCallback((_: any, node: any) => {
     const { id, position } = node;
@@ -131,67 +146,82 @@ const VisualConfiguratorContent: React.FC = () => {
 
     if (id === 'user') {
       updatedSystem.user = { ...updatedSystem.user, position: roundedPosition };
-    } else if (id === system.leadAgent.id) {
-      updatedSystem.leadAgent = { ...updatedSystem.leadAgent, position: roundedPosition };
     } else {
-      updatedSystem.subagents = updatedSystem.subagents.map(s =>
-        s.id === id ? { ...s, position: roundedPosition } : s
-      );
+      updatedSystem.leadAgent = updateAgentInTree(updatedSystem.leadAgent, id, { position: roundedPosition });
     }
 
     useTeamStore.getState().saveCustomSystem(updatedSystem);
-  }, [system]);
+  }, [system, updateAgentInTree]);
 
-  const handleClose = useCallback(() => {
+  const handleClose = useCallback((wasSaved: boolean = false) => {
+    if (!wasSaved && initialSystemRef.current) {
+      useTeamStore.getState().updateActiveSystem(initialSystemRef.current);
+    }
+    initialSystemRef.current = null;
     setSelectedAgentId(null);
     setNodes(nds => nds.map(n => ({ ...n, selected: false })));
-    setConfigMode('view');
-    setViewMode('simulation');
-  }, [selectedTeamId, setViewMode, setNodes]);
+    if (!selectedAgentId) {
+      setConfigMode('view');
+      setViewMode('simulation');
+    }
+  }, [setViewMode, setNodes, selectedAgentId]);
+
+  const onNodeClick = useCallback((_: any, node: any) => {
+    if (node.id === 'user') {
+      handleClose(false);
+    } else {
+      if (selectedAgentId !== node.id) {
+        initialSystemRef.current = { ...system }; // Snapshot before editing
+      }
+      setSelectedAgentId(node.id);
+    }
+  }, [system, selectedAgentId, handleClose]);
+
+  const onPaneClick = useCallback(() => {
+    handleClose(false);
+  }, [handleClose]);
 
   const handleAddAgent = useCallback(() => {
-    if (system.subagents.length >= 4) return;
+    if (agents.length >= 6) return; // Total limit check
 
-    const spacing = 300;
-    const subagentsCount = system.subagents.length;
-    const newX = (subagentsCount - (subagentsCount) / 2) * spacing;
     const newId = `agent-${Date.now()}`;
+    const targetParentId = selectedAgentId && selectedAgentId !== 'user' ? selectedAgentId : system.leadAgent.id;
 
     const newAgent: AgentNode = {
       id: newId,
       index: agents.length,
-      name: `New Agent ${system.subagents.length + 1}`,
-      description: 'New team member.',
+      name: `Specialist ${agents.length}`,
+      description: 'New specialist.',
       instruction: 'Pending instructions...',
       color: '#A855F7',
-      model: 'gemini-3.1-flash-lite-preview',
-      allowedTools: ['complete_task'],
-      parentId: system.leadAgent.id,
-      nextId: system.leadAgent.id,
-      position: { x: Math.round(newX), y: 420 }
+      model: 'gemini-3-flash-preview',
+      position: { x: 0, y: 150 + (agents.length * 100) } // Simple offset
     };
 
-    const updatedSystem = {
-      ...system,
-      subagents: [...system.subagents, newAgent]
-    };
+    const updatedSystem = { ...system };
+
+    // Always add to the subagents of the target parent
+    updatedSystem.leadAgent = updateAgentInTree(updatedSystem.leadAgent, targetParentId, {
+      subagents: [...(agents.find(a => a.id === targetParentId)?.subagents || []), newAgent]
+    });
 
     useTeamStore.getState().saveCustomSystem(updatedSystem);
     setSelectedAgentId(newId);
-  }, [system, agents.length]);
+  }, [system, agents, selectedAgentId, updateAgentInTree]);
 
   const handleRemoveAgent = useCallback((agentId: string) => {
-    const updatedSystem = {
-      ...system,
-      subagents: system.subagents.filter(s => s.id !== agentId)
-    };
-    useTeamStore.getState().saveCustomSystem(updatedSystem);
+    const updatedSystem = { ...system };
+    const newLead = removeAgentFromTree(updatedSystem.leadAgent, agentId);
+    if (newLead) {
+      updatedSystem.leadAgent = newLead;
+      useTeamStore.getState().saveCustomSystem(updatedSystem);
+    }
     setSelectedAgentId(null);
-  }, [system]);
+  }, [system, removeAgentFromTree]);
 
   return (
     <div className="w-full h-full relative bg-zinc-50 flex flex-col overflow-hidden">
-      <InternalHeader onClose={handleClose} system={system} />
+      <InternalHeader onClose={() => handleClose(false)} system={system} />
 
       <div className="flex-1 min-h-0 relative flex overflow-hidden">
         {/* Left Panel: Agent Config */}
@@ -200,12 +230,10 @@ const VisualConfiguratorContent: React.FC = () => {
             <AgentConfigPanel
               agent={activeAgent}
               system={system}
-              onClose={() => {
-                setSelectedAgentId(null);
-                setNodes(nds => nds.map(n => ({ ...n, selected: false })));
-              }}
-              onRemove={activeAgent.index > 1 ? () => handleRemoveAgent(activeAgent.id) : undefined}
-              mode={configMode === 'view' ? 'view' : 'edit'}
+              onClose={handleClose}
+              onUpdate={handleAgentLiveUpdate}
+              onRemove={() => handleRemoveAgent(activeAgent.id)}
+              mode={configMode}
             />
           ) : (
             <AgentPlaceholder />
@@ -236,14 +264,14 @@ const VisualConfiguratorContent: React.FC = () => {
           >
             <Background gap={24} color="#bbbbbb" size={2} />
             {configMode === 'edit' && (
-              <div className="absolute top-6 left-6 flex flex-col gap-2 z-10">
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10">
                 <button
                   onClick={handleAddAgent}
-                  disabled={system.subagents.length >= 4}
-                  className={`flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-600 shadow-sm transition-all hover:bg-zinc-50 ${system.subagents.length >= 4 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={agents.length >= 6}
+                  className={`flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#7EACEA] hover:border-[#7EACEA50] rounded-full text-[11px] font-black uppercase tracking-widest text-[#7EACEA] shadow-xl transition-all hover:scale-105 active:scale-95 ${agents.length >= 6 ? 'opacity-40 cursor-not-allowed grayscale' : ''}`}
                 >
-                  <Plus size={14} strokeWidth={3} />
-                  Add Agent {system.subagents.length >= 4 ? '(Max 4)' : ''}
+                  <Plus size={16} strokeWidth={4} />
+                  Add Subagent {agents.length >= 6 ? '(Full)' : `to ${agents.find(a => a.id === (selectedAgentId && selectedAgentId !== 'user' ? selectedAgentId : system.leadAgent.id))?.name || 'Lead'}`}
                 </button>
               </div>
             )}

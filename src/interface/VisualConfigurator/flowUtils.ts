@@ -1,6 +1,5 @@
-
 import { Edge, Node } from '@xyflow/react';
-import { AgenticSystem, AgentNode, USER_COLOR, USER_ID, USER_NAME } from '../../data/agents';
+import { AgenticSystem, AgentNode, DEFAULT_MAX_ITERATIONS, USER_COLOR, USER_ID, USER_NAME } from '../../data/agents';
 
 export interface HandleData {
   id: string;
@@ -22,92 +21,179 @@ export interface VisualAgentNode extends Node {
   };
 }
 
+export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[]; edges: Edge[] } {
+  const allNodes: VisualAgentNode[] = [];
+  const allEdges: Edge[] = [];
+  const handles = new Map<string, { top: HandleData[]; bottom: HandleData[] }>();
+  const agentMap = new Map<string, AgentNode>();
+  const parentMap = new Map<string, string>();
+  const processedAgentIds = new Set<string>();
 
-export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[], edges: Edge[] } {
-  const allAgents = [system.leadAgent, ...system.subagents];
-
-  // 1. Define nodes and their base layout
-  const allNodeData = [
-    {
-      id: USER_ID,
-      name: USER_NAME + " (You)",
-      color: USER_COLOR,
-      type: 'user' as const,
-      x: system.user.position?.x ?? 0,
-      y: system.user.position?.y ?? 0
-    },
-    {
-      id: system.leadAgent.id,
-      name: system.leadAgent.name,
-      color: system.leadAgent.color,
-      type: 'agent' as const,
-      x: system.leadAgent.position?.x ?? 0,
-      y: system.leadAgent.position?.y ?? 150,
-      agent: system.leadAgent
-    },
-    ...system.subagents.map((agent, i) => ({
-      id: agent.id,
-      name: agent.name,
-      color: agent.color,
-      type: 'agent' as const,
-      x: agent.position?.x ?? ((i - (system.subagents.length - 1) / 2) * 300),
-      y: agent.position?.y ?? 420,
-      agent,
-    }))
-  ];
-
-  const metaMap = new Map(allNodeData.map(n => [n.id, n]));
-
-  // 2. Connections
-  const conns = [
-    ...(system.leadAgent.parentId === USER_ID ? [{ id: 'h-user-lead', from: USER_ID, to: system.leadAgent.id, type: 'hierarchy' as const }] : []),
-    ...system.subagents.filter(a => a.parentId && metaMap.has(a.parentId)).map(a => ({
-      id: `h-${a.parentId}-${a.id}`, from: a.parentId!, to: a.id, type: 'hierarchy' as const
-    })),
-    ...allAgents.flatMap(a => [
-      ...(a.nextId && metaMap.has(a.nextId) ? [{ id: `f-success-${a.id}-${a.nextId}`, from: a.id, to: a.nextId, type: 'success' as const }] : []),
-      ...(a.retryId && metaMap.has(a.retryId) ? [{ id: `f-retry-${a.id}-${a.retryId}`, from: a.id, to: a.retryId, type: 'retry' as const, maxIterations: a.maxIterations || 5 }] : [])
-    ])
-  ];
-
-  // 3. Build handles and edges
-  const handles = new Map<string, { top: HandleData[], bottom: HandleData[] }>();
   const addHandle = (nodeId: string, side: 'top' | 'bottom', h: HandleData) => {
     if (!handles.has(nodeId)) handles.set(nodeId, { top: [], bottom: [] });
-    handles.get(nodeId)![side].push(h);
+    const nodeHandles = handles.get(nodeId)!;
+    if (!nodeHandles[side].some(existing => existing.id === h.id)) {
+      nodeHandles[side].push(h);
+    }
   };
 
-  const finalEdges: Edge[] = conns.map(c => {
-    const from = metaMap.get(c.from)!;
-    const to = metaMap.get(c.to)!;
-    const isUpward = to.y < from.y;
-    const [srcS, tgtS] = isUpward ? ['top' as const, 'bottom' as const] : ['bottom' as const, 'top' as const];
+  const isParentOf = (parentId: string, childId: string): boolean => {
+    let current = childId;
+    while (current && parentMap.has(current)) {
+      const p = parentMap.get(current)!;
+      if (p === parentId) return true;
+      current = p;
+    }
+    return false;
+  };
 
-    const color = c.type === 'retry' ? '#ef4444' : c.type === 'success' ? '#22c55e' : '#a1a1aa';
-    const label = c.type === 'hierarchy' ? undefined : (c.type === 'success' ? 'OK' : `KO:${(c as any).maxIterations}`);
+  const traverse = (agent: AgentNode, parentId?: string) => {
+    if (parentId) parentMap.set(agent.id, parentId);
+    agentMap.set(agent.id, agent);
+    if (processedAgentIds.has(agent.id)) return;
+    processedAgentIds.add(agent.id);
 
-    addHandle(c.from, srcS, { id: `${c.id}-src`, type: c.type, color, role: 'source' });
-    addHandle(c.to, tgtS, { id: `${c.id}-tgt`, type: c.type, color, role: 'target' });
+    // 1. Hierarchy Edges (Subagents) - Always Parent (Bottom) -> Child (Top)
+    if (agent.subagents) {
+      agent.subagents.forEach(sub => {
+        const edgeId = `h-${agent.id}-${sub.id}`;
+        const color = `${agent.color}44`;
+        
+        addHandle(agent.id, 'bottom', { id: `${edgeId}-src`, type: 'hierarchy', color, role: 'source' });
+        addHandle(sub.id, 'top', { id: `${edgeId}-tgt`, type: 'hierarchy', color, role: 'target' });
 
-    return {
-      id: c.id, source: c.from, sourceHandle: `${c.id}-src`, target: c.to, targetHandle: `${c.id}-tgt`,
-      label, animated: c.type !== 'hierarchy',
-      style: { stroke: color, strokeWidth: c.type === 'hierarchy' ? 2 : 1, strokeDasharray: c.type === 'hierarchy' ? undefined : '5,5' }
-    };
+        allEdges.push({
+          id: edgeId,
+          source: agent.id,
+          sourceHandle: `${edgeId}-src`,
+          target: sub.id,
+          targetHandle: `${edgeId}-tgt`,
+          type: 'hierarchy',
+          animated: true,
+          style: { stroke: color, strokeWidth: 2, strokeDasharray: '5,5' }
+        });
+        traverse(sub, agent.id);
+      });
+    }
+
+    // 2. Flow Edges (Success)
+    if (agent.nextId) {
+      const edgeId = `f-success-${agent.id}-${agent.nextId}`;
+      const color = '#22c55e';
+      
+      const toParent = agent.nextId === parentId || isParentOf(agent.nextId, agent.id);
+      const toChild = isParentOf(agent.id, agent.nextId);
+      
+      const srcSide = toParent ? 'top' : 'bottom';
+      const tgtSide = toParent ? 'bottom' : (toChild ? 'top' : 'top');
+
+      addHandle(agent.id, srcSide, { id: `${edgeId}-src`, type: 'success', color, role: 'source' });
+      addHandle(agent.nextId, tgtSide, { id: `${edgeId}-tgt`, type: 'success', color, role: 'target' });
+
+      allEdges.push({
+        id: edgeId,
+        source: agent.id,
+        sourceHandle: `${edgeId}-src`,
+        target: agent.nextId,
+        targetHandle: `${edgeId}-tgt`,
+        label: 'OK',
+        type: 'default',
+        animated: true,
+        style: { stroke: color, strokeWidth: 1 }
+      });
+    }
+
+    // 3. Flow Edges (Retry)
+    if (agent.retryId) {
+      const edgeId = `f-retry-${agent.id}-${agent.retryId}`;
+      const color = '#ef4444';
+      
+      const toParent = agent.retryId === parentId || isParentOf(agent.retryId, agent.id) || agent.retryId === USER_ID;
+      const toChild = isParentOf(agent.id, agent.retryId);
+      
+      const srcSide = toParent ? 'top' : (toChild ? 'bottom' : 'top');
+      const tgtSide = toParent ? 'bottom' : (toChild ? 'top' : 'top');
+
+      addHandle(agent.id, srcSide, { id: `${edgeId}-src`, type: 'retry', color, role: 'source' });
+      addHandle(agent.retryId, tgtSide, { id: `${edgeId}-tgt`, type: 'retry', color, role: 'target' });
+
+      allEdges.push({
+        id: edgeId,
+        source: agent.id,
+        sourceHandle: `${edgeId}-src`,
+        target: agent.retryId,
+        targetHandle: `${edgeId}-tgt`,
+        label: `KO:${agent.maxIterations || DEFAULT_MAX_ITERATIONS}`,
+        type: 'default',
+        animated: true,
+        style: { stroke: color, strokeWidth: 1, strokeDasharray: '5,5' }
+      });
+    }
+  };
+
+  // Add User node
+  allNodes.push({
+    id: USER_ID,
+    type: 'user',
+    data: { 
+      label: USER_NAME + " (You)", 
+      color: USER_COLOR,
+      topHandles: [],
+      bottomHandles: []
+    },
+    position: system.user.position || { x: 0, y: 0 },
   });
 
-  // 4. Final Nodes
+  // Lead agent connection to User
+  const lead = system.leadAgent;
+  const leadEdgeId = `h-user-${lead.id}`;
+  addHandle(USER_ID, 'bottom', { id: `${leadEdgeId}-src`, type: 'hierarchy', color: '#e4e4e7', role: 'source' });
+  addHandle(lead.id, 'top', { id: `${leadEdgeId}-tgt`, type: 'hierarchy', color: '#e4e4e7', role: 'target' });
+  
+  allEdges.push({
+    id: leadEdgeId,
+    source: USER_ID,
+    sourceHandle: `${leadEdgeId}-src`,
+    target: lead.id,
+    targetHandle: `${leadEdgeId}-tgt`,
+    type: 'hierarchy',
+    style: { stroke: '#e4e4e7', strokeWidth: 1, strokeDasharray: '5,5' }
+  });
+
+  // Start traversal
+  traverse(lead);
+
+  // Create nodes from collected agents
+  agentMap.forEach((agent, id) => {
+    allNodes.push({
+      id,
+      type: 'agent',
+      data: {
+        label: agent.name,
+        agent,
+        isLead: id === system.leadAgent.id,
+        color: agent.color,
+        topHandles: [], 
+        bottomHandles: [] 
+      },
+      position: agent.position || { x: 0, y: 0 },
+    });
+  });
+
+  // Finalize handles for each node
   const typeOrder = { retry: 0, hierarchy: 1, success: 2 };
-  const sortH = (h: HandleData[]) => [...h].sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
+  const sortH = (h: HandleData[]) => [...h].sort((a, b) => {
+    if (a.type !== b.type) return typeOrder[a.type] - typeOrder[b.type];
+    return a.id.localeCompare(b.id);
+  });
 
-  const finalNodes: VisualAgentNode[] = allNodeData.map(meta => ({
-    id: meta.id, type: meta.type, position: { x: meta.x, y: meta.y },
-    data: {
-      label: meta.name, agent: meta.agent, isLead: meta.id === system.leadAgent.id, color: meta.color,
-      topHandles: sortH(handles.get(meta.id)?.top || []),
-      bottomHandles: sortH(handles.get(meta.id)?.bottom || []),
-    },
-  }));
+  allNodes.forEach(node => {
+    const nodeHandles = handles.get(node.id);
+    if (nodeHandles) {
+      node.data.topHandles = sortH(nodeHandles.top);
+      node.data.bottomHandles = sortH(nodeHandles.bottom);
+    }
+  });
 
-  return { nodes: finalNodes, edges: finalEdges };
+  return { nodes: allNodes, edges: allEdges };
 }

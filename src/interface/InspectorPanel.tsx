@@ -124,7 +124,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                   </div>
                   <p className="text-[12px] font-bold text-zinc-900 leading-tight mt-1.5">
                     {isOrchestratorIdle
-                      ? "Waiting for project briefing."
+                      ? "Waiting to discuss project goals."
                       : `${agent?.name} needs input.`}
                   </p>
                 </div>
@@ -139,7 +139,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                   <div className="flex flex-col gap-2">
                     <p className="text-[12px] font-bold text-zinc-900 leading-tight">
                       {isOrchestratorIdle
-                        ? "Discuss the project briefing with the team."
+                        ? "Discuss the project goals with the team."
                         : `"${tasks.find(t => t.assignedAgentIds.includes(agent.index) && t.status === 'on_hold')?.title || 'This task'} is waiting for your input to proceed."`}
                     </p>
                     <p className="text-[10px] text-zinc-400 italic">Waiting for your input to proceed.</p>
@@ -150,7 +150,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                       className="flex items-center justify-center gap-2 hover:brightness-90 active:scale-95 disabled:opacity-50 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm mt-1"
                     >
                       <MessageSquareWarning size={14} strokeWidth={3} />
-                      Chat about {isOrchestratorIdle ? 'briefing' : 'approval'}
+                      Chat about {isOrchestratorIdle ? 'goals' : 'approval'}
                     </button>
                   </div>
                 </div>

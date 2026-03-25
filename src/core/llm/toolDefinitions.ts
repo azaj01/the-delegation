@@ -111,17 +111,21 @@ export const CORE_TOOLS: LLMToolDefinition[] = [
   {
     type: 'function',
     function: {
-      name: 'update_client_brief',
-      description: 'Call this to update or refine the official client brief based on the conversation. This does NOT start the working phase; use propose_task for that.',
+      name: 'request_revision',
+      description: 'Call this when the work does not meet the quality standards and needs to be redone. This will trigger a notification to the responsible agent(s).',
       parameters: {
         type: 'object',
         properties: {
-          brief: {
+          taskId: {
             type: 'string',
-            description: 'The updated, refined, and summarized client brief.',
+            description: 'The ID of the task that needs revision.',
+          },
+          feedback: {
+            type: 'string',
+            description: 'Detailed feedback on what needs to be improved or fixed.',
           },
         },
-        required: ['brief'],
+        required: ['taskId', 'feedback'],
       },
     },
   },

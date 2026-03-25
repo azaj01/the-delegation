@@ -1,5 +1,4 @@
 import { Info, KeyRound, Maximize2, Pause, Play, Settings, Zap, ZapOff } from 'lucide-react';
-import { AnimatePresence } from 'motion/react';
 import React, { useState } from 'react';
 import packageJson from '../../package.json';
 import { useCoreStore } from '../integration/store/coreStore';
@@ -146,17 +145,13 @@ const Header: React.FC = () => {
         </div>
       </div>
 
-      <AnimatePresence>
-        {isInfoOpen && (
-          <InfoModal key="info-modal" onClose={() => setIsInfoOpen(false)} />
-        )}
-      </AnimatePresence>
+      {isInfoOpen && (
+        <InfoModal key="info-modal" onClose={() => setIsInfoOpen(false)} />
+      )}
 
-      <AnimatePresence>
-        {isBYOKOpen && (
-          <BYOKModal key="byok-modal" onClose={() => setBYOKOpen(false)} />
-        )}
-      </AnimatePresence>
+      {isBYOKOpen && (
+        <BYOKModal key="byok-modal" onClose={() => setBYOKOpen(false)} />
+      )}
     </header>
   );
 };

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { LLMMessage } from '../../core/llm/types';
+import { LLMMessage, LLMTokenUsage, LLMToolCall, LLMToolDefinition } from '../../core/llm/types';
 import { useTeamStore } from './teamStore';
 
 export type TaskStatus = 'scheduled' | 'on_hold' | 'in_progress' | 'done'
@@ -26,21 +26,33 @@ export interface ActionLogEntry {
   taskId?: string
 }
 
-export interface DebugLogEntry {
+export interface DebugLogEntryBase {
   id: string
   timestamp: number
   agentIndex: number
   agentName: string
-  phase: 'request' | 'response'
-  systemPrompt: string
-  dynamicContext: string
-  messages: LLMMessage[]
-  rawContent: string
   status: 'pending' | 'completed' | 'error'
   taskId?: string
 }
 
-export type ProjectPhase = 'idle' | 'briefing' | 'working' | 'awaiting_approval' | 'done'
+export interface RequestDebugLogEntry extends DebugLogEntryBase {
+  phase: 'request'
+  systemInstruction?: string
+  contents: any[]
+  systemTools?: any[]
+}
+
+export interface ResponseDebugLogEntry extends DebugLogEntryBase {
+  phase: 'response'
+  content: string | null
+  tool_calls?: LLMToolCall[]
+  usage?: LLMTokenUsage
+  raw?: any
+}
+
+export type DebugLogEntry = RequestDebugLogEntry | ResponseDebugLogEntry;
+
+export type ProjectPhase = 'idle' | 'working' | 'done'
 
 interface CoreState {
   // ── Project ──────────────────────────────────────────────────
@@ -48,6 +60,8 @@ interface CoreState {
   phase: ProjectPhase
   finalOutput: string | null
   availableModels: string[]
+  totalTokenUsage: LLMTokenUsage
+  agentTokenUsage: Record<number, LLMTokenUsage>
 
   // ── Tasks ────────────────────────────────────────────────────
   tasks: Task[]
@@ -85,7 +99,8 @@ interface CoreState {
 
   // ── Actions — Log ─────────────────────────────────────────────
   addLogEntry: (entry: Omit<ActionLogEntry, 'id' | 'timestamp'>) => void;
-  addDebugLogEntry: (entry: Omit<DebugLogEntry, 'id' | 'timestamp'>) => void;
+  addRequestLog: (entry: Omit<RequestDebugLogEntry, 'id' | 'timestamp' | 'phase' | 'status'>) => void;
+  addResponseLog: (entry: Omit<ResponseDebugLogEntry, 'id' | 'timestamp' | 'phase' | 'status'>) => void;
 
   // ── Actions — History ───────────────────────────────────────
   appendAgentHistory: (agentIndex: number, role: 'user' | 'assistant', parts: any[]) => void;
@@ -115,12 +130,12 @@ export const useCoreStore = create<CoreState>()(
       phase: 'idle',
       finalOutput: null,
       availableModels: [
-        'gemini-2.0-flash-exp',
-        'gemini-2.0-flash-thinking-exp',
-        'gemini-1.5-flash',
-        'gemini-1.5-pro',
+        'gemini-3-flash-preview',
+        'gemini-3.1-pro-preview',
         'gemini-3.1-flash-lite-preview'
       ],
+      totalTokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+      agentTokenUsage: {},
       tasks: [],
       actionLog: [],
       debugLog: [],
@@ -152,6 +167,8 @@ export const useCoreStore = create<CoreState>()(
         pendingApprovalTaskId: null,
         isFinalOutputOpen: false,
         isPaused: false,
+        totalTokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        agentTokenUsage: {},
       }),
 
       setClientBrief: (brief) => set({ clientBrief: brief }),
@@ -175,7 +192,7 @@ export const useCoreStore = create<CoreState>()(
 
           // Logic to check if removing this task finishes the project
           const hasRemainingTasks = newTasks.some(t => t.status !== 'done');
-          const isWorking = s.phase === 'working' || s.phase === 'awaiting_approval';
+          const isWorking = s.phase === 'working';
 
           let nextPhase = s.phase;
           if (isWorking && !hasRemainingTasks) {
@@ -221,12 +238,55 @@ export const useCoreStore = create<CoreState>()(
             { ...entry, id: `log_${uid()}`, timestamp: Date.now() },
           ],
         })),
-
-      addDebugLogEntry: (entry) =>
+      
+      addRequestLog: (entry) =>
         set((s) => {
-          const newEntry = { ...entry, id: `debug_${uid()}`, timestamp: Date.now() };
+          const newEntry: DebugLogEntry = { 
+            ...entry, 
+            id: `debug_${uid()}`, 
+            timestamp: Date.now(),
+            phase: 'request',
+            status: 'completed'
+          };
           const updated = [...s.debugLog, newEntry];
           return { debugLog: updated.length > 30 ? updated.slice(-30) : updated };
+        }),
+
+      addResponseLog: (entry) =>
+        set((s) => {
+          const newEntry: DebugLogEntry = { 
+            ...entry, 
+            id: `debug_${uid()}`, 
+            timestamp: Date.now(),
+            phase: 'response',
+            status: 'completed'
+          };
+          const updated = [...s.debugLog, newEntry];
+          
+          // Update token usage if available
+          let nextTotalUsage = s.totalTokenUsage;
+          let nextAgentUsage = { ...s.agentTokenUsage };
+          
+          if (entry.usage) {
+            nextTotalUsage = {
+              promptTokens: s.totalTokenUsage.promptTokens + entry.usage.promptTokens,
+              completionTokens: s.totalTokenUsage.completionTokens + entry.usage.completionTokens,
+              totalTokens: s.totalTokenUsage.totalTokens + entry.usage.totalTokens
+            };
+            
+            const currentAgentUsage = s.agentTokenUsage[entry.agentIndex] || { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+            nextAgentUsage[entry.agentIndex] = {
+              promptTokens: currentAgentUsage.promptTokens + entry.usage.promptTokens,
+              completionTokens: currentAgentUsage.completionTokens + entry.usage.completionTokens,
+              totalTokens: currentAgentUsage.totalTokens + entry.usage.totalTokens
+            };
+          }
+
+          return { 
+            debugLog: updated.length > 30 ? updated.slice(-30) : updated,
+            totalTokenUsage: nextTotalUsage,
+            agentTokenUsage: nextAgentUsage
+          };
         }),
 
       appendAgentHistory: (agentIndex, role, parts) =>

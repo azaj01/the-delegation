@@ -43,7 +43,6 @@ export function useChatAvailability(agentIndex: number | null): ChatAvailability
       return { canChat: false, reason: 'Team is being briefed' }
 
     case 'working':
-    case 'awaiting_approval':
       // Approval flow always takes priority
       if (isApprovalAgent) return { canChat: true, reason: '' }
       // Busy agents cannot be interrupted
