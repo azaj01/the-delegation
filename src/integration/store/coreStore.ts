@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { LLMMessage, LLMTokenUsage, LLMToolCall, LLMToolDefinition } from '../../core/llm/types';
+import { calculateCost } from '../../core/llm/pricing';
 import { useTeamStore } from './teamStore';
+import { useUiStore } from './uiStore';
 
 export type TaskStatus = 'scheduled' | 'on_hold' | 'in_progress' | 'done'
 
@@ -62,6 +64,8 @@ interface CoreState {
   availableModels: string[]
   totalTokenUsage: LLMTokenUsage
   agentTokenUsage: Record<number, LLMTokenUsage>
+  totalEstimatedCost: number
+  agentEstimatedCost: Record<number, number>
 
   // ── Tasks ────────────────────────────────────────────────────
   tasks: Task[]
@@ -136,6 +140,8 @@ export const useCoreStore = create<CoreState>()(
       ],
       totalTokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
       agentTokenUsage: {},
+      totalEstimatedCost: 0,
+      agentEstimatedCost: {},
       tasks: [],
       actionLog: [],
       debugLog: [],
@@ -169,6 +175,8 @@ export const useCoreStore = create<CoreState>()(
         isPaused: false,
         totalTokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
         agentTokenUsage: {},
+        totalEstimatedCost: 0,
+        agentEstimatedCost: {},
       }),
 
       setClientBrief: (brief) => set({ clientBrief: brief }),
@@ -263,11 +271,22 @@ export const useCoreStore = create<CoreState>()(
           };
           const updated = [...s.debugLog, newEntry];
           
-          // Update token usage if available
+          // Update token usage and estimated cost
           let nextTotalUsage = s.totalTokenUsage;
           let nextAgentUsage = { ...s.agentTokenUsage };
-          
+          let nextTotalCost = s.totalEstimatedCost;
+          let nextAgentCost = { ...s.agentEstimatedCost };
+
           if (entry.usage) {
+            // Get model from UI store (current global model)
+            // Note: In a multi-model team this might be slightly off if agents use different models,
+            // but for now it's a good estimate.
+            const modelName = useUiStore.getState().llmConfig.model;
+            const callCost = calculateCost(entry.usage.promptTokens, entry.usage.completionTokens, modelName);
+            
+            nextTotalCost += callCost;
+            nextAgentCost[entry.agentIndex] = (s.agentEstimatedCost[entry.agentIndex] || 0) + callCost;
+
             nextTotalUsage = {
               promptTokens: s.totalTokenUsage.promptTokens + entry.usage.promptTokens,
               completionTokens: s.totalTokenUsage.completionTokens + entry.usage.completionTokens,
@@ -285,7 +304,9 @@ export const useCoreStore = create<CoreState>()(
           return { 
             debugLog: updated.length > 30 ? updated.slice(-30) : updated,
             totalTokenUsage: nextTotalUsage,
-            agentTokenUsage: nextAgentUsage
+            agentTokenUsage: nextAgentUsage,
+            totalEstimatedCost: nextTotalCost,
+            agentEstimatedCost: nextAgentCost
           };
         }),
 

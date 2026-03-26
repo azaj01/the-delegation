@@ -75,31 +75,35 @@ ${JSON.stringify(entry.raw, null, 2)}
                     className="flex-1 flex items-center justify-between text-left hover:bg-zinc-50/50 rounded p-1 transition-colors cursor-pointer"
                 >
                     <div className="flex flex-col gap-1.5 w-full">
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: agent?.color ?? '#ccc' }} />
-                                <span className="text-[10px] font-black text-zinc-800 uppercase tracking-widest leading-none">
-                                    {agent?.name}
-                                </span>
-                                <span 
-                                    className="text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter"
-                                    style={entry.phase === 'request' ? {
-                                        backgroundColor: USER_COLOR_LIGHT,
-                                        color: USER_COLOR
-                                    } : {
-                                        backgroundColor: '#ecfdf5', // bg-emerald-50
-                                        color: '#059669' // text-emerald-600
-                                    }}
-                                >
-                                    {entry.phase}
-                                </span>
-                                {entry.phase === 'response' && entry.usage && (
-                                    <span className="text-[8px] font-mono font-bold text-zinc-400 bg-zinc-50 border border-zinc-100 px-1 py-0.5 rounded leading-none">
-                                        T: {formatTokens(entry.usage.totalTokens)}
+                        <div className="flex items-center justify-between w-full overflow-hidden">
+                            <div className="flex flex-col gap-1 overflow-hidden">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: agent?.color ?? '#ccc' }} />
+                                    <span className="text-[10px] font-black text-zinc-800 uppercase tracking-widest leading-none truncate">
+                                        {agent?.name}
                                     </span>
-                                )}
+                                </div>
+                                <div className="flex items-center gap-1.5 ml-4">
+                                    <span 
+                                        className="text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter whitespace-nowrap"
+                                        style={entry.phase === 'request' ? {
+                                            backgroundColor: USER_COLOR_LIGHT,
+                                            color: USER_COLOR
+                                        } : {
+                                            backgroundColor: '#ecfdf5', // bg-emerald-50
+                                            color: '#059669' // text-emerald-600
+                                        }}
+                                    >
+                                        {entry.phase}
+                                    </span>
+                                    {entry.phase === 'response' && entry.usage && (
+                                        <span className="text-[8px] font-mono font-bold text-zinc-400 bg-zinc-50 border border-zinc-100 px-1 py-0.5 rounded leading-none whitespace-nowrap">
+                                            T: {formatTokens(entry.usage.totalTokens)}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 shrink-0 self-start mt-0.5">
                                 <span className="text-[8px] font-mono text-zinc-400">{formatTime(entry.timestamp)}</span>
                                 {isOpen ? <ChevronDown size={12} className="text-zinc-300" /> : <ChevronRight size={12} className="text-zinc-300" />}
                             </div>

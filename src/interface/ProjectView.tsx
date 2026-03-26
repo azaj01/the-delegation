@@ -1,4 +1,4 @@
-import { RefreshCcw, ScrollText } from 'lucide-react';
+import { Info, RefreshCcw, ScrollText } from 'lucide-react';
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
@@ -9,6 +9,7 @@ import { useTeamStore } from '../integration/store/teamStore';
 import { useSceneManager } from '../simulation/SceneContext';
 import { USER_COLOR } from '../theme/brand';
 import ResetModal from './ResetModal';
+import PricingModal from './PricingModal';
 
 export function formatTokens(num: number): string {
   if (num >= 1000000) {
@@ -28,6 +29,7 @@ const ProjectView: React.FC = () => {
     resetProject,
   } = useCoreStore();
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const scene = useSceneManager();
 
   const hasLogs = actionLog.length > 0;
@@ -84,7 +86,7 @@ const ProjectView: React.FC = () => {
           <div className="h-px flex-1 bg-zinc-100" />
         </div>
         {clientBrief ? (
-          <div className="markdown-content text-xs text-zinc-600 leading-relaxed font-medium bg-white/40 p-4 rounded-xl border border-zinc-100/50">
+          <div className="markdown-content text-xs text-zinc-600 leading-relaxed font-medium bg-white/40 p-4 rounded-xl border border-zinc-100/50 max-h-[300px] overflow-y-auto custom-scrollbar">
             <ReactMarkdown>
               {clientBrief}
             </ReactMarkdown>
@@ -96,14 +98,24 @@ const ProjectView: React.FC = () => {
 
       {/* Token Usage */}
       <div className="mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Token Usage</p>
-          <div className="h-px flex-1 bg-zinc-100" />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 flex-1">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Token Usage</p>
+            <div className="h-px flex-1 bg-zinc-100" />
+          </div>
+          <button
+            onClick={() => setIsPricingModalOpen(true)}
+            className="flex items-center gap-2 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 hover:border-emerald-200 rounded-lg transition-all active:scale-95 group ml-4 cursor-pointer"
+          >
+            <span className="text-[10px] font-black uppercase tracking-tight text-emerald-600">
+              Total Est. ${useCoreStore.getState().totalEstimatedCost.toFixed(3)}
+            </span>
+            <Info size={11} className="text-emerald-500 group-hover:text-emerald-600" />
+          </button>
         </div>
-        
+
         <div className="bg-zinc-50 rounded-xl p-5 border border-zinc-100 mb-6">
           <div className="flex flex-col gap-1 mb-6">
-            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">Project Token Usage</span>
             <span className="text-4xl font-mono font-black text-zinc-900 tracking-tighter">
               {formatTokens(useCoreStore.getState().totalTokenUsage.totalTokens)}
             </span>
@@ -137,9 +149,16 @@ const ProjectView: React.FC = () => {
                     </span>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="text-[11px] font-mono font-black text-zinc-800">
-                      {formatTokens(usage.totalTokens)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {useCoreStore.getState().agentEstimatedCost[agentIndex] > 0 && (
+                        <span className="text-[9px] font-mono font-bold text-emerald-600/70">
+                          ${useCoreStore.getState().agentEstimatedCost[agentIndex].toFixed(4)}
+                        </span>
+                      )}
+                      <span className="text-[11px] font-mono font-black text-zinc-800">
+                        {formatTokens(usage.totalTokens)}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-1 text-[9px] font-bold font-mono text-zinc-400">
                       <span>{formatTokens(usage.promptTokens)} <span className="font-medium opacity-60">input</span></span>
                       <span className="text-zinc-200">+</span>
@@ -157,6 +176,10 @@ const ProjectView: React.FC = () => {
         onClose={() => setIsResetModalOpen(false)}
         onConfirm={handleResetConfirm}
       />
+
+      {isPricingModalOpen && (
+        <PricingModal onClose={() => setIsPricingModalOpen(false)} />
+      )}
     </div>
   );
 };
