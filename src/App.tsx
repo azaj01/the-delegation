@@ -112,7 +112,6 @@ const App: React.FC = () => {
         {viewMode === 'design' && (
           <div
             className="fixed inset-0 z-[60] flex items-center justify-center p-3 md:p-6 bg-white/40 backdrop-blur-xl"
-            onClick={() => setViewMode('simulation')}
           >
             <div
               className="w-full h-full bg-white rounded-2xl shadow-2xl border border-zinc-200/50 overflow-hidden flex flex-col"
