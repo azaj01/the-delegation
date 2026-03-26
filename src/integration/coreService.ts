@@ -44,19 +44,6 @@ function abortRace(signal: AbortSignal): Promise<never> {
   });
 }
 
-const waitForResume = (signal: AbortSignal) => {
-  return new Promise<void>((resolve, reject) => {
-    if (signal.aborted) { reject(new DOMException('LLM call aborted by reset', 'AbortError')); return; }
-    const unsub = useCoreStore.subscribe((state, prevState) => {
-      if (prevState.isPaused && !state.isPaused) {
-        unsub();
-        if (signal.aborted) reject(new DOMException('LLM call aborted by reset', 'AbortError'));
-        else resolve();
-      }
-    });
-    signal.addEventListener('abort', () => { unsub(); reject(new DOMException('LLM call aborted by reset', 'AbortError')); }, { once: true });
-  });
-};
 
 export function handleLLMError(e: any): void {
   const error = e as any;
@@ -193,11 +180,6 @@ export async function callAgent(params: {
 
   const tools = CORE_TOOLS.filter((t) => allowedToolNames.has(t.function.name));
 
-  // PAUSE BEFORE CALL (only when debug mode on)
-  if (useCoreStore.getState().pauseOnCall) {
-    useCoreStore.getState().setPaused(true);
-    await waitForResume(signal);
-  }
   throwIfAborted(signal);
 
 
@@ -207,7 +189,7 @@ export async function callAgent(params: {
   let response;
   try {
     response = await Promise.race([
-      provider.generateCompletion(messages, tools, fullSystemPrompt, modelToUse, signal),
+      provider.generateCompletion(messages, tools, fullSystemPrompt, modelToUse),
       abortRace(signal),
     ]);
   } catch (e) {
@@ -252,11 +234,7 @@ export async function callAgent(params: {
     raw: response.raw,
     taskId: boardroomTaskId || currentTask?.id
   });
-  // PAUSE AFTER RESPONSE (only when debug mode on)
-  if (useCoreStore.getState().pauseOnCall) {
-    useCoreStore.getState().setPaused(true);
-    await waitForResume(signal);
-  }
+
   throwIfAborted(signal);
 
   // 4. Update history in store
@@ -322,7 +300,7 @@ export async function callAgent(params: {
   // We trigger it every turn for the Lead Agent during briefing to keep the Project Brief fresh
   const isLeadInChat = (agentIndex === 1) && chatMode;
   if (!isBoardroom && (isLeadInChat || (chatMode && (store.agentHistories[agentIndex]?.length || 0) > 12))) {
-    MemoryService.updateAgentSummary(agentIndex);
+    // MemoryService.updateAgentSummary(agentIndex);
   }
 
   return { text, functionCalls };

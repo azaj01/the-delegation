@@ -87,8 +87,6 @@ interface CoreState {
   pendingApprovalTaskId: string | null;
   logFilterAgentIndex: number | null;
   isResizing: boolean;
-  isPaused: boolean;
-  pauseOnCall: boolean;
 
   // ── Actions — Project ─────────────────────────────────────────
   setClientBrief: (brief: string) => void;
@@ -118,9 +116,6 @@ interface CoreState {
   setFinalOutputOpen: (open: boolean) => void;
   setPendingApproval: (taskId: string | null) => void;
   setIsResizing: (isResizing: boolean) => void;
-  togglePause: () => void;
-  setPaused: (paused: boolean) => void;
-  togglePauseOnCall: () => void;
   resetProject: () => void;
   setViewMode: (mode: 'simulation' | 'design') => void;
 }
@@ -154,8 +149,6 @@ export const useCoreStore = create<CoreState>()(
       pendingApprovalTaskId: null,
       logFilterAgentIndex: null,
       isResizing: false,
-      isPaused: false,
-      pauseOnCall: false,
       viewMode: 'simulation',
 
       setViewMode: (viewMode) => set({ viewMode }),
@@ -172,7 +165,6 @@ export const useCoreStore = create<CoreState>()(
         boardroomHistories: {},
         pendingApprovalTaskId: null,
         isFinalOutputOpen: false,
-        isPaused: false,
         totalTokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
         agentTokenUsage: {},
         totalEstimatedCost: 0,
@@ -354,23 +346,11 @@ export const useCoreStore = create<CoreState>()(
       setFinalOutputOpen: (open) => set({ isFinalOutputOpen: open }),
       setPendingApproval: (taskId) => set({ pendingApprovalTaskId: taskId }),
       setIsResizing: (resizing) => set({ isResizing: resizing }),
-      togglePause: () => set((s) => ({ isPaused: !s.isPaused })),
-      setPaused: (isPaused) => set({ isPaused }),
-      togglePauseOnCall: () => set((s) => {
-        const nextPauseOnCall = !s.pauseOnCall;
-        // If turning OFF debug mode and we are paused, resume automatically
-        if (!nextPauseOnCall && s.isPaused) {
-          return { pauseOnCall: nextPauseOnCall, isPaused: false };
-        }
-        return { pauseOnCall: nextPauseOnCall };
-      }),
     }),
     {
       name: 'core-storage',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        pauseOnCall: state.pauseOnCall,
-      }),
+      partialize: (state) => ({}),
     }
   )
 )

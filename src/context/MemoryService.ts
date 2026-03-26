@@ -72,7 +72,7 @@ Keep the summary concise but informative. If the new messages contain no new inf
       if (response.content && response.content !== previousSummary) {
         store.setAgentSummary(agentIndex, response.content);
         // Sync to global brief
-        await this.updateProjectBrief(response.content);
+        // await this.updateProjectBrief(response.content);
       }
     } catch (e) {
       handleLLMError(e);

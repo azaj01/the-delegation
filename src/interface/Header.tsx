@@ -1,4 +1,4 @@
-import { Info, KeyRound, Maximize2, Pause, Play, Settings, Zap, ZapOff } from 'lucide-react';
+import { Info, KeyRound, Maximize2, Settings } from 'lucide-react';
 import React, { useState } from 'react';
 import packageJson from '../../package.json';
 import { useCoreStore } from '../integration/store/coreStore';
@@ -10,7 +10,7 @@ const version = packageJson.version;
 
 const Header: React.FC = () => {
   const { llmConfig, isBYOKOpen, setBYOKOpen } = useUiStore();
-  const { pauseOnCall, togglePauseOnCall, isPaused, setPaused, setViewMode } = useCoreStore();
+  const { setViewMode } = useCoreStore();
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const hasKey = !!llmConfig.apiKey;
 
@@ -68,50 +68,6 @@ const Header: React.FC = () => {
 
       {/* Right: Global Controls */}
       <div className="flex items-center gap-3">
-        <div className={`flex items-center gap-2 p-1 rounded-lg transition-all ${pauseOnCall ? 'bg-amber-50 border border-amber-200 shadow-sm' : 'bg-zinc-50 border border-zinc-100'}`}>
-          <button
-            onClick={togglePauseOnCall}
-            className={`flex items-center gap-2 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-              pauseOnCall
-                ? 'text-amber-600 hover:bg-amber-100/50'
-                : 'text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600'
-            }`}
-            title={pauseOnCall ? "Pause on AI Call: ON" : "Pause on AI Call: OFF"}
-          >
-            {pauseOnCall ? <Zap size={13} fill="currentColor" /> : <ZapOff size={13} />}
-            <span className="hidden sm:inline">{pauseOnCall ? 'Debug Mode ON' : 'Debug Mode'}</span>
-          </button>
-
-          {pauseOnCall && (
-            <>
-              <div className="w-px h-3 bg-amber-200 mx-0.5" />
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setPaused(false)}
-                  className={`p-1.5 rounded transition-all cursor-pointer ${
-                    !isPaused
-                      ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
-                      : 'text-amber-400 hover:text-amber-600'
-                  }`}
-                  title="Play Simulation"
-                >
-                  <Play size={14} fill={!isPaused ? "currentColor" : "none"} />
-                </button>
-                <button
-                  onClick={() => setPaused(true)}
-                  className={`p-1.5 rounded transition-all cursor-pointer ${
-                    isPaused
-                      ? 'bg-white text-amber-600 shadow-sm border border-amber-200'
-                      : 'text-amber-400 hover:text-amber-600'
-                  }`}
-                  title="Pause Simulation"
-                >
-                  <Pause size={14} fill={isPaused ? "currentColor" : "none"} />
-                </button>
-              </div>
-            </>
-          )}
-        </div>
 
         <button
           onClick={() => setViewMode('design')}

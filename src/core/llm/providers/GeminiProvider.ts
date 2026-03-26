@@ -12,8 +12,7 @@ export class GeminiProvider implements LLMProvider {
     messages: LLMMessage[],
     tools?: LLMToolDefinition[],
     systemInstruction?: string,
-    modelName: string = 'gemini-3-flash-preview',
-    signal?: AbortSignal
+    modelName: string = 'gemini-3-flash-preview'
   ): Promise<LLMResponse> {
     const contents = this.mapMessagesToGemini(messages);
 
@@ -25,16 +24,20 @@ export class GeminiProvider implements LLMProvider {
       } as FunctionDeclaration))
     }] : undefined;
 
+    console.log("sent to Gemini")
+    console.log("contents--------", contents);
+    console.log("systemInstruction--------", systemInstruction);
+    console.log("tools--------", tools);
     const result = await this.client.models.generateContent({
       model: modelName,
       contents,
       config: {
         systemInstruction: systemInstruction,
         tools: systemTools,
-        abortSignal: signal,
       }
     });
-
+    console.log("received from Gemini")
+    console.log("result--------", result);
     const candidate = result.candidates?.[0];
     const parts = candidate?.content?.parts || [];
 
