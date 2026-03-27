@@ -106,7 +106,7 @@ const ChatPanel: React.FC = () => {
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-1 space-y-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:display-none"
       >
-        {chatMessages.map((msg, i) => (
+        {chatMessages.filter(msg => !msg.metadata?.internal).map((msg, i) => (
           <div
             key={i}
             className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
@@ -115,7 +115,7 @@ const ChatPanel: React.FC = () => {
               {/* Avatar / Icon */}
               <div className="shrink-0 mt-1">
                 {msg.role === 'assistant' ? (
-                  <Avatar type={agent?.id === getAgentSet(selectedAgentSetId).leadAgent.id ? 'lead' : 'sub'} color={agent?.color} size={32} />
+                  <Avatar type={agent?.index === getAgentSet(selectedAgentSetId).leadAgent.index ? 'lead' : 'sub'} color={agent?.color} size={32} />
                 ) : (
                   <Avatar type="user" color={USER_COLOR} size={32} />
                 )}

@@ -12,9 +12,9 @@ export class ToolRegistry {
     const { name, args } = toolCall;
 
     switch (name) {
-      case 'set_client_brief': {
+      case 'set_user_brief': {
         const { brief } = args;
-        store.setClientBrief(brief);
+        store.setUserBrief(brief);
         store.setPhase('working');
         store.addLogEntry({
           agentIndex: agent.data.index,
@@ -26,12 +26,28 @@ export class ToolRegistry {
 
       case 'propose_task': {
         const { title, description, agentIds, requiresApproval } = args;
-        store.addTask({
+        
+        // Filter out agentIds that don't exist in the current simulation
+        const validAgentIds = (agent.simulation.getAllAgents() as any[])
+          .map(a => a.data.index);
+        const assignedAgentIds = (agentIds as number[]).filter(id => validAgentIds.includes(id));
+        
+        // Ensure at least one agent is assigned (default to the current agent if all filtered out)
+        if (assignedAgentIds.length === 0) {
+          assignedAgentIds.push(agent.data.index);
+        }
+
+        const newTask = store.addTask({
           title,
           description,
-          assignedAgentIds: agentIds,
+          assignedAgentIds,
           status: 'scheduled',
-          requiresClientApproval: requiresApproval || false
+          requiresUserApproval: requiresApproval || false
+        });
+        store.addLogEntry({
+          agentIndex: agent.data.index,
+          action: `proposed task: "${title}"`,
+          taskId: newTask.id
         });
         return true;
       }
@@ -40,6 +56,11 @@ export class ToolRegistry {
         const { taskId, output } = args;
         store.updateTaskStatus(taskId, 'done');
         store.setTaskOutput(taskId, output);
+        store.addLogEntry({
+          agentIndex: agent.data.index,
+          action: `completed task`,
+          taskId
+        });
         return true;
       }
 
@@ -48,6 +69,11 @@ export class ToolRegistry {
         store.updateTaskStatus(taskId, 'on_hold');
         agent.setState('on_hold');
         store.setPendingApproval(taskId);
+        store.addLogEntry({
+          agentIndex: agent.data.index,
+          action: `requested user approval — "${question}"`,
+          taskId
+        });
         // Move to boardroom for feedback
         (agent as any).simulation?.onAgentRequestMeeting?.(agent.data.index, taskId);
         return true;
@@ -58,6 +84,12 @@ export class ToolRegistry {
         store.updateTaskStatus(taskId, 'on_hold');
         agent.setState('on_hold');
         
+        store.addLogEntry({
+          agentIndex: agent.data.index,
+          action: `requested consultation with agent ${targetId}`,
+          taskId
+        });
+
         // Trigger multi-agent meeting in boardroom
         (agent as any).simulation?.onAgentRequestMeeting?.(agent.data.index, taskId, targetId);
         
@@ -70,6 +102,11 @@ export class ToolRegistry {
         store.setFinalOutput(output);
         store.setPhase('done');
         store.setFinalOutputOpen(true);
+        store.addLogEntry({
+          agentIndex: agent.data.index,
+          action: 'delivered final project results',
+          taskId: undefined
+        });
         return true;
       }
 
@@ -84,12 +121,12 @@ export class ToolRegistry {
       {
         type: 'function',
         function: {
-          name: 'set_client_brief',
-          description: 'Set the final project brief and transition to the working phase. Lead Agent only.',
+          name: 'set_user_brief',
+          description: 'Set the final user brief and transition to the working phase. Lead Agent only.',
           parameters: {
             type: 'object',
             properties: {
-              brief: { type: 'string', description: 'The project brief (max 300 words)' }
+              brief: { type: 'string', description: 'The user brief (max 300 words)' }
             },
             required: ['brief']
           }

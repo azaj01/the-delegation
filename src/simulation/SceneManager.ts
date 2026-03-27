@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { getAgentSet, getAllAgents, DEFAULT_AGENTIC_SET_ID } from '../data/agents';
+import { getAgentSet, getAllAgents, DEFAULT_AGENTIC_SET_ID, AgenticSystem } from '../data/agents';
 import { CharacterController } from './CharacterController';
 import { Engine } from './core/Engine';
 import { Stage } from './core/Stage';
@@ -166,15 +166,16 @@ export class SceneManager {
       if (currentSetId !== this.lastAgentSetId) {
         this.lastAgentSetId = currentSetId;
         const activeSet = getAgentSet(currentSetId);
-        this.worldManager.updateThemeColor(activeSet.color);
 
-        // Force agents to their spawn points and update colors when the team changes
+        // 1. Reinitialize the AI simulation and NPC drivers
+        this.reinitializeSimulation(activeSet);
+
+        // 2. Update world visuals and theme
+        this.worldManager.updateThemeColor(activeSet.color);
         if (this.controller) {
-          const system = getActiveAgentSet();
           this.controller.setColors();
           const npcIndices = getAllAgents(activeSet).map((a) => a.index);
-          this.controller.warpAllToSpawn(system.user.index, npcIndices);
-
+          this.controller.warpAllToSpawn(activeSet.user.index, npcIndices);
         }
       }
 
@@ -358,6 +359,38 @@ export class SceneManager {
     } catch (err) {
       console.error('[SceneManager] sendMessage error:', err);
       useUiStore.setState({ isThinking: false });
+    }
+  }
+
+  private reinitializeSimulation(activeSet: AgenticSystem) {
+    console.log(`[SceneManager] Reinitializing simulation for set: ${activeSet.id}`);
+    
+    // 1. Dispose old simulation
+    if (this.simulation) {
+      this.simulation.dispose();
+    }
+
+    // 2. Spawn new simulation
+    this.simulation = new AgentSimulation(activeSet);
+    this.setCoreHandler((idx, text) => this.simulation!.handleUserMessage(idx, text));
+
+    // 3. Update drivers
+    if (this.driverManager) {
+      // Clear existing drivers first (except player)
+      const playerIndex = activeSet.user.index;
+      const allPossibleAgents = getActiveAgentSet(); // Currently active
+      
+      // We need to unregister all current ones because the indices/count might change
+      // or at least refresh them.
+      this.driverManager.dispose(); 
+      // Re-create player
+      this.driverManager.registerPlayer(playerIndex);
+      
+      // Re-register NPCs
+      getAllAgents(activeSet).forEach((agent) => {
+        if (agent.index === playerIndex) return;
+        this.driverManager!.registerNpc(agent.index, agent);
+      });
     }
   }
 

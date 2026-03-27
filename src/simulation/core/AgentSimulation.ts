@@ -6,6 +6,7 @@ export class AgentSimulation {
   private agents: Map<number, AgentHost> = new Map();
   private system: AgenticSystem;
   private meetingRegistry: Map<string, { requesterIndex: number, targetIndex?: number, arrived: Set<number> }> = new Map();
+  private unsub: (() => void) | null = null;
 
   constructor(system: AgenticSystem) {
     this.system = system;
@@ -15,7 +16,7 @@ export class AgentSimulation {
 
   private startStateMonitoring() {
     // Monitor project phase transitions
-    useCoreStore.subscribe((state, prevState) => {
+    this.unsub = useCoreStore.subscribe((state, prevState) => {
       // Idle -> Working transition
       if (state.phase === 'working' && prevState.phase === 'idle') {
         console.log('[AgentSimulation] Project entered WORKING phase. Triggering autonomous strategy...');
@@ -34,7 +35,7 @@ export class AgentSimulation {
     // Usually the Lead Agent (index 1) handles the initial task decomposition
     const lead = this.getAgent(1);
     if (lead) {
-      await lead.think('The project has officially started. Please review the client brief and propose the initial set of tasks using propose_task.');
+      await lead.think('The project has officially started. Please review the user brief and propose the initial set of tasks using propose_task.', { silent: true });
     }
   }
 
@@ -148,5 +149,11 @@ export class AgentSimulation {
 
     const response = await agent.think(text, { isChat: true });
     return response.text;
+  }
+
+  public dispose() {
+    if (this.unsub) this.unsub();
+    this.agents.forEach(a => a.dispose());
+    this.agents.clear();
   }
 }

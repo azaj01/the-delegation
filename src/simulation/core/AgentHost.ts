@@ -15,8 +15,8 @@ export class AgentHost {
 
   constructor(
     public readonly data: AgentNode,
-    private readonly simulation: any // We'll type this properly later
-  ) {}
+    public readonly simulation: any // We'll type this properly later
+  ) { }
 
   /** Determines if the agent is currently available to respond to user messages. */
   public canChat(): boolean {
@@ -24,30 +24,57 @@ export class AgentHost {
     return this.state === 'idle' || this.state === 'on_hold';
   }
 
-  public async think(prompt: string, options: { 
-    isChat?: boolean, 
-    tools?: any[] 
+  public async think(prompt: string, options: {
+    isChat?: boolean,
+    tools?: any[],
+    silent?: boolean
   } = {}): Promise<{ text: string, toolCalls?: any[] }> {
     const core = useCoreStore.getState();
     const llmConfig = useUiStore.getState().llmConfig;
     const provider = LLMFactory.getProvider(llmConfig);
     const model = this.data.model || llmConfig.model;
 
-    const messages: LLMMessage[] = [
-      ...this.history,
-      { role: 'user', content: prompt }
-    ];
+    // Append user prompt to history FIRST so it persists and is visible in UI (unless silent)
+    this.history.push({ 
+      role: 'user', 
+      content: prompt,
+      metadata: options.silent ? { internal: true } : undefined
+    });
+    this.syncToStore();
 
-    const systemPrompt = this.buildSystemPrompt(core.phase, core.clientBrief);
+    const messages: LLMMessage[] = [...this.history];
+
+    const systemPrompt = this.buildSystemPrompt(core.phase, core.userBrief);
     const toolDefs = options.tools || ToolRegistry.getDefinitions();
+
+    // 1. Log Request
+    core.addRequestLog({
+      agentIndex: this.data.index,
+      agentName: this.data.name,
+      systemInstruction: systemPrompt,
+      contents: messages,
+      systemTools: toolDefs,
+      taskId: this.currentTaskId || undefined
+    });
 
     try {
       const response = await provider.generateCompletion(
-        messages, 
-        toolDefs, 
-        systemPrompt, 
+        messages,
+        toolDefs,
+        systemPrompt,
         model
       );
+
+      // 2. Log Response (this also updates token usage and cost in coreStore)
+      core.addResponseLog({
+        agentIndex: this.data.index,
+        agentName: this.data.name,
+        content: response.content,
+        tool_calls: response.tool_calls,
+        usage: response.usage,
+        raw: response.raw,
+        taskId: this.currentTaskId || undefined
+      });
 
       const text = response.content || '';
       const toolCalls = response.tool_calls?.map(tc => {
@@ -63,7 +90,20 @@ export class AgentHost {
       }).filter(Boolean) || [];
 
       // Update history
-      this.history.push({ role: 'assistant', content: text, tool_calls: response.tool_calls });
+      // If we have tool calls but no text, and it's NOT a silent prompt, 
+      // we can provide a default feedback message.
+      const isInternalTrigger = options.silent;
+      const hasToolCallsOnly = !text && !!response.tool_calls && response.tool_calls.length > 0;
+      
+      const finalContent = text || (hasToolCallsOnly && !isInternalTrigger ? 'Understood. Setting to work...' : text);
+      const isInternalMessage = isInternalTrigger || (hasToolCallsOnly && isInternalTrigger);
+
+      this.history.push({ 
+        role: 'assistant', 
+        content: finalContent, 
+        tool_calls: response.tool_calls,
+        metadata: isInternalMessage ? { internal: true } : undefined
+      });
       this.syncToStore();
 
       // Process tools
@@ -83,14 +123,18 @@ export class AgentHost {
   }
 
   private buildSystemPrompt(phase: string, brief: string): string {
+    const allAgents = this.simulation.getAllAgents();
+    const teamInfo = allAgents.map((a: any) => `- Agent index ${a.data.index}: ${a.data.name} (${a.data.description || 'Specialist'})`).join('\n');
+
     let context = `You are ${this.data.name}. ${this.data.instruction}\n\n`;
+    context += `AVAILABLE TEAM MEMBERS:\n${teamInfo}\n\n`;
     context += `Current Project Phase: ${phase}\n`;
-    if (brief) context += `Project Brief: ${brief}\n`;
-    
+    if (brief) context += `User Brief: ${brief}\n`;
+
     if (phase === 'idle') {
-      context += `Objective: You are currently waiting for the project to start. If you are the Lead Agent, your goal is to chat with the user to define a clear 'clientBrief' (max 300 words). Once defined, use the set_client_brief tool. If you are a subagent, you are just relaxing until the work begins.`;
+      context += `Objective: You are currently waiting for the project to start. If you are the Lead Agent, your goal is to chat with the user to define a clear user brief (max 300 words). Once defined, use the set_user_brief tool. If you are a subagent, you are just relaxing until the work begins.`;
     } else if (phase === 'working') {
-      context += `Objective: The project is underway. Collaborate with your team to complete the tasks on the Kanban board. If you need feedback or consensus, move to the ballroom and use consult_agent.`;
+      context += `Objective: The project is underway. Collaborate with your team to complete the tasks on the Kanban board. When proposing tasks with propose_task, you MUST assign them only to existing team members using their correct agent index. If you need feedback or consensus, move to the ballroom and use consult_agent.`;
     } else if (phase === 'done') {
       context += `Objective: The project is complete! If you are the Lead Agent, deliver the results to the user with pride.`;
     }
@@ -118,5 +162,9 @@ export class AgentHost {
 
   public setState(state: AgentState) {
     this.state = state;
+  }
+
+  public dispose() {
+    // No-op for now, but ready for future cleanup
   }
 }

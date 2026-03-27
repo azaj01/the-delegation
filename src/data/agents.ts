@@ -1,7 +1,7 @@
 import { USER_COLOR } from '../theme/brand';
 
 export const USER_ID = 'user';
-export const USER_NAME = 'Client';
+export const USER_NAME = 'User';
 export { USER_COLOR };
 export const DEFAULT_AGENTIC_SET_ID = 'single-agent';
 export const DEFAULT_MAX_ITERATIONS = 5;
@@ -112,7 +112,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       id: 'director',
       index: 1,
       name: 'Art Director',
-      description: 'Orchestrates the creative vision.',
+      description: 'Leads the creative vision.',
       instruction: 'Delegate design and copy tasks to your team.',
       color: '#a855f7',
       model: 'gemini-3-flash-preview',
@@ -287,7 +287,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       id: 'dispatcher',
       index: 1,
       name: 'Dispatcher',
-      description: 'Roots tasks to the right specialist.',
+      description: 'Routes tasks to the right specialist.',
       instruction: 'Identify task type and delegate to Code or Art.',
       color: '#14b8a6',
       model: 'gemini-3-flash-preview',

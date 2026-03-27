@@ -14,7 +14,7 @@ export interface Task {
   assignedAgentIds: number[]
   status: TaskStatus
   parentTaskId?: string
-  requiresClientApproval: boolean
+  requiresUserApproval: boolean
   output?: string
   createdAt: number
   updatedAt: number
@@ -58,7 +58,7 @@ export type ProjectPhase = 'idle' | 'working' | 'done'
 
 interface CoreState {
   // ── Project ──────────────────────────────────────────────────
-  clientBrief: string
+  userBrief: string
   phase: ProjectPhase
   finalOutput: string | null
   availableModels: string[]
@@ -88,8 +88,8 @@ interface CoreState {
   logFilterAgentIndex: number | null;
   isResizing: boolean;
 
-  // ── Actions — Project ─────────────────────────────────────────
-  setClientBrief: (brief: string) => void;
+  // ── Actions — Project —————————————————————————————————────────
+  setUserBrief: (brief: string) => void;
   setPhase: (phase: ProjectPhase) => void;
   setFinalOutput: (output: string) => void;
 
@@ -128,7 +128,7 @@ const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 export const useCoreStore = create<CoreState>()(
   persist(
     (set) => ({
-      clientBrief: '',
+      userBrief: '',
       phase: 'idle',
       finalOutput: null,
       availableModels: [
@@ -157,7 +157,7 @@ export const useCoreStore = create<CoreState>()(
       setViewMode: (viewMode) => set({ viewMode }),
 
       resetProject: () => set({
-        clientBrief: '',
+        userBrief: '',
         phase: 'idle',
         finalOutput: null,
         tasks: [],
@@ -174,7 +174,7 @@ export const useCoreStore = create<CoreState>()(
         agentEstimatedCost: {},
       }),
 
-      setClientBrief: (brief) => set({ clientBrief: brief }),
+      setUserBrief: (brief) => set({ userBrief: brief }),
       setPhase: (phase) => set({ phase }),
       setFinalOutput: (output) => set({ finalOutput: output }),
 

@@ -48,7 +48,7 @@ export class NpcAgentDriver implements IAgentDriver {
       return;
     }
 
-    // Special behavior for Lead Agent (Orchestrator) when project is ready
+    // Special behavior for Lead Agent when project is ready
     const isLeadCandidate = this.data.nextId === USER_ID;
     if (isLeadCandidate && systemState.phase === 'done') {
       this._updateProjectReadyBehavior(positions, delta, currentState);

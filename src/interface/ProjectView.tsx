@@ -22,7 +22,7 @@ export function formatTokens(num: number): string {
 
 const ProjectView: React.FC = () => {
   const {
-    clientBrief,
+    userBrief,
     phase,
     actionLog,
     resetProject,
@@ -79,17 +79,17 @@ const ProjectView: React.FC = () => {
       {/* Brief */}
       <div className="mb-10">
         <div className="flex items-center gap-2 mb-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Project Brief</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">User Brief</p>
           <div className="h-px flex-1 bg-zinc-100" />
         </div>
-        {clientBrief ? (
+        {userBrief ? (
           <div className="markdown-content text-xs text-zinc-600 leading-relaxed font-medium bg-white/40 p-4 rounded-xl border border-zinc-100/50 max-h-[300px] overflow-y-auto custom-scrollbar">
             <ReactMarkdown>
-              {clientBrief}
+              {userBrief}
             </ReactMarkdown>
           </div>
         ) : (
-          <p className="text-xs text-zinc-400 italic">No active brief. Talk to the Orchestrator to define your project.</p>
+          <p className="text-xs text-zinc-400 italic">No active brief. Talk to the Lead Agent to define your project.</p>
         )}
       </div>
 

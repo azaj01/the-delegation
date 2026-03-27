@@ -29,13 +29,13 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
   const agent = selectedNpcIndex !== null ? agents.find(a => a.index === selectedNpcIndex) ?? null : null;
   const isProjectReady = phase === 'done' && selectedNpcIndex === system.leadAgent.index;
 
-  const isOrchestratorIdle = selectedNpcIndex === system.leadAgent.index && phase === 'idle';
+  const isLeadAgentIdle = selectedNpcIndex === system.leadAgent.index && phase === 'idle';
   const tasksOnHold = agent ? tasks.filter(
     t => t.assignedAgentIds.includes(agent.index) && t.status === 'on_hold'
   ) : [];
   const hasTaskOnHold = tasksOnHold.length > 0;
 
-  const needsDiscussion = isOrchestratorIdle || hasTaskOnHold;
+  const needsDiscussion = isLeadAgentIdle || hasTaskOnHold;
 
   // When canChat transitions true → false, end any active chat
   useEffect(() => {
@@ -123,8 +123,8 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                     </div>
                   </div>
                   <p className="text-[12px] font-bold text-zinc-900 leading-tight mt-1.5">
-                    {isOrchestratorIdle
-                      ? "Waiting to discuss project goals."
+                    {isLeadAgentIdle
+                      ? "Waiting to discuss user brief."
                       : `${agent?.name} needs input.`}
                   </p>
                 </div>
@@ -138,8 +138,8 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                   </div>
                   <div className="flex flex-col gap-2">
                     <p className="text-[12px] font-bold text-zinc-900 leading-tight">
-                      {isOrchestratorIdle
-                        ? "Discuss the project goals with the team."
+                      {isLeadAgentIdle
+                        ? "Discuss the user brief with the team."
                         : `"${tasks.find(t => t.assignedAgentIds.includes(agent.index) && t.status === 'on_hold')?.title || 'This task'} is waiting for your input to proceed."`}
                     </p>
                     <p className="text-[10px] text-zinc-400 italic">Waiting for your input to proceed.</p>
@@ -150,7 +150,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                       className="flex items-center justify-center gap-2 hover:brightness-90 active:scale-95 disabled:opacity-50 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm mt-1"
                     >
                       <MessageSquareWarning size={14} strokeWidth={3} />
-                      Chat about {isOrchestratorIdle ? 'goals' : 'approval'}
+                      Chat about {isLeadAgentIdle ? 'the brief' : 'approval'}
                     </button>
                   </div>
                 </div>

@@ -5,6 +5,10 @@ export interface LLMMessage {
   content: string;
   name?: string; // Required for tool responses in some APIs
   tool_calls?: LLMToolCall[];
+  metadata?: {
+    internal?: boolean;
+    [key: string]: any;
+  };
 }
 
 export interface LLMToolCall {
