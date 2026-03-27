@@ -2,7 +2,6 @@ import { Info, RefreshCcw, ScrollText } from 'lucide-react';
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
-import { abortAllCalls } from '../integration/coreService';
 import { getAgentSet, getAllAgents } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore } from '../integration/store/teamStore';
@@ -35,9 +34,7 @@ const ProjectView: React.FC = () => {
   const hasLogs = actionLog.length > 0;
 
   const handleResetConfirm = () => {
-    // 1. Cancel all in-flight LLM calls
-    abortAllCalls();
-    // 2. Reset the 3D scene (teleport agents, clear chat)
+    // 1. Reset the 3D scene (teleport agents, clear chat)
     scene?.resetScene();
     // 3. Clear project state
     resetProject();

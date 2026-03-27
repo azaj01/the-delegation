@@ -18,7 +18,7 @@ export class DriverManager {
   private drivers = new Map<number, IAgentDriver>();
   private playerDriver: PlayerInputDriver | null = null;
 
-  constructor(private readonly controller: CharacterController) {}
+  constructor(private readonly controller: CharacterController) { }
 
   // ── Registration ─────────────────────────────────────────────
 
@@ -65,14 +65,6 @@ export class DriverManager {
   public getNpcDriver(agentIndex: number): NpcAgentDriver | null {
     const d = this.drivers.get(agentIndex);
     return d instanceof NpcAgentDriver ? d : null;
-  }
-
-  /** Immediately trigger the NPC to decide a new autonomous action (e.g. after task completion). */
-  public kickNpc(agentIndex: number): void {
-    const driver = this.drivers.get(agentIndex);
-    if (driver instanceof NpcAgentDriver) {
-      driver.kick();
-    }
   }
 
   // ── Frame loop ───────────────────────────────────────────────

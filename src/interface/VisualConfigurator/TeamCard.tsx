@@ -2,7 +2,6 @@ import { Edit2, Pipette, Trash2, Users, X } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AgenticSystem, DEFAULT_AGENTIC_SET_ID, getAllAgents } from '../../data/agents';
 import { USER_COLOR } from '../../theme/brand';
-import { abortAllCalls } from '../../integration/coreService';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { useSceneManager } from '../../simulation/SceneContext';
 import { getBrightness, getDarkenedColor } from './colorUtils';
@@ -71,7 +70,6 @@ export const TeamCard: React.FC<TeamCardProps> = ({
 
   const handleSwitch = (e: React.MouseEvent) => {
     e.stopPropagation();
-    abortAllCalls();
     scene?.resetScene();
     setActiveTeam(system.id);
   };
@@ -115,7 +113,6 @@ export const TeamCard: React.FC<TeamCardProps> = ({
   const confirmDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (system.id === selectedAgentSetId) {
-      abortAllCalls();
       scene?.resetScene();
       setActiveTeam(DEFAULT_AGENTIC_SET_ID);
     }

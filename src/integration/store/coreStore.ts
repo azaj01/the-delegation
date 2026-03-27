@@ -118,6 +118,9 @@ interface CoreState {
   setIsResizing: (isResizing: boolean) => void;
   resetProject: () => void;
   setViewMode: (mode: 'simulation' | 'design') => void;
+
+  // ── Simulation Sync ──────────────────────────────────────────
+  setAgentHistory: (agentIndex: number, history: LLMMessage[]) => void;
 }
 
 const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
@@ -346,6 +349,10 @@ export const useCoreStore = create<CoreState>()(
       setFinalOutputOpen: (open) => set({ isFinalOutputOpen: open }),
       setPendingApproval: (taskId) => set({ pendingApprovalTaskId: taskId }),
       setIsResizing: (resizing) => set({ isResizing: resizing }),
+
+      setAgentHistory: (agentIndex, history) => set((s) => ({
+        agentHistories: { ...s.agentHistories, [agentIndex]: history }
+      })),
     }),
     {
       name: 'core-storage',

@@ -7,7 +7,6 @@ import { useTeamStore } from '../../integration/store/teamStore';
 import { Avatar } from '../components/Avatar';
 import { ColorPicker } from './ColorPicker';
 import { InfoBubble } from './InfoBubble';
-import { CORE_TOOLS } from '../../core/llm/toolDefinitions';
 import { getBrightness } from './colorUtils';
 
 interface AgentConfigPanelProps {

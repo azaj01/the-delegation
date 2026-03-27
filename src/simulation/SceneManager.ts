@@ -10,7 +10,7 @@ import { NavMeshManager } from './pathfinding/NavMeshManager';
 import { PoiManager } from './world/PoiManager';
 import { WorldManager } from './world/WorldManager';
 
-import { CoreOrchestrator } from '../integration/CoreOrchestrator';
+import { AgentSimulation } from './core/AgentSimulation';
 import { useCoreStore } from '../integration/store/coreStore';
 import { getActiveAgentSet, useTeamStore } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
@@ -26,6 +26,7 @@ export class SceneManager {
   private poiManager: PoiManager;
   private worldManager: WorldManager;
   private driverManager: DriverManager | null = null;
+  private simulation: AgentSimulation | null = null;
 
   private lastAgentSetId: string | null = null;
 
@@ -53,9 +54,13 @@ export class SceneManager {
     this.resizeObserver = new ResizeObserver(() => this.onResize());
     this.resizeObserver.observe(container);
 
-    // Initialize the core orchestrator and wire up the handler
-    const orchestrator = CoreOrchestrator.getInstance();
-    this.setCoreHandler((idx, text) => orchestrator.handleCoreMessage(idx, text));
+    // Initialize the core simulation and wire up the handler
+    const activeSet = getActiveAgentSet();
+    this.simulation = new AgentSimulation(activeSet);
+    this.setCoreHandler((idx, text) => this.simulation!.handleUserMessage(idx, text));
+
+    // Expose for Simulation/ToolRegistry access
+    (window as any).sceneManager = this;
 
     this.init();
     this.startWatchingCoreStore();
@@ -68,15 +73,18 @@ export class SceneManager {
           const prevTask = prevState.tasks.find(t => t.id === task.id);
           if (task.status === 'in_progress' && prevTask?.status !== 'in_progress') {
             task.assignedAgentIds.forEach(id => {
-              this.setNpcWorking(id, true);
+              this.setNpcWorking(id, true, task.id);
             });
           }
-          if ((task.status === 'done' || task.status === 'on_hold') && prevTask?.status === 'in_progress') {
+          if (task.status === 'on_hold' && prevTask?.status !== 'on_hold') {
             task.assignedAgentIds.forEach(id => {
-              if (task.status === 'on_hold') {
-                this.moveNpcToSpawn(id);
-              }
+              this.moveNpcToBoardroom(id, task.id);
+            });
+          }
+          if (task.status === 'done' && prevTask?.status !== 'done') {
+            task.assignedAgentIds.forEach(id => {
               this.setNpcWorking(id, false);
+              this.moveNpcToSpawn(id);
             });
           }
         });
@@ -118,8 +126,6 @@ export class SceneManager {
       if (agent.index === playerIndex) return;
       this.driverManager.registerNpc(agent.index, agent);
     });
-
-
 
     // InputManager — callbacks feed into PlayerInputDriver or store
     new InputManager(
@@ -368,18 +374,15 @@ export class SceneManager {
     this.coreHandler = handler;
   }
 
-  /** Immediately trigger an NPC to pick a new autonomous action (e.g. wander away from work desk). */
-  public kickNpcDriver(index: number): void {
-    this.driverManager?.kickNpc(index);
-  }
-
   /** Play or stop the working animation on an NPC. */
-  public setNpcWorking(index: number, working: boolean): void {
+  public setNpcWorking(index: number, working: boolean, taskId?: string): void {
     if (!this.controller) return;
     if (working) {
-      const pois = this.poiManager.getFreePois('sit_work', index);
-      if (pois.length > 0) {
-        const poi = pois[Math.floor(Math.random() * pois.length)];
+      // Use 'work' POI prefix as requested
+      const poiId = `work-${index}`;
+      const poi = this.poiManager.getPoi(poiId);
+      
+      if (poi) {
         const positions = this.controller.getCPUPositions();
         const currentPos = positions
           ? new THREE.Vector3(
@@ -388,12 +391,40 @@ export class SceneManager {
             positions[index * 4 + 2],
           )
           : undefined;
-        this.controller.walkToPoi(index, poi.id, undefined, currentPos);
+        this.controller.walkToPoi(index, poi.id, () => {
+          this.controller?.play(index, 'sit_work');
+          if (taskId) this.simulation?.onAgentReady(index, taskId);
+        }, currentPos);
       } else {
         this.controller.play(index, 'sit_work');
+        if (taskId) this.simulation?.onAgentReady(index, taskId);
       }
     } else {
       this.controller.play(index, 'idle');
+    }
+  }
+
+  /** Move an agent to the boardroom for collaboration or feedback. */
+  public moveNpcToBoardroom(index: number, taskId: string): void {
+    if (!this.controller) return;
+    
+    // Find 'boardroom' POI in the 'area' type
+    const boardroomPoi = this.poiManager.getPoi('area-boardroom');
+    
+    if (boardroomPoi) {
+      const positions = this.controller.getCPUPositions();
+      const currentPos = positions
+        ? new THREE.Vector3(
+          positions[index * 4],
+          positions[index * 4 + 1],
+          positions[index * 4 + 2],
+        )
+        : undefined;
+      
+      this.controller.walkToPoi(index, boardroomPoi.id, () => {
+        this.controller?.play(index, 'idle'); // Standing in boardroom
+        if (taskId) this.simulation?.onAgentReady(index, taskId);
+      }, currentPos);
     }
   }
 

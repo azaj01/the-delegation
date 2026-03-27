@@ -32,11 +32,6 @@ export class NpcAgentDriver implements IAgentDriver {
     this.agentIndex = agentIndex;
   }
 
-  /** Force the agent to pick a new autonomous action immediately (e.g. after completing a task). */
-  public kick(): void {
-    this.behaviorTimer = 0;
-  }
-
   /** Sets whether the agent is currently engaged in a chat, suspending autonomy. */
   public setChatting(isChatting: boolean): void {
     this.isChattingWithMe = isChatting;
@@ -250,5 +245,5 @@ export class NpcAgentDriver implements IAgentDriver {
     }
   }
 
-  public dispose(): void {}
+  public dispose(): void { }
 }
