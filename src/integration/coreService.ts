@@ -305,18 +305,3 @@ export async function callAgent(params: {
 
   return { text, functionCalls };
 }
-
-// ─── Convenience wrappers ─────────────────────────────────────
-
-/** Call the Orchestrator (Lead Agent) */
-export const callOrchestrator = (userMessage: string) => {
-  const leadAgentIndex = getActiveAgentSet().leadAgent.index;
-  return callAgent({ agentIndex: leadAgentIndex, userMessage });
-}
-
-/** Call an agent in the context of a boardroom session for a given task */
-export const callBoardroomAgent = (
-  agentIndex: number,
-  taskId: string,
-  message: string
-) => callAgent({ agentIndex, userMessage: message, isBoardroom: true, boardroomTaskId: taskId })

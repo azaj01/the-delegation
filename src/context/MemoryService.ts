@@ -51,8 +51,8 @@ Keep the summary concise but informative. If the new messages contain no new inf
       // LOG REQUEST (using mapped data from provider)
       if (response.request) {
         store.addRequestLog({
-          agentIndex: -1,
-          agentName: 'System',
+          agentIndex: agentIndex,
+          agentName: agentName,
           systemInstruction: response.request.systemInstruction,
           contents: response.request.contents,
           systemTools: response.request.tools,

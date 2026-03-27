@@ -1,5 +1,5 @@
 import {
-    callAgent, callBoardroomAgent, callOrchestrator, type AgentFunctionCall
+  callAgent, type AgentFunctionCall
 } from './coreService';
 import { getActiveAgentSet } from './store/teamStore';
 import { useCoreStore, type Task } from './store/coreStore';
@@ -34,7 +34,7 @@ export class CoreOrchestrator {
   private startWatchingTasks() {
     this.unsubscribe = useCoreStore.subscribe((state, prevState) => {
       const tasksChanged = state.tasks.some((t, i) => t.status !== prevState.tasks[i]?.status) ||
-                           state.tasks.length !== prevState.tasks.length;
+        state.tasks.length !== prevState.tasks.length;
 
       if (tasksChanged) {
         this.checkAllTasksDone();
@@ -42,7 +42,7 @@ export class CoreOrchestrator {
 
       const newScheduled = state.tasks.filter(
         (t) => t.status === 'scheduled' &&
-               !prevState.tasks.some((pt) => pt.id === t.id && pt.status === 'scheduled')
+          !prevState.tasks.some((pt) => pt.id === t.id && pt.status === 'scheduled')
       );
 
       for (const task of newScheduled) {
@@ -92,7 +92,7 @@ export class CoreOrchestrator {
         ? `All tasks are completed. Team outputs:\n\n${outputs}\n\nNow assemble the final prompt for the client and call notify_client_project_ready.`
         : `All tasks have been removed. Sum up and call notify_client_project_ready.`;
 
-      const response = await callOrchestrator(prompt);
+      const response = await callAgent({ agentIndex: leadAgentIndex, userMessage: prompt });
       if (response.functionCalls) {
         for (const fn of response.functionCalls) {
           this.processFunctionCall(fn, leadAgentIndex);
@@ -166,7 +166,7 @@ export class CoreOrchestrator {
 
     try {
       for (const agentIndex of agents) {
-        const response = await callBoardroomAgent(agentIndex, task.id, `Boardroom session for ${task.description}. Propose subtasks or discuss.`);
+        const response = await callAgent({ agentIndex, userMessage: `Boardroom session for ${task.description}. Propose subtasks or discuss.`, isBoardroom: true, boardroomTaskId: task.id });
         if (response.functionCalls) {
           for (const fn of response.functionCalls) {
             this.processFunctionCall(fn, agentIndex);
