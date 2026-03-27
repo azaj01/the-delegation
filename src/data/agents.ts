@@ -5,6 +5,7 @@ export const USER_NAME = 'User';
 export { USER_COLOR };
 export const DEFAULT_AGENTIC_SET_ID = 'single-agent';
 export const DEFAULT_MAX_ITERATIONS = 5;
+export const MAX_AGENTS_PER_TASK = 2;
 
 export interface AgentNode {
   id: string;

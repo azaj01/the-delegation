@@ -69,23 +69,35 @@ export class SceneManager {
   private startWatchingCoreStore() {
     this.unsubs.push(
       useCoreStore.subscribe((state, prevState) => {
-        state.tasks.forEach(task => {
-          const prevTask = prevState.tasks.find(t => t.id === task.id);
-          if (task.status === 'in_progress' && prevTask?.status !== 'in_progress') {
-            task.assignedAgentIds.forEach(id => {
-              this.setNpcWorking(id, true, task.id);
-            });
-          }
-          if (task.status === 'on_hold' && prevTask?.status !== 'on_hold') {
-            task.assignedAgentIds.forEach(id => {
-              this.moveNpcToBoardroom(id, task.id);
-            });
-          }
-          if (task.status === 'done' && prevTask?.status !== 'done') {
-            task.assignedAgentIds.forEach(id => {
-              this.setNpcWorking(id, false);
-              this.moveNpcToSpawn(id);
-            });
+        const agentIndices = Array.from(new Set(state.tasks.flatMap(t => t.assignedAgentIds)));
+        
+        agentIndices.forEach(id => {
+          const myTasks = state.tasks.filter(t => t.assignedAgentIds.includes(id));
+          const prevTasks = prevState.tasks.filter(t => t.assignedAgentIds.includes(id));
+
+          // Detect any status changes for THIS agent
+          const hasChange = myTasks.some(t => {
+            const pt = prevTasks.find(old => old.id === t.id);
+            return !pt || pt.status !== t.status;
+          });
+
+          if (!hasChange) return;
+
+          // Priority logic to decide where the agent should be
+          const onHold = myTasks.find(t => t.status === 'on_hold');
+          const inProgress = myTasks.find(t => t.status === 'in_progress');
+          const scheduled = myTasks.find(t => t.status === 'scheduled');
+          const justDone = myTasks.find(t => t.status === 'done' && !prevTasks.find(pt => pt.id === t.id && pt.status === 'done'));
+
+          if (onHold) {
+            this.moveNpcToBoardroom(id, onHold.id);
+          } else if (inProgress) {
+            this.setNpcWorking(id, true, inProgress.id);
+          } else if (scheduled) {
+            this.setNpcWorking(id, true, scheduled.id);
+          } else if (justDone) {
+            this.setNpcWorking(id, false);
+            this.moveNpcToSpawn(id);
           }
         });
       })
@@ -263,31 +275,6 @@ export class SceneManager {
       this.controller!.getAgentStateBuffer()?.setWaypoint(system.user.index, fx, fz);
       this.controller!.getAgentStateBuffer()?.setWaypoint(npcIndex, -fx, -fz);
 
-
-      // --- New: Pre-fill Chat if agent has pending approval ---
-      const coreStore = useCoreStore.getState();
-      const task = coreStore.tasks.find(
-        (t) => t.status === 'on_hold' && t.assignedAgentIds.includes(npcIndex),
-      );
-
-      if (task) {
-        // Find the log entry for the approval request to get the question
-        const approvalLog = coreStore.actionLog.find(l => l.taskId === task.id && l.action.toLowerCase().includes('approval'));
-        const question = approvalLog ? approvalLog.action.replace(/^requested client approval — "/, '').replace(/"$/, '') : null;
-
-        if (question) {
-          const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const approvalMsg: ChatMessage = {
-            role: 'assistant',
-            text: `I've paused my work because I need your input: "${question}"\n\nHow should I proceed?`,
-            timestamp
-          };
-          // Switch Inspector to chat tab so the conversation is immediately visible
-          useUiStore.setState({ chatMessages: [approvalMsg], inspectorTab: 'chat' });
-          return; // Skip default greeting
-        }
-      }
-
       this._triggerNpcGreeting(npcIndex);
     });
   }
@@ -411,23 +398,13 @@ export class SceneManager {
   public setNpcWorking(index: number, working: boolean, taskId?: string): void {
     if (!this.controller) return;
     if (working) {
-      // Use 'work' POI prefix as requested
       const poiId = `work-${index}`;
       const poi = this.poiManager.getPoi(poiId);
       
       if (poi) {
-        const positions = this.controller.getCPUPositions();
-        const currentPos = positions
-          ? new THREE.Vector3(
-            positions[index * 4],
-            positions[index * 4 + 1],
-            positions[index * 4 + 2],
-          )
-          : undefined;
         this.controller.walkToPoi(index, poi.id, () => {
-          this.controller?.play(index, 'sit_work');
           if (taskId) this.simulation?.onAgentReady(index, taskId);
-        }, currentPos);
+        });
       } else {
         this.controller.play(index, 'sit_work');
         if (taskId) this.simulation?.onAgentReady(index, taskId);
@@ -440,46 +417,22 @@ export class SceneManager {
   /** Move an agent to the boardroom for collaboration or feedback. */
   public moveNpcToBoardroom(index: number, taskId: string): void {
     if (!this.controller) return;
-    
-    // Find 'boardroom' POI in the 'area' type
     const boardroomPoi = this.poiManager.getPoi('area-boardroom');
     
     if (boardroomPoi) {
-      const positions = this.controller.getCPUPositions();
-      const currentPos = positions
-        ? new THREE.Vector3(
-          positions[index * 4],
-          positions[index * 4 + 1],
-          positions[index * 4 + 2],
-        )
-        : undefined;
-      
       this.controller.walkToPoi(index, boardroomPoi.id, () => {
-        this.controller?.play(index, 'idle'); // Standing in boardroom
         if (taskId) this.simulation?.onAgentReady(index, taskId);
-      }, currentPos);
+      });
     }
   }
 
   /** Walk an NPC to their designated spawn area POI. */
   public moveNpcToSpawn(index: number, onArrival?: () => void): void {
     if (!this.controller) return;
-    const positions = this.controller.getCPUPositions();
-    const currentPos = positions
-      ? new THREE.Vector3(
-        positions[index * 4],
-        positions[index * 4 + 1],
-        positions[index * 4 + 2],
-      )
-      : undefined;
-
-    // Convention: idle-spawn-1, idle-spawn-2, etc.
-    const spawnId = `idle-spawn-${index}`;
-    const spawnPoi = this.poiManager.getPoi(spawnId);
+    const spawnPoi = this.poiManager.getPoi(`spawn-${index}`);
 
     if (spawnPoi) {
-      const target = spawnPoi.position;
-      this.controller.moveTo(index, target, 'idle', onArrival ? () => onArrival() : undefined, currentPos, spawnPoi.quaternion);
+      this.controller.moveTo(index, spawnPoi.position, 'idle', onArrival, undefined, spawnPoi.quaternion);
     } else if (onArrival) {
       onArrival();
     }

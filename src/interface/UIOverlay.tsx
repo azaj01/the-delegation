@@ -8,7 +8,7 @@ import { MessageSquareWarning, PartyPopper, Siren } from 'lucide-react';
 import { Task, useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore } from '../integration/store/teamStore';
 
-const LEAD_AGENT_INDEX = 1;
+
 
 interface AlertBubbleProps {
   icon: React.ReactNode;
@@ -50,11 +50,12 @@ type PhaseLabel = { text: string; className: string };
 
 function getAgentPhaseLabel(
   agentIndex: number,
+  leadAgentIndex: number,
   tasks: Task[],
   phase: string,
   fallback: string,
 ): PhaseLabel {
-  if (agentIndex === LEAD_AGENT_INDEX && phase === 'done') {
+  if (agentIndex === leadAgentIndex && phase === 'done') {
     return { text: 'Project Ready!', className: 'text-yellow-400' };
   }
   const holdTask = tasks.find(
@@ -112,12 +113,12 @@ const UIOverlay: React.FC = () => {
 
         // Check specific conditions
         // - Lead Agent (index 1) idle: siren
-        if (agent.index === LEAD_AGENT_INDEX && phase === 'idle') {
+        if (agent.index === system.leadAgent.index && phase === 'idle') {
           alertIcon = <Siren size={18} />;
           alertColor = '#ffffff'; // White for siren
         }
         // - Lead Agent (index 1) project finished: party-popper
-        else if (agent.index === LEAD_AGENT_INDEX && phase === 'done') {
+        else if (agent.index === system.leadAgent.index && phase === 'done') {
           alertIcon = <PartyPopper size={18} />;
           alertColor = '#facc15'; // Yellow
         }
@@ -150,8 +151,8 @@ const UIOverlay: React.FC = () => {
       {(() => {
         // Priority 1: Selected Agent
         if (selectedAgent && selectedPosition) {
-          const isLeadAgentProjectReady = selectedAgent.index === LEAD_AGENT_INDEX && phase === 'done';
-          const label = getAgentPhaseLabel(selectedAgent.index, tasks, phase, '');
+          const isLeadAgentProjectReady = selectedAgent.index === system.leadAgent.index && phase === 'done';
+          const label = getAgentPhaseLabel(selectedAgent.index, system.leadAgent.index, tasks, phase, '');
 
           return (
             <div
@@ -198,8 +199,8 @@ const UIOverlay: React.FC = () => {
 
         // Priority 2: Hovered Agent with dynamic phase label (only if not selected)
         if (hoveredAgent && hoverPosition && hoveredNpcIndex !== selectedNpcIndex) {
-          const isLeadAgentProjectReady = hoveredAgent.index === LEAD_AGENT_INDEX && phase === 'done';
-          const label = getAgentPhaseLabel(hoveredAgent.index, tasks, phase, '');
+          const isLeadAgentProjectReady = hoveredAgent.index === system.leadAgent.index && phase === 'done';
+          const label = getAgentPhaseLabel(hoveredAgent.index, system.leadAgent.index, tasks, phase, '');
 
           return (
             <div

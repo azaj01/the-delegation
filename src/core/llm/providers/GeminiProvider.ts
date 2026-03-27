@@ -127,6 +127,13 @@ export class GeminiProvider implements LLMProvider {
     const result: any = {
       type: mappedType,
       description: schema.description,
+      nullable: schema.nullable,
+      minItems: schema.minItems,
+      maxItems: schema.maxItems,
+      minimum: schema.minimum,
+      maximum: schema.maximum,
+      minLength: schema.minLength,
+      maxLength: schema.maxLength,
     };
 
     if (schema.properties) {

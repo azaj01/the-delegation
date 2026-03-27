@@ -1,5 +1,6 @@
 import { useCoreStore } from '../../integration/store/coreStore';
 import { AgentHost } from './AgentHost';
+import { MAX_AGENTS_PER_TASK } from '../../data/agents';
 
 export interface ToolCall {
   name: string;
@@ -30,7 +31,13 @@ export class ToolRegistry {
         // Filter out agentIds that don't exist in the current simulation
         const validAgentIds = (agent.simulation.getAllAgents() as any[])
           .map(a => a.data.index);
-        const assignedAgentIds = (agentIds as number[]).filter(id => validAgentIds.includes(id));
+        let assignedAgentIds = (agentIds as number[]).filter(id => validAgentIds.includes(id));
+        
+        // Enforce hard limit of 2 agents per task as a platform "law"
+        if (assignedAgentIds.length > MAX_AGENTS_PER_TASK) {
+          console.warn(`[ToolRegistry] Agent ${agent.data.name} assigned ${assignedAgentIds.length} agents to task "${title}". Truncating to ${MAX_AGENTS_PER_TASK}.`);
+          assignedAgentIds = assignedAgentIds.slice(0, MAX_AGENTS_PER_TASK);
+        }
         
         // Ensure at least one agent is assigned (default to the current agent if all filtered out)
         if (assignedAgentIds.length === 0) {
@@ -68,11 +75,23 @@ export class ToolRegistry {
         const { taskId, question } = args;
         store.updateTaskStatus(taskId, 'on_hold');
         agent.setState('on_hold');
+
+        // Pause other active tasks assigned to this agent (move back to scheduled)
+        store.tasks
+          .filter(t => t.id !== taskId && t.assignedAgentIds.includes(agent.data.index) && t.status === 'in_progress')
+          .forEach(t => store.updateTaskStatus(t.id, 'scheduled'));
+
         store.setPendingApproval(taskId);
         store.addLogEntry({
           agentIndex: agent.data.index,
           action: `requested user approval — "${question}"`,
           taskId
+        });
+        
+        // Add to persistent chat history so user sees context when opening chat
+        agent.appendHistory({
+          role: 'assistant',
+          content: `I need your approval to continue with the task: "${question}"`
         });
         // Move to boardroom for feedback
         (agent as any).simulation?.onAgentRequestMeeting?.(agent.data.index, taskId);
@@ -84,14 +103,28 @@ export class ToolRegistry {
         store.updateTaskStatus(taskId, 'on_hold');
         agent.setState('on_hold');
         
+        // Pause other active tasks assigned to this agent (move back to scheduled)
+        store.tasks
+          .filter(t => t.id !== taskId && t.assignedAgentIds.includes(agent.data.index) && t.status === 'in_progress')
+          .forEach(t => store.updateTaskStatus(t.id, 'scheduled'));
+
         store.addLogEntry({
           agentIndex: agent.data.index,
           action: `requested consultation with agent ${targetId}`,
           taskId
         });
 
+        // Add to persistent chat history
+        const isUserTarget = targetId === 0;
+        agent.appendHistory({
+          role: 'assistant',
+          content: isUserTarget 
+            ? `I need to consult with you about this task: "${message}"`
+            : `I've paused my work to consult with another agent about this task: "${message}"`
+        });
+
         // Trigger multi-agent meeting in boardroom
-        (agent as any).simulation?.onAgentRequestMeeting?.(agent.data.index, taskId, targetId);
+        (agent as any).simulation?.onAgentRequestMeeting?.(agent.data.index, taskId, targetId, message);
         
         console.log(`[ToolRegistry] Agent ${agent.data.name} requested meeting with ${targetId} for task ${taskId}: ${message}`);
         return true;
@@ -101,7 +134,14 @@ export class ToolRegistry {
         const { output } = args;
         store.setFinalOutput(output);
         store.setPhase('done');
-        store.setFinalOutputOpen(true);
+        
+        // Complete current tasks assigned to this agent
+        const myActiveTasks = store.tasks.filter(t => 
+          t.assignedAgentIds.includes(agent.data.index) && 
+          t.status === 'in_progress'
+        );
+        myActiveTasks.forEach(t => store.updateTaskStatus(t.id, 'done'));
+        
         store.addLogEntry({
           agentIndex: agent.data.index,
           action: 'delivered final project results',
@@ -142,7 +182,12 @@ export class ToolRegistry {
             properties: {
               title: { type: 'string' },
               description: { type: 'string' },
-              agentIds: { type: 'array', items: { type: 'number' }, description: 'Indices of agents assigned to this task' },
+              agentIds: { 
+                type: 'array', 
+                items: { type: 'number' }, 
+                maxItems: MAX_AGENTS_PER_TASK,
+                description: 'Indices of agents assigned to this task' 
+              },
               requiresApproval: { type: 'boolean' }
             },
             required: ['title', 'description', 'agentIds']

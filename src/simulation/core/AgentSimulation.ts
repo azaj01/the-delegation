@@ -1,11 +1,12 @@
 import { AgentNode, AgenticSystem, getAllAgents } from '../../data/agents';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { AgentHost } from './AgentHost';
+import { useUiStore } from '../../integration/store/uiStore';
 
 export class AgentSimulation {
   private agents: Map<number, AgentHost> = new Map();
   private system: AgenticSystem;
-  private meetingRegistry: Map<string, { requesterIndex: number, targetIndex?: number, arrived: Set<number> }> = new Map();
+  private meetingRegistry: Map<string, { requesterIndex: number, targetIndex?: number, arrived: Set<number>, message?: string }> = new Map();
   private unsub: (() => void) | null = null;
 
   constructor(system: AgenticSystem) {
@@ -23,10 +24,38 @@ export class AgentSimulation {
         this.triggerAutonomousStrategy();
       }
 
-      // Working -> Done transition check
-      if (state.phase === 'working' && state.tasks.length > 0 && state.tasks.every(t => t.status === 'done')) {
-        // Potentially auto-switch or wait for Lead Agent to use deliver_project tool
-        console.log('[AgentSimulation] All tasks complete. Project ready for delivery.');
+      // Working -> Done check (All tasks finished)
+      const allTasksFinished = state.tasks.length > 0 && state.tasks.every(t => t.status === 'done');
+      const previouslyUnfinished = prevState.tasks.some(t => t.status !== 'done');
+
+      if (state.phase === 'working' && allTasksFinished && previouslyUnfinished) {
+        console.log('[AgentSimulation] ALL TASKS FINISHED. Notifying Lead Agent to deliver results.');
+        const lead = this.getAgent(this.system.leadAgent.index);
+        if (lead) {
+          lead.think('All tasks are complete! Review the final results and deliver the project to the user using the deliver_project tool.', { silent: true });
+        }
+      }
+    });
+
+    // Monitor chat transitions to resume deferred work
+    useUiStore.subscribe((state, prevState) => {
+      if (!state.isChatting && prevState.isChatting) {
+        // Chat ended. 
+        const core = useCoreStore.getState();
+        
+        // 1. Check if we should trigger initial strategy
+        if (core.phase === 'working' && core.tasks.length === 0) {
+          console.log('[AgentSimulation] Chat ended. Resuming autonomous strategy...');
+          this.triggerAutonomousStrategy();
+        }
+
+        // 2. Check if any agents were deferred from their arriving task
+        core.tasks.filter(t => t.status === 'scheduled').forEach(task => {
+          task.assignedAgentIds.forEach(agentIndex => {
+             // We "ping" the simulation that they are ready again
+             this.onAgentReady(agentIndex, task.id);
+          });
+        });
       }
     });
   }
@@ -34,9 +63,16 @@ export class AgentSimulation {
   private async triggerAutonomousStrategy() {
     // Usually the Lead Agent (index 1) handles the initial task decomposition
     const lead = this.getAgent(1);
-    if (lead) {
-      await lead.think('The project has officially started. Please review the user brief and propose the initial set of tasks using propose_task.', { silent: true });
+    if (!lead) return;
+
+    // DEFER if lead agent is currently chatting with the user
+    const ui = useUiStore.getState();
+    if (ui.isChatting && ui.selectedNpcIndex === lead.data.index) {
+        console.log('[AgentSimulation] Lead agent is chatting. Deferring autonomous strategy...');
+        return;
     }
+
+    await lead.think('The project has officially started. Please review the user brief and propose the initial set of tasks using propose_task.', { silent: true });
   }
 
   private initializeAgents() {
@@ -56,13 +92,14 @@ export class AgentSimulation {
   }
 
   /** Called by ToolRegistry when an agent needs a meeting or user feedback. */
-  public onAgentRequestMeeting(agentIndex: number, taskId: string, targetIndex?: number) {
+  public onAgentRequestMeeting(agentIndex: number, taskId: string, targetIndex?: number, message?: string) {
     console.log(`[AgentSimulation] Agent ${agentIndex} requesting meeting for ${taskId} with ${targetIndex ?? 'User'}`);
     
     this.meetingRegistry.set(taskId, {
       requesterIndex: agentIndex,
       targetIndex,
-      arrived: new Set()
+      arrived: new Set(),
+      message
     });
 
     // Notify SceneManager to move agents to boardroom
@@ -102,12 +139,26 @@ export class AgentSimulation {
 
     // Normal task execution
     if (agent.state !== 'working') {
+      // DEFER if agent is currently chatting with the user
+      const ui = useUiStore.getState();
+      if (ui.isChatting && ui.selectedNpcIndex === agentIndex) {
+          console.log(`[AgentSimulation] Agent ${agentIndex} is chatting. Deferring task ${taskId}...`);
+          return;
+      }
+
       console.log(`[AgentSimulation] Agent ${agentIndex} is ready for task ${taskId}. Starting cognition...`);
       agent.setState('working');
       agent.setTask(taskId);
       
+      // Update task status in store
+      useCoreStore.getState().updateTaskStatus(taskId, 'in_progress');
+      
+      // Add a realistic thinking/work-setup delay (5-15s)
+      const delay = Math.floor(Math.random() * 10000) + 5000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+
       try {
-        const response = await agent.think(`Please proceed with objective: ${taskId}`);
+        await agent.think(`Please proceed with objective: ${taskId}`, { silent: true });
         console.log(`[AgentSimulation] Agent ${agentIndex} completed cognition for ${taskId}.`);
       } catch (err) {
         console.error(`[AgentSimulation] Agent ${agentIndex} failed thinking:`, err);
@@ -117,7 +168,7 @@ export class AgentSimulation {
     }
   }
 
-  private async startMeetingCognition(taskId: string, meeting: { requesterIndex: number, targetIndex?: number }) {
+  private async startMeetingCognition(taskId: string, meeting: { requesterIndex: number, targetIndex?: number, message?: string }) {
     const requester = this.getAgent(meeting.requesterIndex);
     if (!requester) return;
 
@@ -128,8 +179,11 @@ export class AgentSimulation {
         target.setState('talking');
         
         // Multi-agent debate logic
-        await requester.think(`You are now in the boardroom with ${target.data.name} to discuss ${taskId}.`);
-        // Target might respond automatically or after requester
+        const startMessage = meeting.message || `You are now in the boardroom with ${target.data.name} to discuss ${taskId}.`;
+        await requester.think(startMessage, { silent: true });
+        
+        // Target should also acknowledge
+        await target.think(`Understood. ${requester.data.name} is consulting me about ${taskId}.`, { silent: true });
       }
     } else {
       // Waiting for User feedback

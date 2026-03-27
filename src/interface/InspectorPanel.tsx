@@ -35,7 +35,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
   ) : [];
   const hasTaskOnHold = tasksOnHold.length > 0;
 
-  const needsDiscussion = isLeadAgentIdle || hasTaskOnHold;
+  const needsInput = isLeadAgentIdle || hasTaskOnHold;
 
   // When canChat transitions true → false, end any active chat
   useEffect(() => {
@@ -108,14 +108,14 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
               </div>
 
               {/* Conditional Discussion/Chat Actions */}
-              {needsDiscussion && isChatting && (
+              {needsInput && isChatting && (
                 <div className="bg-[#FFF9F2] border border-[#FFE4CC]/50 rounded-xl p-3 shadow-sm animate-in fade-in slide-in-from-top-1">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <div className="flex items-center justify-center w-4 h-4 bg-orange-500 rounded text-white shadow-sm">
                         <MessageSquareWarning size={10} strokeWidth={3} />
                       </div>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-orange-600">Discussion</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-orange-600">Approval</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -124,22 +124,22 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                   </div>
                   <p className="text-[12px] font-bold text-zinc-900 leading-tight mt-1.5">
                     {isLeadAgentIdle
-                      ? "Waiting to discuss user brief."
+                      ? "Waiting to review user brief."
                       : `${agent?.name} needs input.`}
                   </p>
                 </div>
               )}
 
-              {needsDiscussion && !isChatting ? (
+              {needsInput && !isChatting ? (
                 <div className="flex flex-col gap-3 p-4 bg-zinc-50 border border-zinc-100 rounded-xl animate-in fade-in slide-in-from-top-1 shadow-sm">
                   <div className="flex items-center gap-1.5">
                     <Avatar type="user" color={USER_COLOR} size={32} />
-                    <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: USER_COLOR }}>Needs Discussion</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: USER_COLOR }}>Needs Approval</span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <p className="text-[12px] font-bold text-zinc-900 leading-tight">
                       {isLeadAgentIdle
-                        ? "Discuss the user brief with the team."
+                        ? "Review the user brief with the team."
                         : `"${tasks.find(t => t.assignedAgentIds.includes(agent.index) && t.status === 'on_hold')?.title || 'This task'} is waiting for your input to proceed."`}
                     </p>
                     <p className="text-[10px] text-zinc-400 italic">Waiting for your input to proceed.</p>

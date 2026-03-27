@@ -1,4 +1,4 @@
-import { AgentNode } from '../../data/agents';
+import { AgentNode, MAX_AGENTS_PER_TASK } from '../../data/agents';
 import { LLMMessage } from '../../core/llm/types';
 import { LLMFactory } from '../../core/llm/LLMFactory';
 import { useUiStore } from '../../integration/store/uiStore';
@@ -35,8 +35,8 @@ export class AgentHost {
     const model = this.data.model || llmConfig.model;
 
     // Append user prompt to history FIRST so it persists and is visible in UI (unless silent)
-    this.history.push({ 
-      role: 'user', 
+    this.history.push({
+      role: 'user',
       content: prompt,
       metadata: options.silent ? { internal: true } : undefined
     });
@@ -90,17 +90,36 @@ export class AgentHost {
       }).filter(Boolean) || [];
 
       // Update history
-      // If we have tool calls but no text, and it's NOT a silent prompt, 
+      // If we have tool calls but no text, and it's NOT a silent prompt,
       // we can provide a default feedback message.
       const isInternalTrigger = options.silent;
       const hasToolCallsOnly = !text && !!response.tool_calls && response.tool_calls.length > 0;
-      
-      const finalContent = text || (hasToolCallsOnly && !isInternalTrigger ? 'Understood. Setting to work...' : text);
+
+      const isBrief = response.tool_calls?.some(tc => tc.function.name === 'set_user_brief');
+      const isResolution = this.state === 'on_hold' && response.tool_calls && response.tool_calls.length > 0;
+      let finalContent = text;
+
+      if (hasToolCallsOnly && !isInternalTrigger) {
+        finalContent = isBrief
+          ? "Perfect! I've set the project brief based on our chat. Let's get to work!"
+          : 'Understood. I am going back to work now.';
+      }
+
+      // Auto-close chat for system acknowledgments after tool calls
+      if (options.isChat && (isBrief || isResolution)) {
+        setTimeout(() => {
+          const scene = (window as any).sceneManager;
+          if (scene && useUiStore.getState().isChatting) {
+            scene.endChat();
+          }
+        }, 3000);
+      }
+
       const isInternalMessage = isInternalTrigger || (hasToolCallsOnly && isInternalTrigger);
 
-      this.history.push({ 
-        role: 'assistant', 
-        content: finalContent, 
+      this.history.push({
+        role: 'assistant',
+        content: finalContent,
         tool_calls: response.tool_calls,
         metadata: isInternalMessage ? { internal: true } : undefined
       });
@@ -123,23 +142,30 @@ export class AgentHost {
   }
 
   private buildSystemPrompt(phase: string, brief: string): string {
-    const allAgents = this.simulation.getAllAgents();
-    const teamInfo = allAgents.map((a: any) => `- Agent index ${a.data.index}: ${a.data.name} (${a.data.description || 'Specialist'})`).join('\n');
+    const team = this.simulation.getAllAgents()
+      .map((a: any) => `[${a.data.index}] ${a.data.name}: ${a.data.description || 'Specialist'}`)
+      .join('\n');
 
-    let context = `You are ${this.data.name}. ${this.data.instruction}\n\n`;
-    context += `AVAILABLE TEAM MEMBERS:\n${teamInfo}\n\n`;
-    context += `Current Project Phase: ${phase}\n`;
-    if (brief) context += `User Brief: ${brief}\n`;
+    const objectives = {
+      idle: 'Lead: Chat with the user (index 0) about the brief, then use set_user_brief. Others: Wait.',
+      working: 'Collaborate on tasks. If ALL board tasks are Done, Lead Agent MUST use deliver_project to finish the project.',
+      done: 'Lead: Results delivered. Chat with the user or celebrate the project completion.'
+    };
 
-    if (phase === 'idle') {
-      context += `Objective: You are currently waiting for the project to start. If you are the Lead Agent, your goal is to chat with the user to define a clear user brief (max 300 words). Once defined, use the set_user_brief tool. If you are a subagent, you are just relaxing until the work begins.`;
-    } else if (phase === 'working') {
-      context += `Objective: The project is underway. Collaborate with your team to complete the tasks on the Kanban board. When proposing tasks with propose_task, you MUST assign them only to existing team members using their correct agent index. If you need feedback or consensus, move to the ballroom and use consult_agent.`;
-    } else if (phase === 'done') {
-      context += `Objective: The project is complete! If you are the Lead Agent, deliver the results to the user with pride.`;
-    }
+    const tasks = useCoreStore.getState().tasks;
+    const board = tasks.length > 0
+      ? `Kanban Board:\n${tasks.map(t => `- [${t.status.toUpperCase()}] ${t.title}${t.output ? ` (Result: ${t.output})` : ''}`).join('\n')}`
+      : 'Kanban Board: Empty';
 
-    return context;
+    return `Identity: ${this.data.name}. Role: ${this.data.instruction}
+Team: [0] User (Client/Art Director)
+${team}
+
+${board}
+
+Project Phase: ${phase}
+${brief ? `Project Brief: ${brief}` : ''}
+Current Objective: ${objectives[phase as keyof typeof objectives] || ''}`;
   }
 
   public appendHistory(message: LLMMessage) {

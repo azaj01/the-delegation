@@ -220,10 +220,12 @@ export const useCoreStore = create<CoreState>()(
             return {};
           }
 
+          const newTasks = s.tasks.map((t) =>
+            t.id === taskId ? { ...t, status, updatedAt: Date.now() } : t
+          );
+
           return {
-            tasks: s.tasks.map((t) =>
-              t.id === taskId ? { ...t, status, updatedAt: Date.now() } : t
-            ),
+            tasks: newTasks,
           };
         }),
 
