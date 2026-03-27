@@ -20,7 +20,7 @@ const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
   if (!agent) return null;
 
   const activeTask = tasks.find(
-    (t) => t.assignedAgentIds.includes(agentIndex) && t.status === 'in_progress'
+    (t) => t.assignedAgentId === agentIndex && t.status === 'in_progress'
   ) ?? null;
 
   const usage = useCoreStore.getState().agentTokenUsage[agentIndex] || { promptTokens: 0, completionTokens: 0, totalTokens: 0 };

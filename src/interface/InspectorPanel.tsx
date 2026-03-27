@@ -30,8 +30,9 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
   const isProjectReady = phase === 'done' && selectedNpcIndex === system.leadAgent.index;
 
   const isLeadAgentIdle = selectedNpcIndex === system.leadAgent.index && phase === 'idle';
+  const currentTask = tasks.find(t => t.assignedAgentId === selectedNpcIndex && t.status === 'in_progress');
   const tasksOnHold = agent ? tasks.filter(
-    t => t.assignedAgentIds.includes(agent.index) && t.status === 'on_hold'
+    t => t.assignedAgentId === agent.index && t.status === 'on_hold'
   ) : [];
   const hasTaskOnHold = tasksOnHold.length > 0;
 
@@ -140,7 +141,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                     <p className="text-[12px] font-bold text-zinc-900 leading-tight">
                       {isLeadAgentIdle
                         ? "Review the user brief with the team."
-                        : `"${tasks.find(t => t.assignedAgentIds.includes(agent.index) && t.status === 'on_hold')?.title || 'This task'} is waiting for your input to proceed."`}
+                        : `"${currentTask?.title || 'This task'} is waiting for your input to proceed."`}
                     </p>
                     <p className="text-[10px] text-zinc-400 italic">Waiting for your input to proceed.</p>
                     <button

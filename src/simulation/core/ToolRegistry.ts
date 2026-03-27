@@ -1,6 +1,5 @@
 import { useCoreStore } from '../../integration/store/coreStore';
 import { AgentHost } from './AgentHost';
-import { MAX_AGENTS_PER_TASK } from '../../data/agents';
 
 export interface ToolCall {
   name: string;
@@ -15,47 +14,28 @@ export class ToolRegistry {
     switch (name) {
       case 'set_user_brief': {
         const { brief } = args;
-        store.setUserBrief(brief);
-        store.setPhase('working');
-        store.addLogEntry({
-          agentIndex: agent.data.index,
-          action: 'defined project brief',
-          taskId: undefined
-        });
+        // VALIDATION: Only Lead Agent (index 1) can set the brief
+        if (agent.data.index !== 1) {
+          console.warn(`[ToolRegistry] Agent ${agent.data.name} attempted set_user_brief, but is not the Lead Agent.`);
+          return false;
+        }
+        if (store.phase !== 'idle') return false;
+
+        store.startProject(brief);
+        store.addLogEntry({ agentIndex: agent.data.index, action: 'defined project brief', taskId: undefined });
         return true;
       }
 
       case 'propose_task': {
-        const { title, description, agentIds, requiresApproval } = args;
-        
-        // Filter out agentIds that don't exist in the current simulation
-        const validAgentIds = (agent.simulation.getAllAgents() as any[])
-          .map(a => a.data.index);
-        let assignedAgentIds = (agentIds as number[]).filter(id => validAgentIds.includes(id));
-        
-        // Enforce hard limit of 2 agents per task as a platform "law"
-        if (assignedAgentIds.length > MAX_AGENTS_PER_TASK) {
-          console.warn(`[ToolRegistry] Agent ${agent.data.name} assigned ${assignedAgentIds.length} agents to task "${title}". Truncating to ${MAX_AGENTS_PER_TASK}.`);
-          assignedAgentIds = assignedAgentIds.slice(0, MAX_AGENTS_PER_TASK);
-        }
-        
-        // Ensure at least one agent is assigned (default to the current agent if all filtered out)
-        if (assignedAgentIds.length === 0) {
-          assignedAgentIds.push(agent.data.index);
-        }
+        const { title, description, agentId, requiresApproval } = args;
+        const validAgentIds = (agent.simulation.getAllAgents() as any[]).map(a => a.data.index);
+        const finalAgentId = validAgentIds.includes(agentId) ? agentId : agent.data.index;
 
         const newTask = store.addTask({
-          title,
-          description,
-          assignedAgentIds,
-          status: 'scheduled',
+          title, description, assignedAgentId: finalAgentId, status: 'scheduled',
           requiresUserApproval: requiresApproval || false
         });
-        store.addLogEntry({
-          agentIndex: agent.data.index,
-          action: `proposed task: "${title}"`,
-          taskId: newTask.id
-        });
+        store.addLogEntry({ agentIndex: agent.data.index, action: `proposed task: "${title}"`, taskId: newTask.id });
         return true;
       }
 
@@ -63,58 +43,30 @@ export class ToolRegistry {
         const { taskId, output } = args;
         store.updateTaskStatus(taskId, 'done');
         store.setTaskOutput(taskId, output);
-        store.addLogEntry({
-          agentIndex: agent.data.index,
-          action: `completed task`,
-          taskId
-        });
+        store.addLogEntry({ agentIndex: agent.data.index, action: `completed task`, taskId });
         return true;
       }
 
       case 'request_approval': {
         const { taskId, question } = args;
-        store.updateTaskStatus(taskId, 'on_hold');
+        store.holdTaskForConsultation(taskId, 0); // 0 is the User
         agent.setState('on_hold');
-
-        // Pause other active tasks assigned to this agent (move back to scheduled)
-        store.tasks
-          .filter(t => t.id !== taskId && t.assignedAgentIds.includes(agent.data.index) && t.status === 'in_progress')
+        store.tasks.filter(t => t.id !== taskId && t.assignedAgentId === agent.data.index && t.status === 'in_progress')
           .forEach(t => store.updateTaskStatus(t.id, 'scheduled'));
-
         store.setPendingApproval(taskId);
-        store.addLogEntry({
-          agentIndex: agent.data.index,
-          action: `requested user approval — "${question}"`,
-          taskId
-        });
-        
-        // Add to persistent chat history so user sees context when opening chat
-        agent.appendHistory({
-          role: 'assistant',
-          content: `I need your approval to continue with the task: "${question}"`
-        });
-        // Move to boardroom for feedback
+        store.addLogEntry({ agentIndex: agent.data.index, action: `requested user approval — "${question}"`, taskId });
+        agent.appendHistory({ role: 'assistant', content: `I need your approval to continue with the task: "${question}"` });
         (agent as any).simulation?.onAgentRequestMeeting?.(agent.data.index, taskId);
         return true;
       }
 
       case 'consult_agent': {
         const { targetId, taskId, message } = args;
-        store.updateTaskStatus(taskId, 'on_hold');
+        store.holdTaskForConsultation(taskId, targetId);
         agent.setState('on_hold');
-        
-        // Pause other active tasks assigned to this agent (move back to scheduled)
-        store.tasks
-          .filter(t => t.id !== taskId && t.assignedAgentIds.includes(agent.data.index) && t.status === 'in_progress')
+        store.tasks.filter(t => t.id !== taskId && t.assignedAgentId === agent.data.index && t.status === 'in_progress')
           .forEach(t => store.updateTaskStatus(t.id, 'scheduled'));
-
-        store.addLogEntry({
-          agentIndex: agent.data.index,
-          action: `requested consultation with agent ${targetId}`,
-          taskId
-        });
-
-        // Add to persistent chat history
+        store.addLogEntry({ agentIndex: agent.data.index, action: `requested consultation with agent ${targetId}`, taskId });
         const isUserTarget = targetId === 0;
         agent.appendHistory({
           role: 'assistant',
@@ -122,31 +74,24 @@ export class ToolRegistry {
             ? `I need to consult with you about this task: "${message}"`
             : `I've paused my work to consult with another agent about this task: "${message}"`
         });
-
-        // Trigger multi-agent meeting in boardroom
         (agent as any).simulation?.onAgentRequestMeeting?.(agent.data.index, taskId, targetId, message);
-        
-        console.log(`[ToolRegistry] Agent ${agent.data.name} requested meeting with ${targetId} for task ${taskId}: ${message}`);
         return true;
       }
 
       case 'deliver_project': {
         const { output } = args;
+        // VALIDATION: Only Lead Agent (index 1) can deliver
+        if (agent.data.index !== 1) {
+          console.warn(`[ToolRegistry] Agent ${agent.data.name} attempted deliver_project, but is not the Lead Agent.`);
+          return false;
+        }
+        if (store.phase !== 'working') return false;
+
         store.setFinalOutput(output);
         store.setPhase('done');
-        
-        // Complete current tasks assigned to this agent
-        const myActiveTasks = store.tasks.filter(t => 
-          t.assignedAgentIds.includes(agent.data.index) && 
-          t.status === 'in_progress'
-        );
-        myActiveTasks.forEach(t => store.updateTaskStatus(t.id, 'done'));
-        
-        store.addLogEntry({
-          agentIndex: agent.data.index,
-          action: 'delivered final project results',
-          taskId: undefined
-        });
+        store.tasks.filter(t => t.assignedAgentId === agent.data.index && t.status === 'in_progress')
+          .forEach(t => store.updateTaskStatus(t.id, 'done'));
+        store.addLogEntry({ agentIndex: agent.data.index, action: 'delivered final project results', taskId: undefined });
         return true;
       }
 
@@ -156,104 +101,114 @@ export class ToolRegistry {
     }
   }
 
-  public static getDefinitions(): any[] {
-    return [
-      {
-        type: 'function',
-        function: {
-          name: 'set_user_brief',
-          description: 'Set the final user brief and transition to the working phase. Lead Agent only.',
-          parameters: {
-            type: 'object',
-            properties: {
-              brief: { type: 'string', description: 'The user brief (max 300 words)' }
-            },
-            required: ['brief']
+  public static getDefinitions(agentIndex: number, phase: string): any[] {
+    const isLead = agentIndex === 1;
+    const tools: any[] = [];
+
+    // 1. Idle Phase: Only Lead can set the brief
+    if (phase === 'idle') {
+      if (isLead) {
+        tools.push({
+          type: 'function',
+          function: {
+            name: 'set_user_brief',
+            description: 'Define the final project brief and start the project. Use this after chatting with the user to confirm requirements. Max 300 words.',
+            parameters: {
+              type: 'object',
+              properties: { brief: { type: 'string' } },
+              required: ['brief']
+            }
           }
-        }
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'propose_task',
-          description: 'Propose a new task for the Kanban board.',
-          parameters: {
-            type: 'object',
-            properties: {
-              title: { type: 'string' },
-              description: { type: 'string' },
-              agentIds: { 
-                type: 'array', 
-                items: { type: 'number' }, 
-                maxItems: MAX_AGENTS_PER_TASK,
-                description: 'Indices of agents assigned to this task' 
-              },
-              requiresApproval: { type: 'boolean' }
-            },
-            required: ['title', 'description', 'agentIds']
-          }
-        }
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'complete_task',
-          description: 'Mark a task as completed and provide the output.',
-          parameters: {
-            type: 'object',
-            properties: {
-              taskId: { type: 'string' },
-              output: { type: 'string', description: 'The result of the task' }
-            },
-            required: ['taskId', 'output']
-          }
-        }
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'request_approval',
-          description: 'Pause a task and request user feedback in the boardroom.',
-          parameters: {
-            type: 'object',
-            properties: {
-              taskId: { type: 'string' },
-              question: { type: 'string', description: 'What you need to ask the user' }
-            },
-            required: ['taskId', 'question']
-          }
-        }
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'consult_agent',
-          description: 'Request a meeting with another agent in the boardroom.',
-          parameters: {
-            type: 'object',
-            properties: {
-              targetId: { type: 'number', description: 'Index of the agent to consult' },
-              taskId: { type: 'string', description: 'The task context' },
-              message: { type: 'string', description: 'Opening message for the debate' }
-            },
-            required: ['targetId', 'taskId', 'message']
-          }
-        }
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'deliver_project',
-          description: 'Provide the final project deliverable and finish the project. Lead Agent only.',
-          parameters: {
-            type: 'object',
-            properties: {
-              output: { type: 'string', description: 'The final .md content or result' }
-            },
-            required: ['output']
-          }
-        }
+        });
       }
-    ];
+      return tools;
+    }
+
+    // 2. Working Phase: Common tools for everyone
+    if (phase === 'working') {
+      tools.push(
+        {
+          type: 'function',
+          function: {
+            name: 'propose_task',
+            description: 'Propose a new task for the Kanban board.',
+            parameters: {
+              type: 'object',
+              properties: {
+                title: { type: 'string' },
+                description: { type: 'string' },
+                agentId: { type: 'number', description: 'Index of the agent assigned to this task' },
+                requiresApproval: { type: 'boolean' }
+              },
+              required: ['title', 'description', 'agentId']
+            }
+          }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'complete_task',
+            description: 'Mark a task as completed and provide the output.',
+            parameters: {
+              type: 'object',
+              properties: {
+                taskId: { type: 'string' },
+                output: { type: 'string', description: 'The result of the task' }
+              },
+              required: ['taskId', 'output']
+            }
+          }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'request_approval',
+            description: 'Pause a task and request user feedback in the boardroom.',
+            parameters: {
+              type: 'object',
+              properties: {
+                taskId: { type: 'string' },
+                question: { type: 'string', description: 'What you need to ask the user' }
+              },
+              required: ['taskId', 'question']
+            }
+          }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'consult_agent',
+            description: 'Request a meeting with another agent in the boardroom.',
+            parameters: {
+              type: 'object',
+              properties: {
+                targetId: { type: 'number', description: 'Index of the agent to consult' },
+                taskId: { type: 'string', description: 'The task context' },
+                message: { type: 'string', description: 'Opening message for the debate' }
+              },
+              required: ['targetId', 'taskId', 'message']
+            }
+          }
+        }
+      );
+
+      // Only Lead can deliver
+      if (isLead) {
+        tools.push({
+          type: 'function',
+          function: {
+            name: 'deliver_project',
+            description: 'Deliver the final project result once all tasks are Done. Lead Agent only.',
+            parameters: {
+              type: 'object',
+              properties: { output: { type: 'string' } },
+              required: ['output']
+            }
+          }
+        });
+      }
+    }
+
+    return tools;
   }
 }

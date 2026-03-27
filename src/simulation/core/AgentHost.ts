@@ -1,4 +1,4 @@
-import { AgentNode, MAX_AGENTS_PER_TASK } from '../../data/agents';
+import { AgentNode } from '../../data/agents';
 import { LLMMessage } from '../../core/llm/types';
 import { LLMFactory } from '../../core/llm/LLMFactory';
 import { useUiStore } from '../../integration/store/uiStore';
@@ -12,6 +12,7 @@ export class AgentHost {
   private history: LLMMessage[] = [];
   private summary: string = '';
   private currentTaskId: string | null = null;
+  public isThinking: boolean = false;
 
   constructor(
     public readonly data: AgentNode,
@@ -20,8 +21,14 @@ export class AgentHost {
 
   /** Determines if the agent is currently available to respond to user messages. */
   public canChat(): boolean {
-    // Only available if idle or explicitly waiting for user input (on_hold)
-    return this.state === 'idle' || this.state === 'on_hold';
+    if (this.state === 'idle') return true;
+    if (this.state === 'on_hold') {
+      const core = useCoreStore.getState();
+      const myHoldTask = core.tasks.find(t => t.status === 'on_hold' && t.assignedAgentId === this.data.index);
+      // Only available if specifically waiting for the user (targetId 0)
+      return myHoldTask?.consultationTargetId === 0;
+    }
+    return false;
   }
 
   public async think(prompt: string, options: {
@@ -29,35 +36,37 @@ export class AgentHost {
     tools?: any[],
     silent?: boolean
   } = {}): Promise<{ text: string, toolCalls?: any[] }> {
-    const core = useCoreStore.getState();
-    const llmConfig = useUiStore.getState().llmConfig;
-    const provider = LLMFactory.getProvider(llmConfig);
-    const model = this.data.model || llmConfig.model;
-
-    // Append user prompt to history FIRST so it persists and is visible in UI (unless silent)
-    this.history.push({
-      role: 'user',
-      content: prompt,
-      metadata: options.silent ? { internal: true } : undefined
-    });
-    this.syncToStore();
-
-    const messages: LLMMessage[] = [...this.history];
-
-    const systemPrompt = this.buildSystemPrompt(core.phase, core.userBrief);
-    const toolDefs = options.tools || ToolRegistry.getDefinitions();
-
-    // 1. Log Request
-    core.addRequestLog({
-      agentIndex: this.data.index,
-      agentName: this.data.name,
-      systemInstruction: systemPrompt,
-      contents: messages,
-      systemTools: toolDefs,
-      taskId: this.currentTaskId || undefined
-    });
+    if (this.isThinking) return { text: '', toolCalls: [] };
+    this.isThinking = true;
 
     try {
+      const core = useCoreStore.getState();
+      const llmConfig = useUiStore.getState().llmConfig;
+      const provider = LLMFactory.getProvider(llmConfig);
+      const model = this.data.model || llmConfig.model;
+
+      // Append user prompt to history FIRST so it persists and is visible in UI (unless silent)
+      this.history.push({
+        role: 'user',
+        content: prompt,
+        metadata: options.silent ? { internal: true } : undefined
+      });
+      this.syncToStore();
+
+      const messages: LLMMessage[] = [...this.history];
+      const systemPrompt = this.buildSystemPrompt(core.phase, core.userBrief);
+      const toolDefs = options.tools || ToolRegistry.getDefinitions(this.data.index, core.phase);
+
+      // 1. Log Request
+      core.addRequestLog({
+        agentIndex: this.data.index,
+        agentName: this.data.name,
+        systemInstruction: systemPrompt,
+        contents: messages,
+        systemTools: toolDefs,
+        taskId: this.currentTaskId || undefined
+      });
+
       const response = await provider.generateCompletion(
         messages,
         toolDefs,
@@ -79,10 +88,7 @@ export class AgentHost {
       const text = response.content || '';
       const toolCalls = response.tool_calls?.map(tc => {
         try {
-          return {
-            name: tc.function.name,
-            args: JSON.parse(tc.function.arguments)
-          };
+          return { name: tc.function.name, args: JSON.parse(tc.function.arguments) };
         } catch (e) {
           console.error('[AgentHost] Failed to parse tool arguments', tc.function.arguments);
           return null;
@@ -90,11 +96,8 @@ export class AgentHost {
       }).filter(Boolean) || [];
 
       // Update history
-      // If we have tool calls but no text, and it's NOT a silent prompt,
-      // we can provide a default feedback message.
       const isInternalTrigger = options.silent;
       const hasToolCallsOnly = !text && !!response.tool_calls && response.tool_calls.length > 0;
-
       const isBrief = response.tool_calls?.some(tc => tc.function.name === 'set_user_brief');
       const isResolution = this.state === 'on_hold' && response.tool_calls && response.tool_calls.length > 0;
       let finalContent = text;
@@ -109,14 +112,11 @@ export class AgentHost {
       if (options.isChat && (isBrief || isResolution)) {
         setTimeout(() => {
           const scene = (window as any).sceneManager;
-          if (scene && useUiStore.getState().isChatting) {
-            scene.endChat();
-          }
+          if (scene && useUiStore.getState().isChatting) scene.endChat();
         }, 3000);
       }
 
       const isInternalMessage = isInternalTrigger || (hasToolCallsOnly && isInternalTrigger);
-
       this.history.push({
         role: 'assistant',
         content: finalContent,
@@ -134,6 +134,9 @@ export class AgentHost {
     } catch (error) {
       console.error(`[AgentHost:${this.data.name}] Thinking error:`, error);
       throw error;
+    } finally {
+      this.isThinking = false;
+      this.simulation.processScheduledTasks();
     }
   }
 
@@ -146,10 +149,15 @@ export class AgentHost {
       .map((a: any) => `[${a.data.index}] ${a.data.name}: ${a.data.description || 'Specialist'}`)
       .join('\n');
 
+    const isLead = this.data.index === 1;
     const objectives = {
-      idle: 'Lead: Chat with the user (index 0) about the brief, then use set_user_brief. Others: Wait.',
-      working: 'Collaborate on tasks. If ALL board tasks are Done, Lead Agent MUST use deliver_project to finish the project.',
-      done: 'Lead: Results delivered. Chat with the user or celebrate the project completion.'
+      idle: isLead 
+        ? 'Objective: Chat with the user (index 0) to define the final brief, then use the set_user_brief tool to start the project.' 
+        : 'Objective: Wait for the Lead Agent to define the project brief and assign tasks.',
+      working: isLead
+        ? 'Objective: Coordinate the team and track progress on the Kanban board. When all tasks are Done, review the results and use the deliver_project tool.'
+        : 'Objective: Focus on your assigned tasks. Collaborate with the team if needed, and use complete_task once finished.',
+      done: 'Objective: Project complete. Celebrate with the team or chat with the user about the results.'
     };
 
     const tasks = useCoreStore.getState().tasks;
@@ -165,6 +173,15 @@ ${board}
 
 Project Phase: ${phase}
 ${brief ? `Project Brief: ${brief}` : ''}
+
+Operational Guidelines:
+- Use set_user_brief to define the project scope and start working. Only use this when you have gathered enough requirements from the user.
+- Use propose_task to delegate work if you are the Lead Agent (only in WORKING phase).
+- Use complete_task when your assigned task is finished (only in WORKING phase).
+- Use consult_agent or request_approval to resolve specific technical questions about a task. These tools REQUIRE a taskId and should only be used during the WORKING phase.
+- In the IDLE phase, simply chat with the user (index 0) to refine the brief. Do NOT use consult_agent in the IDLE phase.
+- When on hold, wait in the boardroom for your target to respond.
+
 Current Objective: ${objectives[phase as keyof typeof objectives] || ''}`;
   }
 
@@ -191,6 +208,6 @@ Current Objective: ${objectives[phase as keyof typeof objectives] || ''}`;
   }
 
   public dispose() {
-    // No-op for now, but ready for future cleanup
+    // No-op for now
   }
 }

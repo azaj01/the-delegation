@@ -59,13 +59,13 @@ function getAgentPhaseLabel(
     return { text: 'Project Ready!', className: 'text-yellow-400' };
   }
   const holdTask = tasks.find(
-    t => t.assignedAgentIds?.includes(agentIndex) && t.status === 'on_hold',
+    t => t.assignedAgentId === agentIndex && t.status === 'on_hold',
   );
   if (holdTask && phase !== 'done') {
     return { text: 'Approval Needed', className: 'text-orange-400' };
   }
   const activeTask = tasks.find(
-    t => t.assignedAgentIds?.includes(agentIndex) && t.status === 'in_progress',
+    t => t.assignedAgentId === agentIndex && t.status === 'in_progress',
   );
   if (activeTask) {
     return { text: 'Working', className: 'text-emerald-400' };
@@ -122,12 +122,14 @@ const UIOverlay: React.FC = () => {
           alertIcon = <PartyPopper size={18} />;
           alertColor = '#facc15'; // Yellow
         }
-        // - Any agent waiting for approval: message-square-warning
+        // - Any agent waiting for USER approval (target 0): message-square-warning
         else {
-          const hasTaskOnHold = tasks.some(
-            t => t.assignedAgentIds?.includes(agent.index) && t.status === 'on_hold'
+          const pendingTask = tasks.find(t => 
+            t.status === 'on_hold' && 
+            t.assignedAgentId === agent.index &&
+            t.consultationTargetId === 0
           );
-          if (hasTaskOnHold) {
+          if (pendingTask) {
             alertIcon = <MessageSquareWarning size={18} />;
             alertColor = '#fb923c'; // Orange-400
           }

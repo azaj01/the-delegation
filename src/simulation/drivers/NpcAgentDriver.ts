@@ -57,7 +57,7 @@ export class NpcAgentDriver implements IAgentDriver {
 
     // Capture current active task (if any)
     const activeTask = systemState.tasks.find(
-      t => t.assignedAgentIds.includes(this.agentIndex) && (t.status === 'in_progress' || t.status === 'on_hold')
+      t => t.assignedAgentId === this.agentIndex && (t.status === 'in_progress' || t.status === 'on_hold' || t.status === 'scheduled')
     );
     const isBusyWithSystem = !!activeTask;
 
@@ -67,72 +67,19 @@ export class NpcAgentDriver implements IAgentDriver {
     }
     this.wasBusy = isBusyWithSystem;
 
+    // 1. SYSTEM HIERARCHY: If the agent is busy with a system task, the driver stays PASSIVE.
+    // The SceneManager is responsible for the intentional movement to work/boardrooms.
     if (activeTask) {
-      if (activeTask.status === 'on_hold') {
-        const spawnId = `idle-spawn-${this.agentIndex}`;
-        const targetPoi = this.controller.poiManager.getPoi(spawnId);
-        if (targetPoi) {
-          const currentPos = new THREE.Vector3(
-            positions[this.agentIndex * 4],
-            positions[this.agentIndex * 4 + 1],
-            positions[this.agentIndex * 4 + 2]
-          );
-          const dist = currentPos.distanceTo(targetPoi.position);
-
-          if (dist > 1.5) {
-            if (currentState !== 'walk') {
-              this.controller.moveTo(this.agentIndex, targetPoi.position, 'wave_loop', undefined, currentPos, targetPoi.quaternion);
-            }
-          } else {
-            if (currentState !== 'wave_loop' && currentState !== 'walk') {
-              this.controller.characterManager.setOrientation(this.agentIndex, targetPoi.quaternion);
-              if (currentState !== 'idle') {
-                this.controller.cancelMovement(this.agentIndex);
-              }
-              this.controller.play(this.agentIndex, 'wave_loop');
-            }
-          }
-        }
-      } else if (activeTask.status === 'in_progress') {
-        const pois = this.controller.poiManager.getFreePois('sit_work', this.agentIndex);
-        if (pois.length > 0) {
-          // Use indices for consistent assignment or random like SceneManager
-          const targetPoi = pois[this.agentIndex % pois.length];
-          const currentPos = new THREE.Vector3(
-            positions[this.agentIndex * 4],
-            positions[this.agentIndex * 4 + 1],
-            positions[this.agentIndex * 4 + 2]
-          );
-          const dist = currentPos.distanceTo(targetPoi.position);
-
-          if (dist > 0.5) {
-            if (currentState !== 'walk') {
-              this.controller.moveTo(this.agentIndex, targetPoi.position, 'sit_work', undefined, currentPos, targetPoi.quaternion);
-            }
-          } else {
-            if (currentState !== 'sit_work' && currentState !== 'walk') {
-              this.controller.characterManager.setOrientation(this.agentIndex, targetPoi.quaternion);
-              if (currentState !== 'idle') {
-                this.controller.cancelMovement(this.agentIndex);
-              }
-              this.controller.play(this.agentIndex, 'sit_work');
-            }
-          }
-        } else {
-          // Fallback if no POI is found
-          if (currentState !== 'sit_work' && currentState !== 'walk') {
-            this.controller.play(this.agentIndex, 'sit_work');
-          }
-        }
-
-        if (currentState === 'walk') return;
+      // Suspend ALL autonomous deciding while busy with the store-driven tasks.
+      // We only allow flavor updates if we are not walking (set by SceneManager)
+      if (currentState !== 'walk' && currentState !== 'sit_idle' && currentState !== 'sit_work') {
+          // You could optionally put some idle-standing animations here, but basically
+          // we want to stay where the SceneManager put us.
       }
-
-      // Suspend autonomous random behaviors while busy
       return;
     }
 
-    // Only decide new actions if we are currently resting in a stable state
+    // 2. AUTONOMOUS BEHAVIOR: Only decide new actions if we are currently resting in a stable state
     if (currentState === 'idle' || currentState === 'sit_idle' || currentState === 'look_around') {
       this.behaviorTimer -= delta;
 

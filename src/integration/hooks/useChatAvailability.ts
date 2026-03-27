@@ -25,11 +25,19 @@ export function useChatAvailability(agentIndex: number | null): ChatAvailability
   if (!agent) return { canChat: false, reason: '' }
 
   const activeTask = tasks.find(
-    (t) => t.assignedAgentIds.includes(agentIndex) && t.status === 'in_progress',
+    (t) => t.assignedAgentId === agentIndex && t.status === 'in_progress',
   )
 
-  const isApprovalAgent = tasks.some(
-    (t) => t.status === 'on_hold' && t.assignedAgentIds.includes(agentIndex),
+  const isInternalConsultation = tasks.some(
+    (t) => t.status === 'on_hold' && 
+           (t.assignedAgentId === agentIndex || t.consultationTargetId === agentIndex) &&
+           t.consultationTargetId !== 0 && t.consultationTargetId !== undefined
+  )
+
+  const isUserApprovalNeeded = tasks.some(
+    (t) => t.status === 'on_hold' && 
+           (t.assignedAgentId === agentIndex || t.consultationTargetId === agentIndex) &&
+           t.consultationTargetId === 0
   )
 
   switch (phase) {
@@ -38,13 +46,14 @@ export function useChatAvailability(agentIndex: number | null): ChatAvailability
       if (agentIndex === ORCHESTRATOR_INDEX) return { canChat: true, reason: '' }
       return { canChat: false, reason: 'Waiting for project brief' }
 
-    case 'briefing':
-      if (agentIndex === ORCHESTRATOR_INDEX) return { canChat: true, reason: '' }
-      return { canChat: false, reason: 'Team is being briefed' }
 
     case 'working':
-      // Approval flow always takes priority
-      if (isApprovalAgent) return { canChat: true, reason: '' }
+      // Approval flow for USER always takes priority and makes agent available
+      if (isUserApprovalNeeded) return { canChat: true, reason: '' }
+      
+      // Internal consultation between AGENTS makes them busy
+      if (isInternalConsultation) return { canChat: false, reason: 'Consulting with another agent...' }
+
       // Busy agents cannot be interrupted
       if (activeTask)
         return {

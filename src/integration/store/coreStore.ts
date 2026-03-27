@@ -11,10 +11,11 @@ export interface Task {
   id: string
   title: string
   description: string
-  assignedAgentIds: number[]
+  assignedAgentId: number
   status: TaskStatus
   parentTaskId?: string
   requiresUserApproval: boolean
+  consultationTargetId?: number
   output?: string
   createdAt: number
   updatedAt: number
@@ -91,12 +92,14 @@ interface CoreState {
   // ── Actions — Project —————————————————————————————————────────
   setUserBrief: (brief: string) => void;
   setPhase: (phase: ProjectPhase) => void;
+  startProject: (brief: string) => void;
   setFinalOutput: (output: string) => void;
 
   // ── Actions — Tasks ───────────────────────────────────────────
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Task;
   removeTask: (taskId: string) => void;
   updateTaskStatus: (taskId: string, status: TaskStatus) => void;
+  holdTaskForConsultation: (taskId: string, targetId: number) => void;
   setTaskOutput: (taskId: string, output: string) => void;
 
   // ── Actions — Log ─────────────────────────────────────────────
@@ -176,6 +179,7 @@ export const useCoreStore = create<CoreState>()(
 
       setUserBrief: (brief) => set({ userBrief: brief }),
       setPhase: (phase) => set({ phase }),
+      startProject: (brief) => set({ userBrief: brief, phase: 'working' }),
       setFinalOutput: (output) => set({ finalOutput: output }),
 
       addTask: (task) => {
@@ -228,6 +232,13 @@ export const useCoreStore = create<CoreState>()(
             tasks: newTasks,
           };
         }),
+
+      holdTaskForConsultation: (taskId, targetId) =>
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === taskId ? { ...t, status: 'on_hold', consultationTargetId: targetId, updatedAt: Date.now() } : t
+          ),
+        })),
 
       setTaskOutput: (taskId, output) =>
         set((s) => ({

@@ -50,18 +50,15 @@ function TaskCard({ task }: { task: Task; key?: string }) {
   const { removeTask } = useCoreStore()
   const { setSelectedNpc } = useUiStore()
 
-  // For visual representation, if on_hold, we "virtualize" the client being assigned
-  const effectiveAgentIds = task.status === 'on_hold'
-    ? [...new Set([0, ...task.assignedAgentIds])]
-    : task.assignedAgentIds
+  // For visual representation, we show both the owner and any consultation target
+  const effectiveAgentIds = task.consultationTargetId !== undefined
+    ? [task.assignedAgentId, task.consultationTargetId]
+    : [task.assignedAgentId]
 
   const handleSelectAgent = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Select the first assigned NPC (not client)
-    const agentId = task.assignedAgentIds.find(id => id !== 0);
-    if (agentId !== undefined) {
-      setSelectedNpc(agentId);
-    }
+    // Select the assigned NPC
+    setSelectedNpc(task.assignedAgentId);
   };
 
   return (
@@ -74,7 +71,7 @@ function TaskCard({ task }: { task: Task; key?: string }) {
           {task.title || 'Untitled Task'}
         </h3>
         <div className="flex items-center gap-1">
-          {task.status === 'on_hold' && (
+          {task.status === 'on_hold' && task.consultationTargetId === 0 && (
             <button
               onClick={handleSelectAgent}
               className="p-1 text-white bg-orange-500 hover:bg-orange-600 rounded mr-1"
