@@ -199,33 +199,19 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
             {/* Content Group */}
             <div className="space-y-6">
               {renderField('Description', <Target size={12} />, isView ? (
-                <p className="text-xs text-zinc-600 leading-relaxed font-medium italic bg-zinc-50/50 p-3 rounded-xl border border-zinc-100/50">
-                  {editData.description || "No description provided."}
-                </p>
-              ) : (
-                <input
-                  type="text"
-                  value={editData.description}
-                  onChange={(e) => updateDraft({ description: e.target.value })}
-                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-black/5"
-                  placeholder="Concise summary of capabilities..."
-                />
-              ), 'A short summary of what this agent does best.')}
-
-              {renderField('Instructions', <Shield size={12} />, isView ? (
-                <div className="bg-zinc-50/50 p-4 rounded-xl border border-zinc-100/50 min-h-[100px]">
-                  <p className="text-xs text-zinc-600 leading-relaxed whitespace-pre-wrap font-medium">
-                    {editData.instruction}
+                <div className="bg-zinc-50/50 p-4 rounded-xl border border-zinc-100/50 min-h-[120px]">
+                  <p className="text-xs text-zinc-600 leading-relaxed whitespace-pre-wrap font-medium italic">
+                    {editData.description || "No description provided."}
                   </p>
                 </div>
               ) : (
                 <textarea
-                  value={editData.instruction}
-                  onChange={(e) => updateDraft({ instruction: e.target.value })}
+                  value={editData.description}
+                  onChange={(e) => updateDraft({ description: e.target.value })}
                   className="w-full h-48 px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-black/5 resize-none font-medium text-zinc-600"
-                  placeholder="Core task, persona, and constraints..."
+                  placeholder="What is this agent specialized in? What are its primary goals and constraints?"
                 />
-              ), 'Core guidelines and constraints for the agent.')}
+              ), 'A concise yet comprehensive definition of the agent\'s role, expertise, and operational guidelines.')}
             </div>
 
 

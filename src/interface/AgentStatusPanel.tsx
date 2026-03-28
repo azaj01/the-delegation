@@ -29,25 +29,14 @@ const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
     <div className="flex flex-col h-full p-6">
       {/* Agent Info */}
       <div className="mb-8 space-y-6">
-        {/* Description */}
-        {agent.description && agent.index !== 0 && (
+        {/* Role/Description */}
+        {agent.index !== 0 && (
           <div>
             <div className="flex items-center gap-2 mb-2">
               <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Description</p>
               <div className="h-px flex-1 bg-zinc-100" />
             </div>
-            <p className="text-xs text-zinc-600 leading-relaxed font-medium">{agent.description}</p>
-          </div>
-        )}
-
-        {/* Instruction */}
-        {agent.index !== 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Instruction</p>
-              <div className="h-px flex-1 bg-zinc-100" />
-            </div>
-            <p className="text-xs text-zinc-600 leading-relaxed italic font-medium">{agent.instruction}</p>
+            <p className="text-xs text-zinc-600 leading-relaxed font-medium capitalize-first">{agent.description}</p>
           </div>
         )}
         {/* Model */}

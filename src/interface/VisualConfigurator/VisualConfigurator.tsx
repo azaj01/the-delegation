@@ -224,8 +224,7 @@ const VisualConfiguratorContent: React.FC = () => {
       id: newId,
       index: characters.length,
       name: `Specialist ${characters.length}`,
-      description: 'Expert specialist.',
-      instruction: 'Collaborate with the team to achieve the project goals.',
+      description: 'Collaborate with the team to achieve the project goals.',
       color: '#A855F7',
       model: 'gemini-3-flash-preview',
       position: newPosition

@@ -165,7 +165,7 @@ export class AgentHost implements AgentActionContext {
       ? `Kanban Board:\n${tasks.map(t => `- [${t.status.toUpperCase()}] ${t.title}${t.output ? ` (Result: ${t.output})` : ''}`).join('\n')}`
       : 'Kanban Board: Empty';
 
-    return `Identity: ${this.data.name}. Role: ${this.data.instruction}
+    return `Identity: ${this.data.name}. Role: ${this.data.description}
 Team: [0] User (Client/Art Director)
 ${team}
 

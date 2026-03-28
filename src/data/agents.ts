@@ -9,8 +9,7 @@ export interface AgentNode {
   id: string;
   index: number;
   name: string;
-  description?: string;
-  instruction: string;
+  description: string;
   color: string;
   model: string;
   position?: { x: number; y: number };
@@ -44,8 +43,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       id: 'expert',
       index: 1,
       name: 'Expert',
-      description: 'Generalized high-capability expert.',
-      instruction: 'Provide professional, concise, and technically accurate responses to all user requests.',
+      description: 'Provide professional, concise, and technically accurate responses to all user requests.',
       color: '#C084FC',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 }
@@ -64,8 +62,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       id: 'writer-lead',
       index: 1,
       name: 'Writer',
-      description: 'Drafts the initial core content.',
-      instruction: 'Draft the requested content. Once done, use propose_task to pass it to the Editor for refining. You act as the first step in a linear chain.',
+      description: 'Drafts the requested content. Acts as the first step in a linear chain.',
       color: '#FB923C',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 },
@@ -74,8 +71,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           id: 'editor',
           index: 2,
           name: 'Editor',
-          description: 'Refines and proofreads the content.',
-          instruction: 'Receive the draft from the Writer. Refine the style and fix errors. Once finished, use propose_task to pass it to the Translator.',
+          description: 'Refines and proofreads the content received from the Writer.',
           color: '#FACC15',
           model: 'gemini-3-flash-preview',
           position: { x: 0, y: 260 },
@@ -84,8 +80,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
               id: 'translator',
               index: 3,
               name: 'Translator',
-              description: 'Translates to the target language.',
-              instruction: 'Receive the edited content and translate it professionally. This is the final step in the pipeline.',
+              description: 'Translates edited content professionally. Final step in the pipeline.',
               color: '#4ADE80',
               model: 'gemini-3-flash-preview',
               position: { x: 0, y: 390 }
@@ -108,8 +103,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       id: 'lead-dev',
       index: 1,
       name: 'Lead Developer',
-      description: 'Writes core logic and triggers security reviews.',
-      instruction: 'Implement technical solutions. Once written, use consult_agent to ask the Security Auditor to review for vulnerabilities before delivering the project.',
+      description: 'Writes core logic and triggers security reviews via consult_agent.',
       color: '#2DD4BF',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 },
@@ -118,8 +112,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           id: 'security-auditor',
           index: 2,
           name: 'Security Auditor',
-          description: 'Expert in finding vulnerabilities and code smells.',
-          instruction: 'Audit any code provided. Be critical. Suggest improvements using the Request Revision pattern if consensus isn\'t met.',
+          description: 'Audits code for vulnerabilities. Suggests improvements via Request Revision.',
           color: '#FB7185',
           model: 'gemini-3-flash-preview',
           position: { x: 0, y: 260 }
@@ -140,8 +133,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       id: 'swarm-leader',
       index: 1,
       name: 'Swarm Lead',
-      description: 'Decomposes tasks for a large group of workers.',
-      instruction: 'Decompose the user request into 4 distinct, parallelizable sub-tasks. Delegate them simultaneously to Workers Alpha, Beta, Gamma, and Delta using propose_task.',
+      description: 'Decomposes requests into parallel sub-tasks and delegates to workers.',
       color: '#818CF8',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 },
@@ -150,8 +142,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           id: 'worker-alpha',
           index: 2,
           name: 'Worker Alpha',
-          description: 'Specialist worker.',
-          instruction: 'Execute the technical task assigned by the Swarm Lead.',
+          description: 'Execute technical tasks assigned by the Swarm Lead.',
           color: '#F87171',
           model: 'gemini-3-flash-preview',
           position: { x: -450, y: 280 }
@@ -160,8 +151,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           id: 'worker-beta',
           index: 3,
           name: 'Worker Beta',
-          description: 'Specialist worker.',
-          instruction: 'Execute the creative task assigned by the Swarm Lead.',
+          description: 'Execute creative tasks assigned by the Swarm Lead.',
           color: '#FBBC05',
           model: 'gemini-3-flash-preview',
           position: { x: -150, y: 280 }
@@ -170,8 +160,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           id: 'worker-gamma',
           index: 4,
           name: 'Worker Gamma',
-          description: 'Specialist worker.',
-          instruction: 'Execute the data task assigned by the Swarm Lead.',
+          description: 'Execute data tasks assigned by the Swarm Lead.',
           color: '#34A853',
           model: 'gemini-3-flash-preview',
           position: { x: 150, y: 280 }
@@ -180,8 +169,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           id: 'worker-delta',
           index: 5,
           name: 'Worker Delta',
-          description: 'Specialist worker.',
-          instruction: 'Execute the research task assigned by the Swarm Lead.',
+          description: 'Execute research tasks assigned by the Swarm Lead.',
           color: '#A78BFA',
           model: 'gemini-3-flash-preview',
           position: { x: 450, y: 280 }
@@ -202,8 +190,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       id: 'studio-head',
       index: 1,
       name: 'Studio Head',
-      description: 'Manages departmental leads.',
-      instruction: 'Do not talk to execution workers directly. Delegate high-level goals to the Creative Lead and Technical Lead using propose_task.',
+      description: 'Manages departmental leads and delegates high-level goals.',
       color: '#34D399',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 },
@@ -212,8 +199,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           id: 'creative-lead',
           index: 2,
           name: 'Creative Lead',
-          description: 'Manages creative execution.',
-          instruction: 'Receive goals from the Studio Head and delegate specific art tasks to the Artist.',
+          description: 'Manages creative execution and delegates art tasks.',
           color: '#F472B6',
           model: 'gemini-3-flash-preview',
           position: { x: -200, y: 280 },
@@ -223,7 +209,6 @@ export const AGENTIC_SETS: AgenticSystem[] = [
               index: 4,
               name: 'Artist',
               description: 'Execution art specialist.',
-              instruction: 'Execute art projects as directed by the Creative Lead.',
               color: '#FB7185',
               model: 'gemini-3-flash-preview',
               position: { x: -200, y: 430 }
@@ -234,8 +219,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           id: 'tech-lead',
           index: 3,
           name: 'Tech Lead',
-          description: 'Manages technical execution.',
-          instruction: 'Receive goals from the Studio Head and delegate specific code tasks to the Developer.',
+          description: 'Manages technical execution and delegates code tasks.',
           color: '#C084FC',
           model: 'gemini-3-flash-preview',
           position: { x: 200, y: 280 },
@@ -245,7 +229,6 @@ export const AGENTIC_SETS: AgenticSystem[] = [
               index: 5,
               name: 'Developer',
               description: 'Execution code specialist.',
-              instruction: 'Execute code projects as directed by the Tech Lead.',
               color: '#A78BFA',
               model: 'gemini-3-flash-preview',
               position: { x: 200, y: 430 }
@@ -268,8 +251,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       id: 'ceo',
       index: 1,
       name: 'CEO',
-      description: 'Strategic lead of the company.',
-      instruction: 'Analyze user requests and set strategic vision. Delegate the plan to the VP of Operations.',
+      description: 'Strategic lead; sets vision and delegates to VP of Operations.',
       color: '#94A3B8',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 },
@@ -278,8 +260,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           id: 'vp-ops',
           index: 2,
           name: 'VP of Ops',
-          description: 'Operational manager.',
-          instruction: 'Translate the CEO\'s strategy into a specific project plan. Delegate the management to the Supervisor.',
+          description: 'Operational manager; translates strategy into project plans.',
           color: '#CBD5E1',
           model: 'gemini-3-flash-preview',
           position: { x: 0, y: 260 },
@@ -288,8 +269,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
               id: 'supervisor',
               index: 3,
               name: 'Supervisor',
-              description: 'Direct task manager.',
-              instruction: 'Ensure the project is being executed correctly. Assign technical tasks to the Intern and audit their progress.',
+              description: 'Direct task manager; assigns tasks and audits progress.',
               color: '#CBD5E1',
               model: 'gemini-3-flash-preview',
               position: { x: 0, y: 390 },
@@ -299,7 +279,6 @@ export const AGENTIC_SETS: AgenticSystem[] = [
                   index: 4,
                   name: 'Intern',
                   description: 'Technical execution worker.',
-                  instruction: 'Perform the technical work assigned by the Supervisor. Report back upon completion.',
                   color: '#CBD5E1',
                   model: 'gemini-3-flash-preview',
                   position: { x: 0, y: 520 }
@@ -340,7 +319,7 @@ export function getAllCharacters(system: AgenticSystem): AgentNode[] {
     name: USER_NAME,
     color: USER_COLOR,
     model: system.user.model,
-    instruction: '',
+    description: 'Human user issuing commands.',
   };
   return [userNode, ...getAllAgents(system)];
 }
