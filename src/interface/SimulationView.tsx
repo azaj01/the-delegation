@@ -1,11 +1,13 @@
-import { Maximize2, Minimize2, Users } from 'lucide-react';
-import React from 'react';
+import { Maximize2, Minimize2, Eye } from 'lucide-react';
+import React, { useState } from 'react';
 import { getAgentSet, getAllAgents } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
 import InspectorPanel from './InspectorPanel';
 import UIOverlay from './UIOverlay';
+import TeamFlowModal from './TeamFlowModal';
+import { TeamBadge } from './components/TeamBadge';
 
 interface SimulationViewProps {
   canvasRef: React.RefObject<HTMLDivElement>;
@@ -17,33 +19,25 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
   const selectedNpcIndex = useUiStore((s) => s.selectedNpcIndex);
   const selectedAgentSetId = useTeamStore((s) => s.selectedAgentSetId);
 
+  const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
+
   const activeSet = getAgentSet(selectedAgentSetId);
-  const agentCount = getAllAgents(activeSet).length;
 
   return (
     <div className="flex flex-col flex-1 min-w-0 min-h-0 relative">
       {/* Simulation View Header */}
       <div className="h-14 border-b border-black/5 flex items-center justify-between px-5 bg-white shrink-0">
         <div className="flex-1 flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div 
-              className="h-9 px-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-black/5"
-              style={{ backgroundColor: activeSet.color }}
-            >
-              <Users size={14} className="text-white opacity-90" strokeWidth={3} />
-              <span className="text-xs font-black text-white leading-none">
-                {agentCount}
-              </span>
+          <button 
+            onClick={() => setIsFlowModalOpen(true)}
+            className="flex items-center gap-4 hover:bg-zinc-50 px-2.5 py-1.5 rounded-2xl transition-all active:scale-95 group cursor-pointer"
+            title="View Team Flow"
+          >
+            <TeamBadge system={activeSet} />
+            <div className="w-8 h-8 rounded-full border border-zinc-100 flex items-center justify-center text-zinc-300 group-hover:text-zinc-900 group-hover:border-zinc-200 transition-colors">
+              <Eye size={14} />
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-black text-zinc-900 leading-tight">
-                {activeSet.teamName}
-              </span>
-              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-tight">
-                {activeSet.teamType}
-              </span>
-            </div>
-          </div>
+          </button>
         </div>
 
         <div className="flex-1 flex items-center justify-end gap-1">
@@ -65,6 +59,14 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
           </div>
         )}
       </div>
+
+      {isFlowModalOpen && (
+        <TeamFlowModal 
+          isOpen={isFlowModalOpen} 
+          onClose={() => setIsFlowModalOpen(false)} 
+          system={activeSet}
+        />
+      )}
     </div>
   );
 };

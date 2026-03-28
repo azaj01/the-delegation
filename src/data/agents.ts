@@ -315,6 +315,136 @@ export const AGENTIC_SETS: AgenticSystem[] = [
         }
       ]
     }
+  },
+  // 9. Deep Tech Hierarchy (Scalability Test)
+  {
+    id: 'deep-tech-hierarchy',
+    teamName: 'Tech Conglomerate',
+    teamType: 'Corporate',
+    teamDescription: 'A 5-level deep technical organization.',
+    color: '#334155',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'ceo-global',
+      index: 1,
+      name: 'Global CEO',
+      description: 'Strategic lead of the conglomerate.',
+      instruction: 'Delegate high-level goals to the CTO.',
+      color: '#334155',
+      model: 'gemini-3-flash-preview',
+      position: { x: 0, y: 150 },
+      subagents: [
+        {
+          id: 'cto',
+          index: 2,
+          name: 'CTO',
+          description: 'Chief Technology Officer.',
+          instruction: 'Oversee technical strategy and manage Directors.',
+          color: '#475569',
+          model: 'gemini-3-flash-preview',
+          position: { x: 0, y: 400 },
+          subagents: [
+            {
+              id: 'eng-director',
+              index: 3,
+              name: 'Eng Director',
+              description: 'Director of Engineering.',
+              instruction: 'Manage leads and ensure delivery.',
+              color: '#64748b',
+              model: 'gemini-3-flash-preview',
+              position: { x: 0, y: 650 },
+              subagents: [
+                {
+                  id: 'tech-lead',
+                  index: 4,
+                  name: 'Tech Lead',
+                  description: 'Team lead and architect.',
+                  instruction: 'Technical guidance and delegation to developers.',
+                  color: '#94a3b8',
+                  model: 'gemini-3-flash-preview',
+                  position: { x: 0, y: 900 },
+                  subagents: [
+                    {
+                      id: 'senior-dev',
+                      index: 5,
+                      name: 'Senior Developer',
+                      description: 'Core implementation specialist.',
+                      instruction: 'Implement complex features.',
+                      color: '#cbd5e1',
+                      model: 'gemini-3-flash-preview',
+                      position: { x: 0, y: 1150 }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  // 10. Matrix Agency (Branching Test)
+  {
+    id: 'matrix-agency',
+    teamName: 'Nexus Studio',
+    teamType: 'Matrix',
+    teamDescription: 'A balanced agency with distinct specialized departments.',
+    color: '#4f46e5',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'studio-head',
+      index: 1,
+      name: 'Studio Head',
+      description: 'Leads both product and creative wings.',
+      instruction: 'Balance resources between Product and Creative leads.',
+      color: '#4f46e5',
+      model: 'gemini-3-flash-preview',
+      position: { x: 0, y: 150 },
+      subagents: [
+        {
+          id: 'product-lead',
+          index: 2,
+          name: 'Product Lead',
+          description: 'Focuses on functionality and logic.',
+          instruction: 'Manage the development team.',
+          color: '#0ea5e9',
+          model: 'gemini-3-flash-preview',
+          position: { x: -200, y: 400 },
+          subagents: [
+            {
+              id: 'dev-alpha',
+              index: 4,
+              name: 'Developer Alpha',
+              instruction: 'Fullstack specialist.',
+              color: '#38bdf8',
+              model: 'gemini-3-flash-preview',
+              position: { x: -200, y: 650 }
+            }
+          ]
+        },
+        {
+          id: 'creative-lead',
+          index: 3,
+          name: 'Creative Lead',
+          description: 'Focuses on aesthetics and copy.',
+          instruction: 'Manage the creative team.',
+          color: '#ec4899',
+          model: 'gemini-3-flash-preview',
+          position: { x: 200, y: 400 },
+          subagents: [
+            {
+              id: 'artist-alpha',
+              index: 5,
+              name: 'Artist Alpha',
+              instruction: 'Visual designer.',
+              color: '#f472b6',
+              model: 'gemini-3-flash-preview',
+              position: { x: 200, y: 650 }
+            }
+          ]
+        }
+      ]
+    }
   }
 ];
 
