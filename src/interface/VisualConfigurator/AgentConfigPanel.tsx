@@ -224,12 +224,18 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
               <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-4 space-y-3">
                 <div className="flex items-center gap-2 opacity-60">
                   <Check size={12} className="text-zinc-400" />
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Complete Task</span>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Consult Everyone</span>
                 </div>
                 {(editData.subagents?.length || 0) > 0 && (
                   <div className="flex items-center gap-2">
                     <Check size={12} className="text-zinc-900" />
                     <span className="text-[10px] font-bold text-zinc-900 uppercase">Propose Task (Manager)</span>
+                  </div>
+                )}
+                {isLead && (
+                  <div className="flex items-center gap-2">
+                    <Check size={12} className="text-zinc-900" />
+                    <span className="text-[10px] font-bold text-zinc-900 uppercase">Deliver Project (Lead)</span>
                   </div>
                 )}
               </div>

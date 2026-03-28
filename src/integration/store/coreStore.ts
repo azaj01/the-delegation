@@ -85,7 +85,6 @@ interface CoreState {
   viewMode: 'simulation' | 'design';
   isLogOpen: boolean
   isFinalOutputOpen: boolean;
-  pendingApprovalTaskId: string | null;
   logFilterAgentIndex: number | null;
   isResizing: boolean;
 
@@ -117,7 +116,6 @@ interface CoreState {
   setKanbanOpen: (open: boolean) => void;
   setLogOpen: (open: boolean, filterAgent?: number | null) => void;
   setFinalOutputOpen: (open: boolean) => void;
-  setPendingApproval: (taskId: string | null) => void;
   setIsResizing: (isResizing: boolean) => void;
   resetProject: () => void;
   setViewMode: (mode: 'simulation' | 'design') => void;
@@ -152,7 +150,6 @@ export const useCoreStore = create<CoreState>()(
       isKanbanOpen: true,
       isLogOpen: true,
       isFinalOutputOpen: false,
-      pendingApprovalTaskId: null,
       logFilterAgentIndex: null,
       isResizing: false,
       viewMode: 'simulation',
@@ -169,7 +166,6 @@ export const useCoreStore = create<CoreState>()(
         agentHistories: {},
         agentSummaries: {},
         boardroomHistories: {},
-        pendingApprovalTaskId: null,
         isFinalOutputOpen: false,
         totalTokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
         agentTokenUsage: {},
@@ -209,8 +205,6 @@ export const useCoreStore = create<CoreState>()(
           return {
             tasks: newTasks,
             phase: nextPhase,
-            // If the pending approval task is removed, clear that as well
-            pendingApprovalTaskId: s.pendingApprovalTaskId === taskId ? null : s.pendingApprovalTaskId,
           };
         }),
 
@@ -360,7 +354,6 @@ export const useCoreStore = create<CoreState>()(
       setLogOpen: (open, filterAgent = null) =>
         set({ isLogOpen: open, logFilterAgentIndex: filterAgent ?? null }),
       setFinalOutputOpen: (open) => set({ isFinalOutputOpen: open }),
-      setPendingApproval: (taskId) => set({ pendingApprovalTaskId: taskId }),
       setIsResizing: (resizing) => set({ isResizing: resizing }),
 
       setAgentHistory: (agentIndex, history) => set((s) => ({

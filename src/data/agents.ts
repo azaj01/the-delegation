@@ -103,7 +103,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       id: 'lead-dev',
       index: 1,
       name: 'Lead Developer',
-      description: 'Writes core logic and triggers security reviews via consult_agent.',
+      description: 'Writes core logic and triggers security reviews via request_consultation.',
       color: '#2DD4BF',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 },

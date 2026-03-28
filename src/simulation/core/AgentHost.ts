@@ -56,7 +56,7 @@ export class AgentHost implements AgentActionContext {
 
       const messages: LLMMessage[] = [...this.history];
       const systemPrompt = this.buildSystemPrompt(core.phase, core.userBrief);
-      const toolDefs = options.tools || ToolRegistry.getDefinitions(this.data.index, core.phase);
+      const toolDefs = options.tools || ToolRegistry.getDefinitions(this.data.index, core.phase, this.data.subagents?.length || 0);
 
       // 1. Log Request
       core.addRequestLog({
@@ -178,8 +178,8 @@ Operational Guidelines:
 - Use set_user_brief to define the project scope and start working. Only use this when you have gathered enough requirements from the user.
 - Use propose_task to delegate work if you are the Lead Agent (only in WORKING phase).
 - Use complete_task when your assigned task is finished (only in WORKING phase).
-- Use consult_agent or request_approval to resolve specific technical questions about a task. These tools REQUIRE a taskId and should only be used during the WORKING phase.
-- In the IDLE phase, simply chat with the user (index 0) to refine the brief. Do NOT use consult_agent in the IDLE phase.
+- Use request_consultation to resolve specific technical questions about a task. These tools REQUIRE a taskId and should only be used during the WORKING phase.
+- In the IDLE phase, simply chat with the user (index 0) to refine the brief. Do NOT use request_consultation in the IDLE phase.
 - When on hold, wait in the boardroom for your target to respond.
 
 Current Objective: ${objectives[phase as keyof typeof objectives] || ''}`;
