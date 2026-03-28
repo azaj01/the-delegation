@@ -1,6 +1,6 @@
 import { Cpu, Save, Shield, Target, Trash2, User, X, Check, Pipette } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
-import { AgentNode, AgenticSystem, USER_ID, USER_NAME, DEFAULT_MAX_ITERATIONS, getAllCharacters } from '../../data/agents';
+import { AgentNode, AgenticSystem, USER_ID, USER_NAME, getAllCharacters } from '../../data/agents';
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../../theme/brand';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useTeamStore } from '../../integration/store/teamStore';
@@ -46,26 +46,6 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
 
   const allCharacters = useMemo(() => getAllCharacters(activeSystem), [activeSystem]);
 
-  const availableNext = useMemo(() => {
-    if (isLead) return [{ id: USER_ID, name: USER_NAME }];
-    return allCharacters.filter(c => c.id !== agent.id);
-  }, [allCharacters, agent.id, isLead]);
-
-  const availableRetry = useMemo(() => {
-    const list = [...allCharacters.filter(c => c.id !== agent.id || c.id === agent.id)];
-    // Always allow retrying to the User (HITL)
-    if (!list.some(c => c.id === USER_ID)) {
-      list.unshift({
-        id: USER_ID,
-        name: USER_NAME,
-        index: 0,
-        instruction: '',
-        color: USER_COLOR,
-        model: 'Human'
-      } as AgentNode);
-    }
-    return list;
-  }, [allCharacters, agent.id]);
 
   const nameCollision = useMemo(() => {
     return allCharacters.some(c =>
@@ -90,14 +70,6 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
       // If this is the node being edited
       let updatedNode = node.id === agent.id ? { ...editData } : { ...node };
 
-      // Update references if ID changed
-      if (oldId !== newId) {
-        updatedNode = {
-          ...updatedNode,
-          nextId: updatedNode.nextId === oldId ? newId : updatedNode.nextId,
-          retryId: updatedNode.retryId === oldId ? newId : updatedNode.retryId,
-        };
-      }
 
       // Recurse subagents
       if (updatedNode.subagents) {
@@ -256,54 +228,6 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
               ), 'Core guidelines and constraints for the agent.')}
             </div>
 
-            {/* Hierarchy Group */}
-            <div className="space-y-4 pt-4 border-t border-zinc-100">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300 mb-4">Flow & Hierarchy</h4>
-
-              <div className="grid grid-cols-1 gap-4">
-                {renderField('Next Step (Success)', null, isLead || isView ? (
-                  <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100 truncate">{allCharacters.find(c => c.id === editData.nextId)?.name || 'None'}</div>
-                ) : (
-                  <select
-                    value={editData.nextId || ''}
-                    onChange={(e) => updateDraft({ nextId: e.target.value })}
-                    className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
-                  >
-                    <option value="">None</option>
-                    {availableNext.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {renderField('Retry on fail', null, isLead || isView ? (
-                  <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100 truncate">{isLead ? (editData.retryId === editData.id ? 'Self' : 'N/A') : allCharacters.find(c => c.id === editData.retryId)?.name || 'None'}</div>
-                ) : (
-                  <select
-                    value={editData.retryId || ''}
-                    onChange={(e) => updateDraft({ retryId: e.target.value || undefined })}
-                    className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
-                  >
-                    <option value="">None</option>
-                    {availableRetry.map(c => <option key={c.id} value={c.id}>{c.id === agent.id ? 'Self' : c.name}</option>)}
-                  </select>
-                ))}
-
-                {!!editData.retryId && renderField('Max Retries', null, isView ? (
-                  <div className="text-[11px] font-bold text-zinc-900 bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-100 truncate">{editData.maxIterations || DEFAULT_MAX_ITERATIONS}</div>
-                ) : (
-                  <select
-                    value={editData.maxIterations || DEFAULT_MAX_ITERATIONS}
-                    onChange={(e) => updateDraft({ maxIterations: parseInt(e.target.value) })}
-                    className="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                      <option key={n} value={n}>{n}</option>
-                    ))}
-                  </select>
-                ))}
-              </div>
-            </div>
 
             {/* Capabilities Info */}
             <div className="space-y-4 pt-4 border-t border-zinc-100">
@@ -320,18 +244,6 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                   <div className="flex items-center gap-2">
                     <Check size={12} className="text-zinc-900" />
                     <span className="text-[10px] font-bold text-zinc-900 uppercase">Propose Task (Manager)</span>
-                  </div>
-                )}
-                {editData.retryId === USER_ID && (
-                  <div className="flex items-center gap-2">
-                    <Check size={12} className="text-zinc-900" />
-                    <span className="text-[10px] font-bold text-zinc-900 uppercase">Human Approval (HITL)</span>
-                  </div>
-                )}
-                {editData.retryId && editData.retryId !== USER_ID && (
-                  <div className="flex items-center gap-2">
-                    <Check size={12} className="text-zinc-900" />
-                    <span className="text-[10px] font-bold text-zinc-900 uppercase">Request Revision (Critic)</span>
                   </div>
                 )}
               </div>

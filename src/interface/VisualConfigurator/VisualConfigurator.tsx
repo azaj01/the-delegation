@@ -2,7 +2,7 @@ import { applyEdgeChanges, applyNodeChanges, Background, Edge, EdgeChange, NodeC
 import '@xyflow/react/dist/style.css';
 import { Plus, Settings, User, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
-import { AgentNode, getAllCharacters, getAgentSet } from '../../data/agents';
+import { AgentNode, getAllCharacters, getAgentSet, MAX_AGENTS } from '../../data/agents';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { AgentConfigPanel } from './AgentConfigPanel';
@@ -77,7 +77,7 @@ const VisualConfiguratorContent: React.FC = () => {
 
   const system = useMemo(() => getAgentSet(selectedTeamId, customSystems), [selectedTeamId, customSystems]);
 
-  const agents = useMemo(() => getAllCharacters(system), [system]);
+  const characters = useMemo(() => getAllCharacters(system), [system]);
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => systemToFlow(system), [system]);
 
@@ -90,8 +90,8 @@ const VisualConfiguratorContent: React.FC = () => {
   }, [initialNodes, initialEdges]);
 
   const activeAgent = useMemo(() =>
-    selectedAgentId ? agents.find(a => a.id === selectedAgentId) : null
-    , [selectedAgentId, agents]);
+    selectedAgentId ? characters.find(a => a.id === selectedAgentId) : null
+    , [selectedAgentId, characters]);
 
   // Fit view on appearance or team change
   useEffect(() => {
@@ -167,47 +167,80 @@ const VisualConfiguratorContent: React.FC = () => {
   }, [setViewMode, setNodes, selectedAgentId]);
 
   const onNodeClick = useCallback((_: any, node: any) => {
-    if (node.id === 'user') {
-      handleClose(false);
-    } else {
-      if (selectedAgentId !== node.id) {
-        initialSystemRef.current = { ...system }; // Snapshot before editing
-      }
-      setSelectedAgentId(node.id);
+    if (selectedAgentId !== node.id && node.id !== 'user') {
+      initialSystemRef.current = { ...system }; // Snapshot before editing
     }
-  }, [system, selectedAgentId, handleClose]);
+    setSelectedAgentId(node.id);
+  }, [system, selectedAgentId]);
 
   const onPaneClick = useCallback(() => {
-    handleClose(false);
-  }, [handleClose]);
+    setSelectedAgentId(null);
+  }, []);
 
   const handleAddAgent = useCallback(() => {
-    if (agents.length >= 6) return; // Total limit check
+    if (characters.length >= MAX_AGENTS + 1) return; // Total limit check (agents + user)
 
     const newId = `agent-${Date.now()}`;
     const targetParentId = selectedAgentId && selectedAgentId !== 'user' ? selectedAgentId : system.leadAgent.id;
+    const parentAgent = characters.find(a => a.id === targetParentId);
+    
+    // Calculate new position
+    let newPosition = { x: 0, y: 0 };
+    if (parentAgent) {
+      const parentPos = parentAgent.position || { x: 0, y: 0 };
+      const siblings = parentAgent.subagents || [];
+      const siblingCount = siblings.length;
+      
+      // Vertical gap (below parent)
+      const verticalGap = 160;
+      
+      // Horizontal distribution
+      // Alternating offsets to spread them: 0, -280, 280, -560, 560
+      const offsets = [0, -280, 280, -560, 560];
+      const xOffset = offsets[siblingCount % offsets.length];
+      
+      newPosition = {
+        x: parentPos.x + xOffset,
+        y: parentPos.y + verticalGap
+      };
+
+      // Safety check: ensure we don't overlap with ANY existing agent's position
+      const isOverlapping = (pos: {x: number, y: number}) => 
+        characters.some(a => {
+          if (!a.position) return false;
+          const dx = Math.abs(a.position.x - pos.x);
+          const dy = Math.abs(a.position.y - pos.y);
+          return dx < 200 && dy < 100; // Node collision box
+        });
+
+      let attempts = 0;
+      while (isOverlapping(newPosition) && attempts < 8) {
+        newPosition.y += 130; // Move to a "new row" below if horizontal space is filled
+        attempts++;
+      }
+    }
 
     const newAgent: AgentNode = {
       id: newId,
-      index: agents.length,
-      name: `Specialist ${agents.length}`,
-      description: 'New specialist.',
-      instruction: 'Pending instructions...',
+      index: characters.length,
+      name: `Specialist ${characters.length}`,
+      description: 'Expert specialist.',
+      instruction: 'Collaborate with the team to achieve the project goals.',
       color: '#A855F7',
       model: 'gemini-3-flash-preview',
-      position: { x: 0, y: 150 + (agents.length * 100) } // Simple offset
+      position: newPosition
     };
 
     const updatedSystem = { ...system };
 
     // Always add to the subagents of the target parent
     updatedSystem.leadAgent = updateAgentInTree(updatedSystem.leadAgent, targetParentId, {
-      subagents: [...(agents.find(a => a.id === targetParentId)?.subagents || []), newAgent]
+      subagents: [...(parentAgent?.subagents || []), newAgent]
     });
 
     useTeamStore.getState().saveCustomSystem(updatedSystem);
     setSelectedAgentId(newId);
-  }, [system, agents, selectedAgentId, updateAgentInTree]);
+  }, [system, characters, selectedAgentId, updateAgentInTree]);
 
   const handleRemoveAgent = useCallback((agentId: string) => {
     const updatedSystem = { ...system };
@@ -263,16 +296,22 @@ const VisualConfiguratorContent: React.FC = () => {
             minZoom={0.5}
           >
             <Background gap={24} color="#bbbbbb" size={2} />
-            {configMode === 'edit' && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10">
+            {configMode === 'edit' && selectedAgentId && selectedAgentId !== 'user' && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-10 animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <button
                   onClick={handleAddAgent}
-                  disabled={agents.length >= 6}
-                  className={`flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#7EACEA] hover:border-[#7EACEA50] rounded-full text-[11px] font-black uppercase tracking-widest text-[#7EACEA] shadow-xl transition-all hover:scale-105 active:scale-95 ${agents.length >= 6 ? 'opacity-40 cursor-not-allowed grayscale' : ''}`}
+                  disabled={characters.length >= MAX_AGENTS + 1}
+                  className={`flex items-center gap-2 px-8 py-3 bg-zinc-900 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.1em] shadow-lg shadow-black/5 transition-all ${characters.length >= MAX_AGENTS + 1 
+                    ? 'opacity-40 cursor-not-allowed grayscale' 
+                    : 'hover:bg-black hover:scale-105 active:scale-95'
+                  }`}
                 >
-                  <Plus size={16} strokeWidth={4} />
-                  Add Subagent {agents.length >= 6 ? '(Full)' : `to ${agents.find(a => a.id === (selectedAgentId && selectedAgentId !== 'user' ? selectedAgentId : system.leadAgent.id))?.name || 'Lead'}`}
+                  <Plus size={16} strokeWidth={3} />
+                  Add Subagent to {characters.find(a => a.id === (selectedAgentId && selectedAgentId !== 'user' ? selectedAgentId : system.leadAgent.id))?.name || 'Lead'}
                 </button>
+                <p className="text-[10px] text-zinc-400 font-bold tracking-widest">
+                  Maximum {MAX_AGENTS} agents allowed
+                </p>
               </div>
             )}
           </ReactFlow>

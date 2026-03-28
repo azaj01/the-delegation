@@ -1,25 +1,25 @@
 import { Edge, Node } from '@xyflow/react';
-import { AgenticSystem, AgentNode, DEFAULT_MAX_ITERATIONS, USER_COLOR, USER_ID, USER_NAME } from '../../data/agents';
+import { AgenticSystem, AgentNode, USER_COLOR, USER_ID, USER_NAME } from '../../data/agents';
 
 export interface HandleData {
   id: string;
-  type: 'hierarchy' | 'success' | 'retry';
+  type: 'hierarchy';
   color: string;
   role: 'source' | 'target';
 }
 
-export interface VisualAgentNode extends Node {
-  type: 'agent' | 'user';
-  data: {
-    label: string;
-    agent?: AgentNode;
-    isLead?: boolean;
-    color?: string;
-    isDimmed?: boolean;
-    topHandles: HandleData[];
-    bottomHandles: HandleData[];
-  };
+export interface VisualAgentNodeData {
+  label: string;
+  agent?: AgentNode;
+  isLead?: boolean;
+  color?: string;
+  isDimmed?: boolean;
+  topHandles: HandleData[];
+  bottomHandles: HandleData[];
+  [key: string]: any;
 }
+
+export type VisualAgentNode = Node<VisualAgentNodeData, 'agent' | 'user'>;
 
 export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[]; edges: Edge[] } {
   const allNodes: VisualAgentNode[] = [];
@@ -76,59 +76,6 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[];
       });
     }
 
-    // 2. Flow Edges (Success)
-    if (agent.nextId) {
-      const edgeId = `f-success-${agent.id}-${agent.nextId}`;
-      const color = '#22c55e';
-      
-      const toParent = agent.nextId === parentId || isParentOf(agent.nextId, agent.id);
-      const toChild = isParentOf(agent.id, agent.nextId);
-      
-      const srcSide = toParent ? 'top' : 'bottom';
-      const tgtSide = toParent ? 'bottom' : (toChild ? 'top' : 'top');
-
-      addHandle(agent.id, srcSide, { id: `${edgeId}-src`, type: 'success', color, role: 'source' });
-      addHandle(agent.nextId, tgtSide, { id: `${edgeId}-tgt`, type: 'success', color, role: 'target' });
-
-      allEdges.push({
-        id: edgeId,
-        source: agent.id,
-        sourceHandle: `${edgeId}-src`,
-        target: agent.nextId,
-        targetHandle: `${edgeId}-tgt`,
-        label: 'OK',
-        type: 'default',
-        animated: true,
-        style: { stroke: color, strokeWidth: 1 }
-      });
-    }
-
-    // 3. Flow Edges (Retry)
-    if (agent.retryId) {
-      const edgeId = `f-retry-${agent.id}-${agent.retryId}`;
-      const color = '#ef4444';
-      
-      const toParent = agent.retryId === parentId || isParentOf(agent.retryId, agent.id) || agent.retryId === USER_ID;
-      const toChild = isParentOf(agent.id, agent.retryId);
-      
-      const srcSide = toParent ? 'top' : (toChild ? 'bottom' : 'top');
-      const tgtSide = toParent ? 'bottom' : (toChild ? 'top' : 'top');
-
-      addHandle(agent.id, srcSide, { id: `${edgeId}-src`, type: 'retry', color, role: 'source' });
-      addHandle(agent.retryId, tgtSide, { id: `${edgeId}-tgt`, type: 'retry', color, role: 'target' });
-
-      allEdges.push({
-        id: edgeId,
-        source: agent.id,
-        sourceHandle: `${edgeId}-src`,
-        target: agent.retryId,
-        targetHandle: `${edgeId}-tgt`,
-        label: `KO:${agent.maxIterations || DEFAULT_MAX_ITERATIONS}`,
-        type: 'default',
-        animated: true,
-        style: { stroke: color, strokeWidth: 1, strokeDasharray: '5,5' }
-      });
-    }
   };
 
   // Add User node
@@ -180,18 +127,13 @@ export function systemToFlow(system: AgenticSystem): { nodes: VisualAgentNode[];
     });
   });
 
-  // Finalize handles for each node
-  const typeOrder = { retry: 0, hierarchy: 1, success: 2 };
-  const sortH = (h: HandleData[]) => [...h].sort((a, b) => {
-    if (a.type !== b.type) return typeOrder[a.type] - typeOrder[b.type];
-    return a.id.localeCompare(b.id);
-  });
-
   allNodes.forEach(node => {
     const nodeHandles = handles.get(node.id);
     if (nodeHandles) {
-      node.data.topHandles = sortH(nodeHandles.top);
-      node.data.bottomHandles = sortH(nodeHandles.bottom);
+      // We maintain the order of insertion (which follows the subagents array order)
+      // to ensure connectors don't cross if x-positions are aligned.
+      node.data.topHandles = nodeHandles.top;
+      node.data.bottomHandles = nodeHandles.bottom;
     }
   });
 

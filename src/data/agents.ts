@@ -2,10 +2,9 @@ import { USER_COLOR } from '../theme/brand';
 
 export const USER_ID = 'user';
 export const USER_NAME = 'User';
+export const MAX_AGENTS = 5;
 export { USER_COLOR };
 export const DEFAULT_AGENTIC_SET_ID = 'single-agent';
-export const DEFAULT_MAX_ITERATIONS = 5;
-
 export interface AgentNode {
   id: string;
   index: number;
@@ -14,9 +13,6 @@ export interface AgentNode {
   instruction: string;
   color: string;
   model: string;
-  nextId?: string;
-  retryId?: string;
-  maxIterations?: number;
   position?: { x: number; y: number };
   subagents?: AgentNode[];
 }
@@ -41,405 +37,274 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     id: 'single-agent',
     teamName: 'Solo Expert',
     teamType: 'Consultancy',
-    teamDescription: 'A single specialized agent for quick tasks.',
-    color: '#7EACEA',
+    teamDescription: 'A single high-capability agent for direct tasks.',
+    color: '#C084FC',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'expert',
       index: 1,
       name: 'Expert',
-      description: 'Generalized expert agent.',
-      instruction: 'Provide direct and concise answers.',
-      color: '#7EACEA',
+      description: 'Generalized high-capability expert.',
+      instruction: 'Provide professional, concise, and technically accurate responses to all user requests.',
+      color: '#C084FC',
       model: 'gemini-3-flash-preview',
-      position: { x: 0, y: 150 }
+      position: { x: 0, y: 130 }
     }
   },
 
-  // 2. Sequential Pipeline (The Content Factory)
+  // 2. The Content Factory (Sequential Pipeline)
   {
-    id: 'sequential-pipeline',
+    id: 'content-pipeline',
     teamName: 'Content Factory',
-    teamType: 'Production Line',
-    teamDescription: 'A multi-step process: Research -> Write -> Translate.',
-    color: '#f97316',
+    teamType: 'Pipeline',
+    teamDescription: 'A linear chain of production for content creation.',
+    color: '#FB923C',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
-      id: 'researcher',
+      id: 'writer-lead',
       index: 1,
-      name: 'Researcher',
-      description: 'Gathers information.',
-      instruction: 'Find key facts about the topic.',
-      color: '#f97316',
+      name: 'Writer',
+      description: 'Drafts the initial core content.',
+      instruction: 'Draft the requested content. Once done, use propose_task to pass it to the Editor for refining. You act as the first step in a linear chain.',
+      color: '#FB923C',
       model: 'gemini-3-flash-preview',
-      nextId: 'writer',
-      position: { x: 0, y: 150 },
+      position: { x: 0, y: 130 },
       subagents: [
         {
-          id: 'writer',
+          id: 'editor',
           index: 2,
-          name: 'Writer',
-          description: 'Drafts the content.',
-          instruction: 'Convert facts into a narrative.',
-          color: '#eab308',
+          name: 'Editor',
+          description: 'Refines and proofreads the content.',
+          instruction: 'Receive the draft from the Writer. Refine the style and fix errors. Once finished, use propose_task to pass it to the Translator.',
+          color: '#FACC15',
           model: 'gemini-3-flash-preview',
-          nextId: 'translator',
-          position: { x: 0, y: 400 }
-        },
-        {
-          id: 'translator',
-          index: 3,
-          name: 'Translator',
-          description: 'Translates to Spanish.',
-          instruction: 'Translate the draft into professional Spanish.',
-          color: '#22c55e',
-          model: 'gemini-3-flash-preview',
-          position: { x: 0, y: 650 }
+          position: { x: 0, y: 260 },
+          subagents: [
+            {
+              id: 'translator',
+              index: 3,
+              name: 'Translator',
+              description: 'Translates to the target language.',
+              instruction: 'Receive the edited content and translate it professionally. This is the final step in the pipeline.',
+              color: '#4ADE80',
+              model: 'gemini-3-flash-preview',
+              position: { x: 0, y: 390 }
+            }
+          ]
         }
       ]
     }
   },
 
-  // 3. Parallel Team (The Creative Squad)
+  // 3. Engineering Loop (The Quality Guard)
   {
-    id: 'parallel-team',
-    teamName: 'Creative Squad',
-    teamType: 'Creative Agency',
-    teamDescription: 'Lead manages multiple workers simultaneously.',
-    color: '#a855f7',
-    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
-    leadAgent: {
-      id: 'director',
-      index: 1,
-      name: 'Art Director',
-      description: 'Leads the creative vision.',
-      instruction: 'Delegate design and copy tasks to your team.',
-      color: '#a855f7',
-      model: 'gemini-3-flash-preview',
-      position: { x: 0, y: 150 },
-      subagents: [
-        {
-          id: 'designer',
-          index: 2,
-          name: 'Designer',
-          description: 'Creates visual assets.',
-          instruction: 'Design a modern UI layout.',
-          color: '#ec4899',
-          model: 'gemini-3-flash-preview',
-          position: { x: -200, y: 400 }
-        },
-        {
-          id: 'copywriter',
-          index: 3,
-          name: 'Copywriter',
-          description: 'Writes marketing text.',
-          instruction: 'Write compelling copy for the landing page.',
-          color: '#3b82f6',
-          model: 'gemini-3-flash-preview',
-          position: { x: 200, y: 400 }
-        }
-      ]
-    }
-  },
-
-  // 4. Generator / Critic (The Quality Loop)
-  {
-    id: 'generator-critic',
-    teamName: 'Code Quality',
+    id: 'engineering-loop',
+    teamName: 'Safe Code',
     teamType: 'Engineering',
-    teamDescription: 'Iterative refinement cycle between Coder and Reviewer.',
-    color: '#06b6d4',
+    teamDescription: 'A secure development pipeline with built-in auditing.',
+    color: '#2DD4BF',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
-      id: 'coder',
+      id: 'lead-dev',
       index: 1,
-      name: 'Coder',
-      description: 'Writes the initial implementation.',
-      instruction: 'Write robust Python code for the requested feature.',
-      color: '#06b6d4',
+      name: 'Lead Developer',
+      description: 'Writes core logic and triggers security reviews.',
+      instruction: 'Implement technical solutions. Once written, use consult_agent to ask the Security Auditor to review for vulnerabilities before delivering the project.',
+      color: '#2DD4BF',
       model: 'gemini-3-flash-preview',
-      nextId: 'reviewer',
-      position: { x: 0, y: 150 },
+      position: { x: 0, y: 130 },
       subagents: [
         {
-          id: 'reviewer',
+          id: 'security-auditor',
           index: 2,
-          name: 'Reviewer',
-          description: 'Ensures quality and style standards.',
-          instruction: 'Check for bugs. If found, use request_revision.',
-          color: '#ef4444',
+          name: 'Security Auditor',
+          description: 'Expert in finding vulnerabilities and code smells.',
+          instruction: 'Audit any code provided. Be critical. Suggest improvements using the Request Revision pattern if consensus isn\'t met.',
+          color: '#FB7185',
           model: 'gemini-3-flash-preview',
-          retryId: 'coder',
-          position: { x: 0, y: 400 }
+          position: { x: 0, y: 260 }
         }
       ]
     }
   },
 
-  // 5. Multi-Level Org (Recursive Hierarchy)
+  // 4. The Swarm (Parallel Task Force)
   {
-    id: 'recursive-hierarchy',
-    teamName: 'Global Corp',
-    teamType: 'Corporate',
-    teamDescription: 'Director -> Manager -> Worker hierarchy.',
-    color: '#64748b',
+    id: 'swarm-parallel',
+    teamName: 'The Swarm',
+    teamType: 'Task Force',
+    teamDescription: 'Massive parallel execution power for large-scale tasks.',
+    color: '#818CF8',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
-      id: 'ceo',
+      id: 'swarm-leader',
       index: 1,
-      name: 'CEO',
-      description: 'Strategic lead.',
-      instruction: 'Lead the organization towards long-term goals.',
-      color: '#64748b',
+      name: 'Swarm Lead',
+      description: 'Decomposes tasks for a large group of workers.',
+      instruction: 'Decompose the user request into 4 distinct, parallelizable sub-tasks. Delegate them simultaneously to Workers Alpha, Beta, Gamma, and Delta using propose_task.',
+      color: '#818CF8',
       model: 'gemini-3-flash-preview',
-      position: { x: 0, y: 150 },
+      position: { x: 0, y: 130 },
       subagents: [
         {
-          id: 'manager',
+          id: 'worker-alpha',
           index: 2,
-          name: 'Manager',
-          description: 'Operational lead.',
-          instruction: 'Manage day-to-day operations and delegate to workers.',
-          color: '#94a3b8',
+          name: 'Worker Alpha',
+          description: 'Specialist worker.',
+          instruction: 'Execute the technical task assigned by the Swarm Lead.',
+          color: '#F87171',
           model: 'gemini-3-flash-preview',
-          position: { x: 0, y: 400 },
-          subagents: [
-            {
-              id: 'worker',
-              index: 3,
-              name: 'Worker',
-              description: 'Execution specialist.',
-              instruction: 'Execute the tasks assigned by the manager.',
-              color: '#cbd5e1',
-              model: 'gemini-3-flash-preview',
-              position: { x: 0, y: 650 }
-            }
-          ]
-        }
-      ]
-    }
-  },
-
-  // 6. Human Evaluation (HITL)
-  {
-    id: 'hitl-system',
-    teamName: 'Guided Agent',
-    teamType: 'Assisted Search',
-    teamDescription: 'Agent performs task but requires human sign-off.',
-    color: '#10b981',
-    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
-    leadAgent: {
-      id: 'assisted-agent',
-      index: 1,
-      name: 'Explorer',
-      description: 'Autonomous searcher with human safety.',
-      instruction: 'Find data but wait for human approval before proceeding.',
-      color: '#10b981',
-      model: 'gemini-3-flash-preview',
-      retryId: 'user',
-      position: { x: 0, y: 150 }
-    }
-  },
-
-  // 7. Circular Refinement (State Machine)
-  {
-    id: 'circular-refinement',
-    teamName: 'Double Loop',
-    teamType: 'Refinement',
-    teamDescription: 'Two agents improving each other in a circle.',
-    color: '#8b5cf6',
-    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
-    leadAgent: {
-      id: 'agent-a',
-      index: 1,
-      name: 'Synthesizer',
-      description: 'Part A of the circle.',
-      instruction: 'Create content and pass it to Agent B.',
-      color: '#8b5cf6',
-      model: 'gemini-3-flash-preview',
-      nextId: 'agent-b',
-      position: { x: -150, y: 150 },
-      subagents: [
-        {
-          id: 'agent-b',
-          index: 2,
-          name: 'Refiner',
-          description: 'Part B of the circle.',
-          instruction: 'Improve content and pass it back to Agent A.',
-          color: '#d946ef',
-          model: 'gemini-3-flash-preview',
-          nextId: 'agent-a',
-          position: { x: 150, y: 150 }
-        }
-      ]
-    }
-  },
-
-  // 8. Orchestrator-Workers (Complex Router)
-  {
-    id: 'orchestrator-router',
-    teamName: 'Smart Router',
-    teamType: 'Dispatcher',
-    teamDescription: 'Lead acts as a router for different domains.',
-    color: '#14b8a6',
-    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
-    leadAgent: {
-      id: 'dispatcher',
-      index: 1,
-      name: 'Dispatcher',
-      description: 'Routes tasks to the right specialist.',
-      instruction: 'Identify task type and delegate to Code or Art.',
-      color: '#14b8a6',
-      model: 'gemini-3-flash-preview',
-      position: { x: 0, y: 150 },
-      subagents: [
-        {
-          id: 'code-team',
-          index: 2,
-          name: 'Code Specialist',
-          description: 'Handles technical requests.',
-          instruction: 'Execute code-related tasks.',
-          color: '#0d9488',
-          model: 'gemini-3-flash-preview',
-          position: { x: -200, y: 400 }
+          position: { x: -450, y: 280 }
         },
         {
-          id: 'art-team',
+          id: 'worker-beta',
           index: 3,
-          name: 'Art Specialist',
-          description: 'Handles creative requests.',
-          instruction: 'Execute art-related tasks.',
-          color: '#f43f5e',
+          name: 'Worker Beta',
+          description: 'Specialist worker.',
+          instruction: 'Execute the creative task assigned by the Swarm Lead.',
+          color: '#FBBC05',
           model: 'gemini-3-flash-preview',
-          position: { x: 200, y: 400 }
-        }
-      ]
-    }
-  },
-  // 9. Deep Tech Hierarchy (Scalability Test)
-  {
-    id: 'deep-tech-hierarchy',
-    teamName: 'Tech Conglomerate',
-    teamType: 'Corporate',
-    teamDescription: 'A 5-level deep technical organization.',
-    color: '#334155',
-    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
-    leadAgent: {
-      id: 'ceo-global',
-      index: 1,
-      name: 'Global CEO',
-      description: 'Strategic lead of the conglomerate.',
-      instruction: 'Delegate high-level goals to the CTO.',
-      color: '#334155',
-      model: 'gemini-3-flash-preview',
-      position: { x: 0, y: 150 },
-      subagents: [
+          position: { x: -150, y: 280 }
+        },
         {
-          id: 'cto',
-          index: 2,
-          name: 'CTO',
-          description: 'Chief Technology Officer.',
-          instruction: 'Oversee technical strategy and manage Directors.',
-          color: '#475569',
+          id: 'worker-gamma',
+          index: 4,
+          name: 'Worker Gamma',
+          description: 'Specialist worker.',
+          instruction: 'Execute the data task assigned by the Swarm Lead.',
+          color: '#34A853',
           model: 'gemini-3-flash-preview',
-          position: { x: 0, y: 400 },
-          subagents: [
-            {
-              id: 'eng-director',
-              index: 3,
-              name: 'Eng Director',
-              description: 'Director of Engineering.',
-              instruction: 'Manage leads and ensure delivery.',
-              color: '#64748b',
-              model: 'gemini-3-flash-preview',
-              position: { x: 0, y: 650 },
-              subagents: [
-                {
-                  id: 'tech-lead',
-                  index: 4,
-                  name: 'Tech Lead',
-                  description: 'Team lead and architect.',
-                  instruction: 'Technical guidance and delegation to developers.',
-                  color: '#94a3b8',
-                  model: 'gemini-3-flash-preview',
-                  position: { x: 0, y: 900 },
-                  subagents: [
-                    {
-                      id: 'senior-dev',
-                      index: 5,
-                      name: 'Senior Developer',
-                      description: 'Core implementation specialist.',
-                      instruction: 'Implement complex features.',
-                      color: '#cbd5e1',
-                      model: 'gemini-3-flash-preview',
-                      position: { x: 0, y: 1150 }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+          position: { x: 150, y: 280 }
+        },
+        {
+          id: 'worker-delta',
+          index: 5,
+          name: 'Worker Delta',
+          description: 'Specialist worker.',
+          instruction: 'Execute the research task assigned by the Swarm Lead.',
+          color: '#A78BFA',
+          model: 'gemini-3-flash-preview',
+          position: { x: 450, y: 280 }
         }
       ]
     }
   },
-  // 10. Matrix Agency (Branching Test)
+
+  // 5. The Hybrid Hub (Matrix/Branching)
   {
-    id: 'matrix-agency',
-    teamName: 'Nexus Studio',
+    id: 'hybrid-hub',
+    teamName: 'Matrix Agency',
     teamType: 'Matrix',
-    teamDescription: 'A balanced agency with distinct specialized departments.',
-    color: '#4f46e5',
+    teamDescription: 'A delegating hub that manages specialized departments.',
+    color: '#34D399',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'studio-head',
       index: 1,
       name: 'Studio Head',
-      description: 'Leads both product and creative wings.',
-      instruction: 'Balance resources between Product and Creative leads.',
-      color: '#4f46e5',
+      description: 'Manages departmental leads.',
+      instruction: 'Do not talk to execution workers directly. Delegate high-level goals to the Creative Lead and Technical Lead using propose_task.',
+      color: '#34D399',
       model: 'gemini-3-flash-preview',
-      position: { x: 0, y: 150 },
+      position: { x: 0, y: 130 },
       subagents: [
         {
-          id: 'product-lead',
+          id: 'creative-lead',
           index: 2,
-          name: 'Product Lead',
-          description: 'Focuses on functionality and logic.',
-          instruction: 'Manage the development team.',
-          color: '#0ea5e9',
+          name: 'Creative Lead',
+          description: 'Manages creative execution.',
+          instruction: 'Receive goals from the Studio Head and delegate specific art tasks to the Artist.',
+          color: '#F472B6',
           model: 'gemini-3-flash-preview',
-          position: { x: -200, y: 400 },
+          position: { x: -200, y: 280 },
           subagents: [
             {
-              id: 'dev-alpha',
+              id: 'artist',
               index: 4,
-              name: 'Developer Alpha',
-              instruction: 'Fullstack specialist.',
-              color: '#38bdf8',
+              name: 'Artist',
+              description: 'Execution art specialist.',
+              instruction: 'Execute art projects as directed by the Creative Lead.',
+              color: '#FB7185',
               model: 'gemini-3-flash-preview',
-              position: { x: -200, y: 650 }
+              position: { x: -200, y: 430 }
             }
           ]
         },
         {
-          id: 'creative-lead',
+          id: 'tech-lead',
           index: 3,
-          name: 'Creative Lead',
-          description: 'Focuses on aesthetics and copy.',
-          instruction: 'Manage the creative team.',
-          color: '#ec4899',
+          name: 'Tech Lead',
+          description: 'Manages technical execution.',
+          instruction: 'Receive goals from the Studio Head and delegate specific code tasks to the Developer.',
+          color: '#C084FC',
           model: 'gemini-3-flash-preview',
-          position: { x: 200, y: 400 },
+          position: { x: 200, y: 280 },
           subagents: [
             {
-              id: 'artist-alpha',
+              id: 'developer',
               index: 5,
-              name: 'Artist Alpha',
-              instruction: 'Visual designer.',
-              color: '#f472b6',
+              name: 'Developer',
+              description: 'Execution code specialist.',
+              instruction: 'Execute code projects as directed by the Tech Lead.',
+              color: '#A78BFA',
               model: 'gemini-3-flash-preview',
-              position: { x: 200, y: 650 }
+              position: { x: 200, y: 430 }
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  // 6. Corporate Ladder (Deep Hierarchy)
+  {
+    id: 'corporate-ladder',
+    teamName: 'Global Corp',
+    teamType: 'Enterprise',
+    teamDescription: 'A deep chain of command from Strategy to Execution.',
+    color: '#94A3B8',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'ceo',
+      index: 1,
+      name: 'CEO',
+      description: 'Strategic lead of the company.',
+      instruction: 'Analyze user requests and set strategic vision. Delegate the plan to the VP of Operations.',
+      color: '#94A3B8',
+      model: 'gemini-3-flash-preview',
+      position: { x: 0, y: 130 },
+      subagents: [
+        {
+          id: 'vp-ops',
+          index: 2,
+          name: 'VP of Ops',
+          description: 'Operational manager.',
+          instruction: 'Translate the CEO\'s strategy into a specific project plan. Delegate the management to the Supervisor.',
+          color: '#CBD5E1',
+          model: 'gemini-3-flash-preview',
+          position: { x: 0, y: 260 },
+          subagents: [
+            {
+              id: 'supervisor',
+              index: 3,
+              name: 'Supervisor',
+              description: 'Direct task manager.',
+              instruction: 'Ensure the project is being executed correctly. Assign technical tasks to the Intern and audit their progress.',
+              color: '#CBD5E1',
+              model: 'gemini-3-flash-preview',
+              position: { x: 0, y: 390 },
+              subagents: [
+                {
+                  id: 'intern',
+                  index: 4,
+                  name: 'Intern',
+                  description: 'Technical execution worker.',
+                  instruction: 'Perform the technical work assigned by the Supervisor. Report back upon completion.',
+                  color: '#CBD5E1',
+                  model: 'gemini-3-flash-preview',
+                  position: { x: 0, y: 520 }
+                }
+             ]
             }
           ]
         }
