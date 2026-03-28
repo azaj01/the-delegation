@@ -195,11 +195,7 @@ Goal: ${objectives[phase as keyof typeof objectives] || ''}`;
 
   public setTask(taskId: string | null) {
     this.currentTaskId = taskId;
-    if (taskId) {
-      this.state = 'working';
-    } else {
-      this.state = 'idle';
-    }
+    this.setState(taskId ? 'working' : 'idle');
   }
 
   public setState(state: AgentState) {

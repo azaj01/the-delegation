@@ -220,21 +220,41 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300">Capabilities</h4>
                 <InfoBubble text="Tools are enabled automatically based on the agent's position and connections." />
               </div>
-              <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-4 space-y-3">
-                <div className="flex items-center gap-2 opacity-60">
-                  <Check size={12} className="text-zinc-400" />
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Consult Everyone</span>
-                </div>
-                {(editData.subagents?.length || 0) > 0 && (
-                  <div className="flex items-center gap-2">
-                    <Check size={12} className="text-zinc-900" />
-                    <span className="text-[10px] font-bold text-zinc-900 uppercase">Propose Task (Manager)</span>
-                  </div>
-                )}
+              <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-4 gap-y-3 flex flex-col">
                 {isLead && (
                   <div className="flex items-center gap-2">
-                    <Check size={12} className="text-zinc-900" />
-                    <span className="text-[10px] font-bold text-zinc-900 uppercase">Deliver Project (Lead)</span>
+                    <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
+                      <Check size={10} className="text-zinc-700" />
+                    </div>
+                    <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Set Project Brief</span>
+                  </div>
+                )}
+                {(editData.subagents?.length || 0) > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
+                      <Check size={10} className="text-zinc-700" />
+                    </div>
+                    <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Propose Tasks</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
+                    <Check size={10} className="text-zinc-700" />
+                  </div>
+                  <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Execute & Complete Tasks</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
+                    <Check size={10} className="text-zinc-700" />
+                  </div>
+                  <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Request Consultation</span>
+                </div>
+                {isLead && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
+                      <Check size={10} className="text-zinc-700" />
+                    </div>
+                    <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Deliver Project</span>
                   </div>
                 )}
               </div>

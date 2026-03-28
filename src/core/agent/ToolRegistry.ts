@@ -72,7 +72,7 @@ export class ToolRegistry {
 
     // 2. Working Phase: Common tools for everyone
     if (phase === 'working') {
-      if (isManager) {
+      if (isLead || isManager) {
         tools.push({
           type: 'function',
           function: {

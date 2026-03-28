@@ -77,7 +77,7 @@ const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
             Doing Now
           </p>
           <p className="text-sm text-zinc-800 leading-snug font-bold">
-            "{activeTask.description}"
+            "{activeTask.title}"
           </p>
         </div>
       ) : (

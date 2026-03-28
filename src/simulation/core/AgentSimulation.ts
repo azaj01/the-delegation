@@ -51,12 +51,7 @@ export class AgentSimulation {
         }
 
         // C. Project Completion
-        const allTasksFinished = state.tasks.length > 0 && state.tasks.every(t => t.status === 'done');
-        const previouslyUnfinished = prevState.tasks.some(t => t.status !== 'done');
-        if (state.phase === 'working' && allTasksFinished && previouslyUnfinished) {
-          const lead = this.getAgent(this.system.leadAgent.index);
-          lead?.think('All tasks are complete! Deliver the project.', { silent: true });
-        }
+        this.checkProjectCompletion();
       })
     );
 
@@ -125,6 +120,22 @@ export class AgentSimulation {
       
       // KEY: When finished, check if there are other scheduled tasks waiting
       this.processScheduledTasks();
+      
+      // AND check if the project is now ready for delivery 
+      // (Resilience for 1-agent teams where lead is thinking when the last task finishes)
+      this.checkProjectCompletion();
+    }
+  }
+
+  private async checkProjectCompletion() {
+    const state = useCoreStore.getState();
+    const allTasksFinished = state.tasks.length > 0 && state.tasks.every(t => t.status === 'done');
+    
+    if (state.phase === 'working' && allTasksFinished) {
+      const lead = this.getAgent(this.system.leadAgent.index);
+      if (lead && !lead.isThinking) {
+        await lead.think('All tasks are complete! Use the deliver_project tool to fulfill the final delivery with a summary of the accomplishments.', { silent: true });
+      }
     }
   }
 

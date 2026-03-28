@@ -260,12 +260,12 @@ export class SceneManager {
   public setNpcWorking(index: number, working: boolean): void {
     if (!this.controller) return;
     if (working) {
-      const id = `work-${index}`;
+      const id = `sit_work-${index}`;
       let poi = this.poiManager.getPoi(id);
       if (!poi) {
-         // Smart fallback: assign a desk based on order
+         // Smart fallback: assign a desk based on order (agent index is 1-based)
          const desks = this.poiManager.getPoisByPrefix('sit_work');
-         if (desks.length > 0) poi = desks[index % desks.length];
+         if (desks.length > 0) poi = desks[(index - 1) % desks.length];
       }
       if (poi) this.controller.walkToPoi(index, poi.id);
     }
