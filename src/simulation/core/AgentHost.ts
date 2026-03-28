@@ -54,7 +54,8 @@ export class AgentHost implements AgentActionContext {
       });
       this.syncToStore();
 
-      const messages: LLMMessage[] = [...this.history];
+      // Prune history to last 10 messages to save tokens
+      const messages: LLMMessage[] = this.history.slice(-10);
       const systemPrompt = this.buildSystemPrompt(core.phase, core.userBrief);
       const toolDefs = options.tools || ToolRegistry.getDefinitions(this.data.index, core.phase, this.data.subagents?.length || 0);
 
@@ -130,6 +131,11 @@ export class AgentHost implements AgentActionContext {
         ToolRegistry.process(this, tc as any);
       }
 
+      // If we were on hold and resolved it via tool calls, go back to idle so simulation continues
+      if (isResolution) {
+        this.setState('idle');
+      }
+
       return { text, toolCalls };
     } catch (error) {
       console.error(`[AgentHost:${this.data.name}] Thinking error:`, error);
@@ -145,44 +151,37 @@ export class AgentHost implements AgentActionContext {
   }
 
   private buildSystemPrompt(phase: string, brief: string): string {
-    const team = this.simulation.getAllAgents()
-      .map((a: any) => `[${a.data.index}] ${a.data.name}: ${a.data.description || 'Specialist'}`)
-      .join('\n');
-
     const isLead = this.data.index === 1;
+    const team = this.simulation.getAllAgents()
+      .map((a: any) => `[${a.data.index}] ${a.data.name}`)
+      .join(', ');
+
     const objectives = {
-      idle: isLead 
-        ? 'Objective: Chat with the user (index 0) to define the final brief, then use the set_user_brief tool to start the project.' 
-        : 'Objective: Wait for the Lead Agent to define the project brief and assign tasks.',
-      working: isLead
-        ? 'Objective: Coordinate the team and track progress on the Kanban board. When all tasks are Done, review the results and use the deliver_project tool.'
-        : 'Objective: Focus on your assigned tasks. Collaborate with the team if needed, and use complete_task once finished.',
-      done: 'Objective: Project complete. Celebrate with the team or chat with the user about the results.'
+      idle: isLead ? 'Chat with [0] to define brief, then set_user_brief.' : 'Wait for Lead to start.',
+      working: isLead ? 'Manage board. deliver_project when all Done.' : 'Complete tasks. request_consultation if stuck.',
+      done: 'Project finished.'
     };
 
+    const allAgents = this.simulation.getAllAgents();
     const tasks = useCoreStore.getState().tasks;
     const board = tasks.length > 0
-      ? `Kanban Board:\n${tasks.map(t => `- [${t.status.toUpperCase()}] ${t.title}${t.output ? ` (Result: ${t.output})` : ''}`).join('\n')}`
-      : 'Kanban Board: Empty';
+      ? tasks.map(t => {
+          const agentName = allAgents.find((a: any) => a.data.index === t.assignedAgentId)?.data?.name || `Agent ${t.assignedAgentId}`;
+          const outputStr = t.output ? `\n   Result: ${t.output}` : '';
+          return `- [${t.status.toUpperCase()}] ${t.title} (${agentName})${outputStr}`;
+        }).join('\n')
+      : 'Empty';
 
-    return `Identity: ${this.data.name}. Role: ${this.data.description}
-Team: [0] User (Client/Art Director)
-${team}
-
+    return `ID: ${this.data.name}. Role: ${this.data.description}. Phase: ${phase}.
+${brief ? `Brief: ${brief}` : ''}
+Team: [0]User, ${team}
+KANBAN:
 ${board}
-
-Project Phase: ${phase}
-${brief ? `Project Brief: ${brief}` : ''}
-
-Operational Guidelines:
-- Use set_user_brief to define the project scope and start working. Only use this when you have gathered enough requirements from the user.
-- Use propose_task to delegate work if you are the Lead Agent (only in WORKING phase).
-- Use complete_task when your assigned task is finished (only in WORKING phase).
-- Use request_consultation to resolve specific technical questions about a task. These tools REQUIRE a taskId and should only be used during the WORKING phase.
-- In the IDLE phase, simply chat with the user (index 0) to refine the brief. Do NOT use request_consultation in the IDLE phase.
-- When on hold, wait in the boardroom for your target to respond.
-
-Current Objective: ${objectives[phase as keyof typeof objectives] || ''}`;
+RULES:
+1. MAX 30 WORDS for conversational/chat responses. Outputs for 'complete_task' and 'deliver_project' MUST be rich, professional, and detailed (Markdown supported).
+2. Tools only in WORKING (except set_user_brief in IDLE).
+3. consultation needs taskId & targetId.
+Goal: ${objectives[phase as keyof typeof objectives] || ''}`;
   }
 
   public appendHistory(message: LLMMessage) {

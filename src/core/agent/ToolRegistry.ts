@@ -58,7 +58,7 @@ export class ToolRegistry {
           type: 'function',
           function: {
             name: 'set_user_brief',
-            description: 'Define the final project brief and start the project. Use this after chatting with the user to confirm requirements. Max 300 words.',
+            description: 'Start project with brief.',
             parameters: {
               type: 'object',
               properties: { brief: { type: 'string' } },
@@ -72,19 +72,18 @@ export class ToolRegistry {
 
     // 2. Working Phase: Common tools for everyone
     if (phase === 'working') {
-      // Propose Task is only for Managers
       if (isManager) {
         tools.push({
           type: 'function',
           function: {
             name: 'propose_task',
-            description: 'Propose a new task for the Kanban board.',
+            description: 'Assign task to agent.',
             parameters: {
               type: 'object',
               properties: {
                 title: { type: 'string' },
                 description: { type: 'string' },
-                agentId: { type: 'number', description: 'Index of the agent assigned to this task' },
+                agentId: { type: 'number', description: 'Agent index' },
                 requiresApproval: { type: 'boolean' }
               },
               required: ['title', 'description', 'agentId']
@@ -98,12 +97,12 @@ export class ToolRegistry {
           type: 'function',
           function: {
             name: 'complete_task',
-            description: 'Mark a task as completed and provide the output.',
+            description: 'Finish task with a professional and detailed output of the work and reasoning.',
             parameters: {
               type: 'object',
               properties: {
                 taskId: { type: 'string' },
-                output: { type: 'string', description: 'The result of the task' }
+                output: { type: 'string', description: 'Comprehensive result of the task in Markdown.' }
               },
               required: ['taskId', 'output']
             }
@@ -113,13 +112,13 @@ export class ToolRegistry {
           type: 'function',
           function: {
             name: 'request_consultation',
-            description: 'Request a meeting with another agent or the user in the boardroom.',
+            description: 'Meeting with agent. User=0.',
             parameters: {
               type: 'object',
               properties: {
-                targetId: { type: 'number', description: 'Index of the agent to consult. User index is 0.' },
-                taskId: { type: 'string', description: 'The task context' },
-                message: { type: 'string', description: 'Opening message for the debate or feedback request' }
+                targetId: { type: 'number' },
+                taskId: { type: 'string' },
+                message: { type: 'string' }
               },
               required: ['targetId', 'taskId', 'message']
             }
@@ -127,16 +126,20 @@ export class ToolRegistry {
         }
       );
 
-      // Only Lead can deliver
       if (isLead) {
         tools.push({
           type: 'function',
           function: {
             name: 'deliver_project',
-            description: 'Deliver the final project result once all tasks are Done. Lead Agent only.',
+            description: 'Final delivery. MUST include a "Team Contributions" section attributing work to each agent based on KANBAN results.',
             parameters: {
               type: 'object',
-              properties: { output: { type: 'string' } },
+              properties: { 
+                output: { 
+                  type: 'string', 
+                  description: 'Rich Markdown document with project results and agent attribution.' 
+                } 
+              },
               required: ['output']
             }
           }

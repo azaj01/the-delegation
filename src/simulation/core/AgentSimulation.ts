@@ -60,18 +60,12 @@ export class AgentSimulation {
       })
     );
 
-    // 3. UI Store Monitoring (Auto-Resume tasks after chat)
+    // 3. UI Store Monitoring (Cleanup)
     this.unsubs.push(
       useUiStore.subscribe((state, prevState) => {
         if (!state.isChatting && prevState.isChatting) {
           const core = useCoreStore.getState();
-          const selectedNpc = prevState.selectedNpcIndex;
           if (core.phase === 'working' && core.tasks.length === 0) this.triggerAutonomousStrategy();
-          if (selectedNpc !== null) {
-            core.tasks
-              .filter(t => t.status === 'on_hold' && t.assignedAgentId === selectedNpc && t.consultationTargetId === 0)
-              .forEach(t => core.updateTaskStatus(t.id, 'scheduled'));
-          }
         }
       })
     );
@@ -123,7 +117,11 @@ export class AgentSimulation {
     } catch (err) {
       console.error(`[AgentSimulation] Agent ${agentIndex} failed:`, err);
     } finally {
-      agent.setTask(null); // Back to idle
+      // Resilience check: only clear task if not waiting for consultation/meeting
+      if (agent.state !== 'on_hold' && agent.state !== 'talking') {
+        agent.setTask(null);
+        agent.setState('idle');
+      }
       
       // KEY: When finished, check if there are other scheduled tasks waiting
       this.processScheduledTasks();
@@ -177,12 +175,15 @@ export class AgentSimulation {
         await requester.think(meeting.message || `Meeting for ${taskId}.`, { silent: true });
         await target.think(`Review meeting for ${taskId}.`, { silent: true });
       } finally {
-        requester.setState('on_hold'); target.setState('on_hold');
+        requester.setState('idle'); 
+        if (target) target.setState('idle');
+        
+        // Return task to scheduled so it can be picked up by the loop
         useCoreStore.getState().updateTaskStatus(taskId, 'scheduled');
         this.processScheduledTasks();
       }
     } else {
-      requester.setState('on_hold');
+      // Just waiting for User (0) - no action needed, AgentHost already set to on_hold
     }
   }
 
