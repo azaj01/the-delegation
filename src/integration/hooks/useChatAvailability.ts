@@ -1,6 +1,6 @@
-import { getAgentSet, getAllAgents } from '../../data/agents'
+import { getAllAgents } from '../../data/agents'
 import { useCoreStore } from '../store/coreStore'
-import { useTeamStore } from '../store/teamStore'
+import { useTeamStore, useActiveTeam } from '../store/teamStore'
 
 export interface ChatAvailability {
   canChat: boolean
@@ -13,8 +13,7 @@ export interface ChatAvailability {
  */
 export function useChatAvailability(agentIndex: number | null): ChatAvailability {
   const { phase, tasks } = useCoreStore()
-  const { selectedAgentSetId } = useTeamStore()
-  const system = getAgentSet(selectedAgentSetId)
+  const system = useActiveTeam()
   const agents = getAllAgents(system)
 
   const ORCHESTRATOR_INDEX = system.leadAgent.index

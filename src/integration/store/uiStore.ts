@@ -1,15 +1,12 @@
-
 import { create } from 'zustand';
-import { DEFAULT_AGENTIC_SET_ID, getAgentSet, getAllAgents } from '../../data/agents';
+import { getAllAgents } from '../../data/agents';
 import { AgentState, CharacterState } from '../../types';
-import { useTeamStore } from './teamStore';
+import { useTeamStore, getActiveAgentSet } from './teamStore';
 
 export const useUiStore = create<CharacterState>()(
   (set) => ({
     isThinking: false,
-    instanceCount: getAllAgents(getAgentSet(
-      useTeamStore.getState().selectedAgentSetId ?? DEFAULT_AGENTIC_SET_ID
-    )).length + 1, // +1 for user
+    instanceCount: getAllAgents(getActiveAgentSet()).length + 1, // +1 for user
 
     selectedNpcIndex: null,
     selectedPosition: null,
@@ -79,7 +76,7 @@ export const useUiStore = create<CharacterState>()(
 // Keep instanceCount in sync whenever the active agent set changes
 useTeamStore.subscribe((state, prevState) => {
   if (state.selectedAgentSetId !== prevState.selectedAgentSetId) {
-    const system = getAgentSet(state.selectedAgentSetId, state.customSystems);
+    const system = getActiveAgentSet();
     useUiStore.getState().setInstanceCount(getAllAgents(system).length + 1);
   }
 });

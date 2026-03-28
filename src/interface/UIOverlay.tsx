@@ -6,7 +6,7 @@ import InfoModal from './InfoModal';
 
 import { MessageSquareWarning, PartyPopper, Siren } from 'lucide-react';
 import { Task, useCoreStore } from '../integration/store/coreStore';
-import { useTeamStore } from '../integration/store/teamStore';
+import { useTeamStore, useActiveTeam } from '../integration/store/teamStore';
 
 
 
@@ -88,8 +88,7 @@ const UIOverlay: React.FC = () => {
     tasks,
     phase,
   } = useCoreStore();
-  const { selectedAgentSetId } = useTeamStore();
-  const system = getAgentSet(selectedAgentSetId);
+  const system = useActiveTeam();
   const npcAgents = getAllAgents(system);
   const allPossibleAgents = getAllCharacters(system);
 

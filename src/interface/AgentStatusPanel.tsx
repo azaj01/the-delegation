@@ -1,7 +1,7 @@
 import React from 'react';
 import { getAgentSet, getAllAgents, getAllCharacters } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
-import { useTeamStore } from '../integration/store/teamStore';
+import { useTeamStore, useActiveTeam } from '../integration/store/teamStore';
 import { Avatar } from './components/Avatar';
 
 import { formatTokens } from './ProjectView';
@@ -12,8 +12,7 @@ interface AgentStatusPanelProps {
 
 const AgentStatusPanel: React.FC<AgentStatusPanelProps> = ({ agentIndex }) => {
   const { tasks } = useCoreStore();
-  const { selectedAgentSetId } = useTeamStore();
-  const system = getAgentSet(selectedAgentSetId);
+  const system = useActiveTeam();
   const agents = getAllAgents(system);
 
   const agent = agents.find(a => a.index === agentIndex);

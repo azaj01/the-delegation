@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 
 import { getAgentSet, getAllAgents } from '../data/agents';
 import { useCoreStore } from '../integration/store/coreStore';
-import { useTeamStore } from '../integration/store/teamStore';
+import { useTeamStore, useActiveTeam } from '../integration/store/teamStore';
 import { useSceneManager } from '../simulation/SceneContext';
 import { USER_COLOR } from '../theme/brand';
 import ResetModal from './ResetModal';
@@ -29,6 +29,7 @@ const ProjectView: React.FC = () => {
   } = useCoreStore();
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const activeTeam = useActiveTeam();
   const scene = useSceneManager();
 
   const hasLogs = actionLog.length > 0;
@@ -129,8 +130,7 @@ const ProjectView: React.FC = () => {
             .sort(([, a], [, b]) => b.totalTokens - a.totalTokens)
             .map(([idx, usage]) => {
               const agentIndex = parseInt(idx);
-              const selectedAgentSetId = useTeamStore.getState().selectedAgentSetId;
-              const agents = getAllAgents(getAgentSet(selectedAgentSetId));
+              const agents = getAllAgents(activeTeam);
               const agent = agentIndex === -1
                 ? { name: 'System', color: '#71717a' }
                 : agents.find(a => a.index === agentIndex);

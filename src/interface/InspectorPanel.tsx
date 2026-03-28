@@ -4,7 +4,7 @@ import { getAgentSet, getAllCharacters } from '../data/agents';
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand';
 import { useChatAvailability } from '../integration/hooks/useChatAvailability';
 import { useCoreStore } from '../integration/store/coreStore';
-import { useTeamStore } from '../integration/store/teamStore';
+import { useTeamStore, useActiveTeam } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
 import { useSceneManager } from '../simulation/SceneContext';
 import { Avatar } from './components/Avatar';
@@ -20,8 +20,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
   const { selectedNpcIndex, isChatting } = useUiStore();
   const scene = useSceneManager();
   const { phase, setFinalOutputOpen, tasks } = useCoreStore();
-  const { selectedAgentSetId } = useTeamStore();
-  const system = getAgentSet(selectedAgentSetId);
+  const system = useActiveTeam();
   const agents = getAllCharacters(system);
   const { canChat, reason } = useChatAvailability(selectedNpcIndex);
   const prevCanChat = useRef(canChat);

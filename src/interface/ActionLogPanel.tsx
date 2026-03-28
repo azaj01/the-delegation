@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { getAgentSet, getAllAgents } from '../data/agents'
 import { USER_COLOR, USER_COLOR_LIGHT } from '../theme/brand'
 import { DebugLogEntry, useCoreStore } from '../integration/store/coreStore'
-import { useTeamStore } from '../integration/store/teamStore'
+import { useTeamStore, useActiveTeam } from '../integration/store/teamStore'
 import { formatTokens } from './ProjectView'
 
 function formatTime(ts: number): string {
@@ -37,8 +37,8 @@ const CopyButton: React.FC<{ text: string }> = ({ text }) => {
 
 const DebugEntryView: React.FC<{ entry: DebugLogEntry }> = ({ entry }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const selectedAgentSetId = useTeamStore((s) => s.selectedAgentSetId);
-    const agents = getAllAgents(getAgentSet(selectedAgentSetId));
+    const activeTeam = useActiveTeam();
+    const agents = getAllAgents(activeTeam);
     const agent = entry.agentIndex === -1
         ? { name: 'System', color: '#71717a' }
         : agents.find(a => a.index === entry.agentIndex);
@@ -326,8 +326,8 @@ ${JSON.stringify(entry.raw, null, 2)}
 
 export function ActionLogPanel() {
     const { setLogOpen, actionLog, debugLog, logFilterAgentIndex } = useCoreStore()
-    const { selectedAgentSetId } = useTeamStore()
-    const agents = getAllAgents(getAgentSet(selectedAgentSetId));
+    const activeTeam = useActiveTeam();
+    const agents = getAllAgents(activeTeam);
     const [activeTab, setActiveTab] = useState<'activity' | 'technical'>('technical')
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
     const topRef = useRef<HTMLDivElement>(null)

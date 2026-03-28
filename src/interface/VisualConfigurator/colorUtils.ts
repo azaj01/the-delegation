@@ -1,3 +1,5 @@
+export const MAX_BRIGHTNESS = 200;
+export const TARGET_BRIGHTNESS = 190;
 
 /**
  * Calculates the perceived brightness of a hex color.
@@ -33,7 +35,7 @@ export const getDarkenedColor = (hex: string): string => {
   // Force maximum saturation as requested
   s = 1.0;
 
-  // Max brightness allowed is 180 (YIQ).
+  // Max brightness allowed is defined by MAX_BRIGHTNESS.
   // We want the HIGHEST lightness (l) that keeps brightness BELOW this limit.
   // We use a small binary search to find the optimal L.
   let low = 0, high = 1.0;
@@ -42,7 +44,7 @@ export const getDarkenedColor = (hex: string): string => {
     const { r: tr, g: tg, b: tb } = hslToRgbValues(h, s, mid);
     const brightness = (tr * 299 + tg * 587 + tb * 114) / 1000;
     
-    if (brightness > 170) { // Using 170 as target to be safe (limit is 180)
+    if (brightness > TARGET_BRIGHTNESS) { // Safety margin: don't exceed target
       high = mid;
     } else {
       low = mid;

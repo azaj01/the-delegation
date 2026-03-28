@@ -138,7 +138,7 @@ export class SceneManager {
       const team = useTeamStore.getState();
       if (team.selectedAgentSetId !== this.lastAgentSetId) {
         this.lastAgentSetId = team.selectedAgentSetId;
-        const set = getAgentSet(team.selectedAgentSetId);
+        const set = getAgentSet(team.selectedAgentSetId, team.customSystems);
         this.reinitializeSimulation(set);
         this.worldManager.updateThemeColor(set.color);
         if (this.controller) {

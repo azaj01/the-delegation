@@ -1,6 +1,6 @@
 import { Pipette, X } from 'lucide-react';
 import React, { useRef, useState, useEffect } from 'react';
-import { getBrightness, getDarkenedColor } from './colorUtils';
+import { getBrightness, getDarkenedColor, MAX_BRIGHTNESS } from './colorUtils';
 
 interface ColorPickerProps {
   color: string;
@@ -33,7 +33,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
 
   const handleCommitColorChange = (newColor: string) => {
     const brightness = getBrightness(newColor);
-    if (brightness > 180) {
+    if (brightness > MAX_BRIGHTNESS) {
       const suggested = getDarkenedColor(newColor);
       setSuggestedColor(suggested);
       setErrorMsg('Selected color is too light for white text.');

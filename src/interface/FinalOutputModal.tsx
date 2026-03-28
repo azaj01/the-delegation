@@ -28,7 +28,7 @@ export function FinalOutputModal() {
         <div className="flex items-center justify-between px-6 py-4 border-b border-black/5">
           <div>
             <h2 className="text-sm font-black uppercase tracking-widest text-zinc-800">
-              Your Prompt is Ready
+              Final Output
             </h2>
             <p className="text-[11px] text-zinc-400 mt-0.5">
               Crafted by your agentic team
@@ -57,7 +57,7 @@ export function FinalOutputModal() {
             onClick={handleCopy}
             className="px-5 py-2.5 bg-zinc-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black active:scale-[0.98] transition-all"
           >
-            {copied ? 'Copied!' : 'Copy Prompt'}
+            {copied ? 'Copied!' : 'Copy Output'}
           </button>
         </div>
       </div>

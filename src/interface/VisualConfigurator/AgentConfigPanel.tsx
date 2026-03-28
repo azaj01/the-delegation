@@ -7,7 +7,7 @@ import { useTeamStore } from '../../integration/store/teamStore';
 import { Avatar } from '../components/Avatar';
 import { ColorPicker } from './ColorPicker';
 import { InfoBubble } from './InfoBubble';
-import { getBrightness } from './colorUtils';
+import { getBrightness, MAX_BRIGHTNESS } from './colorUtils';
 
 interface AgentConfigPanelProps {
   agent: AgentNode;
@@ -56,7 +56,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
   const isValid = useMemo(() => {
     const brightness = getBrightness(editData.color);
     const isNameEmpty = editData.name.trim() === '';
-    return brightness <= 180 && !nameCollision && !isNameEmpty;
+    return brightness <= MAX_BRIGHTNESS && !nameCollision && !isNameEmpty;
   }, [editData.color, editData.name, nameCollision]);
 
   const handleSave = () => {
@@ -93,8 +93,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
   const handleNameChange = (name: string) => {
     // Limit to letters, numbers and spaces
     const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '');
-    const id = sanitizedName.trim().toLowerCase().replace(/ /g, '-');
-    updateDraft({ name: sanitizedName, id });
+    updateDraft({ name: sanitizedName });
   };
 
 

@@ -68,5 +68,11 @@ export const useTeamStore = create<TeamState>()(
 /** Returns the currently active AgentSet. Safe to call from service/non-React contexts. */
 export function getActiveAgentSet(): AgentSet {
   const { selectedAgentSetId, customSystems } = useTeamStore.getState();
-  return getAgentSet(selectedAgentSetId || DEFAULT_AGENTIC_SET_ID, customSystems);
+  return getAgentSet(selectedAgentSetId, customSystems);
+}
+
+/** React hook for accessing the currently active team. */
+export function useActiveTeam(): AgentSet {
+  const { selectedAgentSetId, customSystems } = useTeamStore();
+  return getAgentSet(selectedAgentSetId, customSystems);
 }

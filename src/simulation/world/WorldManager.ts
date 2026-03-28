@@ -28,7 +28,7 @@ export class WorldManager {
 
     // Get current AgentSet color
     const { selectedAgentSetId, customSystems } = useTeamStore.getState();
-    const activeSet = getAgentSet(selectedAgentSetId);
+    const activeSet = getAgentSet(selectedAgentSetId, customSystems);
     const themeColor = new THREE.Color(activeSet.color);
 
     // Extract NavMesh and setup

@@ -5,7 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { getAgentSet, getAllAgents } from '../data/agents';
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand';
 import { useCoreStore } from '../integration/store/coreStore';
-import { useTeamStore } from '../integration/store/teamStore';
+import { useTeamStore, useActiveTeam } from '../integration/store/teamStore';
 import { useUiStore } from '../integration/store/uiStore';
 import { useSceneManager } from '../simulation/SceneContext';
 import { Avatar } from './components/Avatar';
@@ -20,8 +20,9 @@ const ChatPanel: React.FC = () => {
     setIsTyping
   } = useUiStore();
   const scene = useSceneManager();
-  const { selectedAgentSetId } = useTeamStore();
-  const agents = getAllAgents(getAgentSet(selectedAgentSetId));
+  const activeTeam = useActiveTeam();
+  const agents = getAllAgents(activeTeam);
+  const selectedAgentSetId = activeTeam.id;
 
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -116,7 +117,7 @@ const ChatPanel: React.FC = () => {
               {/* Avatar / Icon */}
               <div className="shrink-0 mt-1">
                 {msg.role === 'assistant' ? (
-                  <Avatar type={agent?.index === getAgentSet(selectedAgentSetId).leadAgent.index ? 'lead' : 'sub'} color={agent?.color} size={32} />
+                  <Avatar type={agent?.index === activeTeam.leadAgent.index ? 'lead' : 'sub'} color={agent?.color} size={32} />
                 ) : (
                   <Avatar type="user" color={USER_COLOR} size={32} />
                 )}

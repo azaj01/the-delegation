@@ -131,7 +131,7 @@ export class ToolRegistry {
           type: 'function',
           function: {
             name: 'deliver_project',
-            description: 'Final delivery. MUST include a "Team Contributions" section attributing work to each agent based on KANBAN results.',
+            description: 'Final delivery. MUST include a "## Team Contributions" header attributing work to each agent based on KANBAN results.',
             parameters: {
               type: 'object',
               properties: { 

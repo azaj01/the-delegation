@@ -19,10 +19,15 @@ const ResetModal: React.FC<ResetModalProps> = ({ isOpen, onClose, onConfirm }) =
       <div
         className="relative w-full max-w-md bg-white rounded-4xl shadow-2xl overflow-hidden border border-zinc-100"
       >
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500">
-              <AlertTriangle size={24} />
+        <div className="px-8 pt-8 pb-10">
+          <div className="flex items-start justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center text-red-500 shadow-sm shadow-red-100">
+                <AlertTriangle size={32} strokeWidth={2.5} />
+              </div>
+              <h3 className="text-2xl font-black text-zinc-900 leading-tight">
+                Reset Project?
+              </h3>
             </div>
             <button
               onClick={onClose}
@@ -32,11 +37,8 @@ const ResetModal: React.FC<ResetModalProps> = ({ isOpen, onClose, onConfirm }) =
             </button>
           </div>
 
-          <h3 className="text-2xl font-black text-zinc-900 mb-2 leading-tight">
-            Reset Project?
-          </h3>
           <p className="text-sm text-zinc-500 leading-relaxed mb-8">
-            This will clear the current client brief, all tasks, logs, and conversation histories.
+            This will clear the current user brief, all tasks, logs, and conversation histories.
             The team will return to their starting positions and the project will revert to idle.
           </p>
 
