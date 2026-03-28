@@ -1,4 +1,4 @@
-import { Cpu, Save, Shield, Target, Trash2, User, X, Check, Pipette } from 'lucide-react';
+import { Cpu, Save, Target, Trash2, User, X, Check, Pipette, Zap } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
 import { AgentNode, AgenticSystem, USER_ID, USER_NAME, getAllCharacters } from '../../data/agents';
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../../theme/brand';
@@ -215,11 +215,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
 
 
             {/* Capabilities Info */}
-            <div className="space-y-4 pt-4 border-t border-zinc-100">
-              <div className="flex items-center gap-1.5">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300">Capabilities</h4>
-                <InfoBubble text="Tools are enabled automatically based on the agent's position and connections." />
-              </div>
+            {renderField('Capabilities', <Zap size={12} />, (
               <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-4 gap-y-3 flex flex-col">
                 {isLead && (
                   <div className="flex items-center gap-2">
@@ -258,7 +254,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                   </div>
                 )}
               </div>
-            </div>
+            ), "Tools are automatically assigned based on the agent's role and team hierarchy.")}
           </>
         )}
       </div>
