@@ -41,13 +41,13 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
   // When canChat transitions true → false, end any active chat
   useEffect(() => {
     if (prevCanChat.current && !canChat) {
-      if (isChatting) scene?.endChat();
+      if (isChatting) useUiStore.getState().setChatting(false);
     }
     prevCanChat.current = canChat;
-  }, [canChat, isChatting, scene]);
+  }, [canChat, isChatting]);
 
   const handleEndChat = () => {
-    scene?.endChat();
+    useUiStore.getState().setChatting(false);
   };
 
   const handleStartChat = () => {

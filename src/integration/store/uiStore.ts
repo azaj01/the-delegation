@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { DEFAULT_AGENTIC_SET_ID, getAgentSet, getAllAgents } from '../../data/agents';
-import { CharacterState } from '../../types';
+import { AgentState, CharacterState } from '../../types';
 import { useTeamStore } from './teamStore';
 
 export const useUiStore = create<CharacterState>()(
@@ -22,6 +22,10 @@ export const useUiStore = create<CharacterState>()(
     isTyping: false,
     chatMessages: [],
     inspectorTab: 'info',
+    agentStatuses: {},
+    setAgentStatus: (index: number, status: AgentState) => set((s) => ({
+      agentStatuses: { ...s.agentStatuses, [index]: status }
+    })),
 
     isBYOKOpen: false,
     byokError: null,
@@ -63,6 +67,12 @@ export const useUiStore = create<CharacterState>()(
       hoveredNpcIndex: null,
     }),
     setLlmConfig: (config) => set((s) => ({ llmConfig: { ...s.llmConfig, ...config } })),
+    setChatting: (isChatting: boolean) => set((s) => ({ 
+      isChatting, 
+      isTyping: isChatting ? s.isTyping : false,
+      isThinking: isChatting ? s.isThinking : false,
+      chatMessages: isChatting ? s.chatMessages : []
+    })),
   })
 );
 

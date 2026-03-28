@@ -9,6 +9,8 @@ export interface ChatMessage {
 }
 
 // ── Store state (pure data + simple setters) ─────────────────
+export type AgentState = 'idle' | 'moving' | 'working' | 'on_hold' | 'talking';
+
 export interface CharacterState {
   isThinking: boolean;
   instanceCount: number;
@@ -23,6 +25,10 @@ export interface CharacterState {
   isTyping: boolean;
   chatMessages: ChatMessage[];
   inspectorTab: 'info' | 'chat';
+  
+  // Real-time agent statuses for 3D synchronization
+  agentStatuses: Record<number, AgentState>;
+  setAgentStatus: (index: number, status: AgentState) => void;
 
   isBYOKOpen: boolean;
   byokError: string | null;
@@ -40,6 +46,7 @@ export interface CharacterState {
   setHoveredNpc: (index: number | null, pos: { x: number; y: number } | null) => void;
   setHoveredPoi: (id: string | null, label: string | null, pos: { x: number; y: number } | null) => void;
   setLlmConfig: (config: Partial<LLMConfig>) => void;
+  setChatting: (isChatting: boolean) => void;
 }
 
 export enum AnimationName {

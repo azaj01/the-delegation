@@ -61,9 +61,7 @@ export class SceneManager {
     const activeSet = getActiveAgentSet();
     this.simulation = new AgentSimulation(activeSet);
     this.setCoreHandler((idx, text) => this.simulation!.handleUserMessage(idx, text));
-
-    (window as any).sceneManager = this;
-
+    
     this.init();
     this.startWatchingCoreStore();
   }
@@ -124,7 +122,7 @@ export class SceneManager {
     new InputManager(
       this.engine.renderer.domElement, this.stage.camera,
       () => this.controller!.getCPUPositions(), () => this.controller!.getCount(),
-      (idx) => { if (useUiStore.getState().isChatting) this.endChat(); this.selectedIndex = idx !== activeSet.user.index ? idx : null; useUiStore.getState().setSelectedNpc(this.selectedIndex); },
+      (idx) => { if (useUiStore.getState().isChatting) useUiStore.getState().setChatting(false); this.selectedIndex = idx !== activeSet.user.index ? idx : null; useUiStore.getState().setSelectedNpc(this.selectedIndex); },
       (x, z) => this.driverManager?.getPlayerDriver().onFloorClick(x, z),
       (idx, pos) => useUiStore.getState().setHoveredNpc(idx, pos),
       () => this.poiManager.getAllPois(),
@@ -150,24 +148,48 @@ export class SceneManager {
       }
       if ((s.isChatting !== prev.isChatting || s.isThinking !== prev.isThinking || s.isTyping !== prev.isTyping) && this.controller) {
         const set = getActiveAgentSet();
+        if (s.isChatting && !prev.isChatting && s.selectedNpcIndex !== null) {
+           this._startChatVisuals(s.selectedNpcIndex);
+        }
+        
         if (s.isChatting && s.selectedNpcIndex !== null) {
           const npc = s.selectedNpcIndex, user = set.user.index;
           if (this.controller.getState(npc) !== 'walk') this.controller.play(npc, s.isThinking ? 'talk' : 'listen');
           this.controller.setSpeaking(npc, s.isThinking);
           if (this.controller.getState(user) !== 'walk') this.controller.play(user, s.isTyping ? 'talk' : 'listen');
           this.controller.setSpeaking(user, s.isTyping);
-        } else if (!s.isChatting && prev.isChatting && prev.selectedNpcIndex !== null) {
+        } else if (!s.isChatting && prev.isChatting) {
+          // Cleanup Chat Visuals
+          const npc = prev.selectedNpcIndex;
           const user = set.user.index;
-          this.controller.setSpeaking(prev.selectedNpcIndex, false);
-          this.controller.play(prev.selectedNpcIndex, 'idle');
+          if (npc !== null) {
+            this.driverManager?.getNpcDriver(npc)?.setChatting(false);
+            this.controller.setSpeaking(npc, false);
+            this.controller.play(npc, 'idle');
+            this.controller.poiManager.releaseAll(npc);
+          }
           this.controller.setSpeaking(user, false);
           this.controller.play(user, 'idle');
+          this.selectedIndex = null;
         }
+      }
+
+      // Monitor individual agent status changes for autonomous animations
+      if (s.agentStatuses !== prev.agentStatuses && this.controller) {
+        Object.keys(s.agentStatuses).forEach(key => {
+          const idx = parseInt(key);
+          const status = s.agentStatuses[idx];
+          const prevStatus = prev.agentStatuses[idx];
+          if (status !== prevStatus) {
+             if (status === 'talking') this.setNpcTalking(idx, true);
+             else if (prevStatus === 'talking') this.setNpcTalking(idx, false);
+          }
+        });
       }
     }));
   }
 
-  public startChat(npcIndex: number): void {
+  private _startChatVisuals(npcIndex: number): void {
     if (!this.controller) return;
     const pos = this.controller.getCPUPositions(); if (!pos) return;
     const set = getActiveAgentSet();
@@ -177,7 +199,6 @@ export class SceneManager {
     if (dir.length() < 0.01) dir.set(1, 0, 0);
     const target = npc.clone().addScaledVector(dir, 1.2);
 
-    useUiStore.setState({ selectedNpcIndex: npcIndex, isChatting: true, chatMessages: [], isThinking: false });
     this.selectedIndex = npcIndex;
     this.driverManager?.getNpcDriver(npcIndex)?.setChatting(true);
     this.controller.cancelMovement(npcIndex);
@@ -192,23 +213,10 @@ export class SceneManager {
     });
   }
 
-  public endChat(): void {
-    const { selectedNpcIndex } = useUiStore.getState();
-    if (selectedNpcIndex !== null) this.driverManager?.getNpcDriver(selectedNpcIndex)?.setChatting(false);
-    useUiStore.setState({ isChatting: false, isTyping: false, isThinking: false, chatMessages: [] });
-    if (selectedNpcIndex !== null && this.controller) {
-      this.controller.setSpeaking(selectedNpcIndex, false);
-      this.controller.play(selectedNpcIndex, 'idle');
-      this.controller.poiManager.releaseAll(selectedNpcIndex);
-    }
-    if (this.controller) {
-      const set = getActiveAgentSet();
-      this.controller.setSpeaking(set.user.index, false);
-      this.controller.play(set.user.index, 'idle');
-    }
-    this.selectedIndex = null;
-    useUiStore.getState().setSelectedNpc(null);
+  public startChat(npcIndex: number): void {
+    useUiStore.getState().setChatting(true);
   }
+
 
   public async sendMessage(text: string): Promise<void> {
     const { selectedNpcIndex, isThinking } = useUiStore.getState();
@@ -358,7 +366,7 @@ export class SceneManager {
 
   public resetScene() {
     if (!this.controller) return;
-    this.endChat();
+    useUiStore.getState().setChatting(false);
     const set = getActiveAgentSet();
     getAllAgents(set).forEach((a) => this.controller?.setSpeaking(a.index, false));
     this.controller.warpAllToSpawn(set.user.index, getAllAgents(set).map(a => a.index));

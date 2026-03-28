@@ -1,13 +1,14 @@
 import { AgentNode } from '../../data/agents';
 import { LLMMessage } from '../../core/llm/types';
+import { AgentState } from '../../types';
 import { LLMFactory } from '../../core/llm/LLMFactory';
 import { useUiStore } from '../../integration/store/uiStore';
 import { useCoreStore } from '../../integration/store/coreStore';
-import { ToolRegistry } from './ToolRegistry';
+import { ToolRegistry, AgentActionContext } from '../../core/agent/ToolRegistry';
 
-export type AgentState = 'idle' | 'moving' | 'working' | 'on_hold' | 'talking';
 
-export class AgentHost {
+
+export class AgentHost implements AgentActionContext {
   public state: AgentState = 'idle';
   private history: LLMMessage[] = [];
   private summary: string = '';
@@ -111,8 +112,7 @@ export class AgentHost {
       // Auto-close chat for system acknowledgments after tool calls
       if (options.isChat && (isBrief || isResolution)) {
         setTimeout(() => {
-          const scene = (window as any).sceneManager;
-          if (scene && useUiStore.getState().isChatting) scene.endChat();
+          if (useUiStore.getState().isChatting) useUiStore.getState().setChatting(false);
         }, 3000);
       }
 
@@ -126,8 +126,8 @@ export class AgentHost {
       this.syncToStore();
 
       // Process tools
-      for (const tc of toolCalls as any[]) {
-        ToolRegistry.process(this, tc);
+      for (const tc of toolCalls) {
+        ToolRegistry.process(this, tc as any);
       }
 
       return { text, toolCalls };
@@ -205,6 +205,15 @@ Current Objective: ${objectives[phase as keyof typeof objectives] || ''}`;
 
   public setState(state: AgentState) {
     this.state = state;
+    useUiStore.getState().setAgentStatus(this.data.index, state);
+  }
+
+  public getParticipantIds(): number[] {
+    return (this.simulation.getAllAgents() as any[]).map(a => a.data.index);
+  }
+
+  public triggerMeeting(agentIndex: number, taskId: string, targetId?: number, message?: string) {
+    this.simulation?.onAgentRequestMeeting?.(agentIndex, taskId, targetId, message);
   }
 
   public dispose() {

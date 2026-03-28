@@ -114,9 +114,6 @@ export class AgentSimulation {
     agent.setTask(taskId); 
     useCoreStore.getState().updateTaskStatus(taskId, 'in_progress');
     
-    const scene = (window as any).sceneManager;
-    if (scene) scene.setNpcWorking(agentIndex, true);
-
     await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1000));
 
     try {
@@ -127,8 +124,6 @@ export class AgentSimulation {
       console.error(`[AgentSimulation] Agent ${agentIndex} failed:`, err);
     } finally {
       agent.setTask(null); // Back to idle
-      const currentTask = useCoreStore.getState().tasks.find(t => t.id === taskId);
-      if (currentTask?.status === 'done' && scene) scene.setNpcWorking(agentIndex, false);
       
       // KEY: When finished, check if there are other scheduled tasks waiting
       this.processScheduledTasks();
@@ -152,11 +147,7 @@ export class AgentSimulation {
 
   public onAgentRequestMeeting(agentIndex: number, taskId: string, targetIndex?: number, message?: string) {
     this.meetingRegistry.set(taskId, { requesterIndex: agentIndex, targetIndex, arrived: new Set(), message, started: false });
-    const scene = (window as any).sceneManager;
-    if (scene) {
-      scene.moveNpcToBoardroom(agentIndex);
-      if (targetIndex !== undefined) scene.moveNpcToBoardroom(targetIndex);
-    }
+    
     setTimeout(() => {
       const meeting = this.meetingRegistry.get(taskId);
       if (meeting && !meeting.started) this.startMeetingCognition(taskId, meeting);
@@ -181,15 +172,12 @@ export class AgentSimulation {
 
     if (target) {
       if (target.isThinking) { meeting.started = false; return; }
-      const scene = (window as any).sceneManager;
       requester.setState('talking'); target.setState('talking');
-      if (scene) { scene.setNpcTalking(meeting.requesterIndex, true); scene.setNpcTalking(meeting.targetIndex, true); }
       try {
         await requester.think(meeting.message || `Meeting for ${taskId}.`, { silent: true });
         await target.think(`Review meeting for ${taskId}.`, { silent: true });
       } finally {
         requester.setState('on_hold'); target.setState('on_hold');
-        if (scene) { scene.setNpcTalking(meeting.requesterIndex, false); scene.setNpcTalking(meeting.targetIndex, false); }
         useCoreStore.getState().updateTaskStatus(taskId, 'scheduled');
         this.processScheduledTasks();
       }

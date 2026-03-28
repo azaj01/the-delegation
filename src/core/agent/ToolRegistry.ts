@@ -1,13 +1,28 @@
 import { useCoreStore } from '../../integration/store/coreStore';
-import { AgentHost } from './AgentHost';
+import { LLMMessage } from '../llm/types';
 
 export interface ToolCall {
   name: string;
   args: any;
 }
 
+/**
+ * Interface that decuples the ToolRegistry from the 3D Simulation (AgentHost).
+ * This allows the tool logic to be tested and used independently of the simulation.
+ */
+export interface AgentActionContext {
+  data: { index: number; name: string };
+  setState: (state: 'idle' | 'moving' | 'working' | 'on_hold' | 'talking') => void;
+  appendHistory: (message: LLMMessage) => void;
+  triggerMeeting?: (agentIndex: number, taskId: string, targetId?: number, message?: string) => void;
+  getParticipantIds: () => number[];
+}
+
 export class ToolRegistry {
-  public static process(agent: AgentHost, toolCall: ToolCall): boolean {
+  /**
+   * Processes a tool call by updating the global state and triggering necessary agent/simulation side effects.
+   */
+  public static process(agent: AgentActionContext, toolCall: ToolCall): boolean {
     const store = useCoreStore.getState();
     const { name, args } = toolCall;
 
@@ -28,7 +43,7 @@ export class ToolRegistry {
 
       case 'propose_task': {
         const { title, description, agentId, requiresApproval } = args;
-        const validAgentIds = (agent.simulation.getAllAgents() as any[]).map(a => a.data.index);
+        const validAgentIds = agent.getParticipantIds();
         const finalAgentId = validAgentIds.includes(agentId) ? agentId : agent.data.index;
 
         const newTask = store.addTask({
@@ -51,12 +66,16 @@ export class ToolRegistry {
         const { taskId, question } = args;
         store.holdTaskForConsultation(taskId, 0); // 0 is the User
         agent.setState('on_hold');
+        
+        // Pause other active tasks for this agent
         store.tasks.filter(t => t.id !== taskId && t.assignedAgentId === agent.data.index && t.status === 'in_progress')
           .forEach(t => store.updateTaskStatus(t.id, 'scheduled'));
+        
         store.setPendingApproval(taskId);
         store.addLogEntry({ agentIndex: agent.data.index, action: `requested user approval — "${question}"`, taskId });
         agent.appendHistory({ role: 'assistant', content: `I need your approval to continue with the task: "${question}"` });
-        (agent as any).simulation?.onAgentRequestMeeting?.(agent.data.index, taskId);
+        
+        agent.triggerMeeting?.(agent.data.index, taskId);
         return true;
       }
 
@@ -64,9 +83,13 @@ export class ToolRegistry {
         const { targetId, taskId, message } = args;
         store.holdTaskForConsultation(taskId, targetId);
         agent.setState('on_hold');
+        
+        // Pause other active tasks for this agent
         store.tasks.filter(t => t.id !== taskId && t.assignedAgentId === agent.data.index && t.status === 'in_progress')
           .forEach(t => store.updateTaskStatus(t.id, 'scheduled'));
+          
         store.addLogEntry({ agentIndex: agent.data.index, action: `requested consultation with agent ${targetId}`, taskId });
+        
         const isUserTarget = targetId === 0;
         agent.appendHistory({
           role: 'assistant',
@@ -74,7 +97,8 @@ export class ToolRegistry {
             ? `I need to consult with you about this task: "${message}"`
             : `I've paused my work to consult with another agent about this task: "${message}"`
         });
-        (agent as any).simulation?.onAgentRequestMeeting?.(agent.data.index, taskId, targetId, message);
+        
+        agent.triggerMeeting?.(agent.data.index, taskId, targetId, message);
         return true;
       }
 
@@ -89,8 +113,11 @@ export class ToolRegistry {
 
         store.setFinalOutput(output);
         store.setPhase('done');
+        
+        // Mark remaining active tasks as done (optional, but keep for consistency)
         store.tasks.filter(t => t.assignedAgentId === agent.data.index && t.status === 'in_progress')
           .forEach(t => store.updateTaskStatus(t.id, 'done'));
+          
         store.addLogEntry({ agentIndex: agent.data.index, action: 'delivered final project results', taskId: undefined });
         return true;
       }
