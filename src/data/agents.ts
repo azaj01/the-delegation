@@ -16,12 +16,15 @@ export interface AgentNode {
   subagents?: AgentNode[];
 }
 
+export type OutputType = 'text' | 'image' | 'music' | 'video';
 export interface AgenticSystem {
   id: string;
   teamName: string;
   teamType: string;
   teamDescription: string;
   color: string;
+  outputType: OutputType;
+  outputModel: string;
   user: {
     index: number;
     model: string;
@@ -38,6 +41,8 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamType: 'Consultancy',
     teamDescription: 'A single high-capability agent for direct tasks.',
     color: '#C084FC',
+    outputType: 'text',
+    outputModel: 'gemini-3-flash-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'expert',
@@ -57,6 +62,8 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamType: 'Pipeline',
     teamDescription: 'A linear chain of production for content creation.',
     color: '#FB923C',
+    outputType: 'text',
+    outputModel: 'gemini-3-flash-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'writer-lead',
@@ -98,6 +105,8 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamType: 'Engineering',
     teamDescription: 'A secure development pipeline with built-in auditing.',
     color: '#2DD4BF',
+    outputType: 'text',
+    outputModel: 'gemini-3-flash-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'lead-dev',
@@ -128,6 +137,8 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamType: 'Task Force',
     teamDescription: 'Massive parallel execution power for large-scale tasks.',
     color: '#818CF8',
+    outputType: 'text',
+    outputModel: 'gemini-3-flash-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'swarm-leader',
@@ -185,6 +196,8 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamType: 'Matrix',
     teamDescription: 'A delegating hub that manages specialized departments.',
     color: '#34D399',
+    outputType: 'text',
+    outputModel: 'gemini-3-flash-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'studio-head',
@@ -246,6 +259,8 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamType: 'Enterprise',
     teamDescription: 'A deep chain of command from Strategy to Execution.',
     color: '#94A3B8',
+    outputType: 'text',
+    outputModel: 'gemini-3-flash-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'ceo',

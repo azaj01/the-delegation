@@ -1,4 +1,4 @@
-import { Edit2, Pipette, Trash2, Users, X } from 'lucide-react';
+import { Edit2, Pipette, Trash2, Users, X, FileText, Image, Music, Video } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AgenticSystem, DEFAULT_AGENTIC_SET_ID, getAllAgents } from '../../data/agents';
 import { USER_COLOR } from '../../theme/brand';
@@ -43,8 +43,10 @@ export const TeamCard: React.FC<TeamCardProps> = ({
       setLocalEditData({
         teamName: system.teamName || '',
         teamType: system.teamType || '',
-        teamDescription: system.teamDescription || '',
-        color: system.color || '#A855F7'
+        teamDescription: system.teamDescription || 'A custom agentic team.',
+        color: system.color || '#A855F7',
+        outputType: system.outputType || 'text',
+        outputModel: system.outputModel || 'gemini-1.5-flash-latest'
       });
       setErrorMsg(null);
       setShowDeleteConfirm(false);
@@ -60,7 +62,9 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     return localEditData.teamName !== (system.teamName || '') ||
       localEditData.teamType !== (system.teamType || '') ||
       localEditData.teamDescription !== (system.teamDescription || '') ||
-      localEditData.color !== (system.color || '#A855F7');
+      localEditData.color !== (system.color || '#A855F7') ||
+      localEditData.outputType !== (system.outputType || 'text') ||
+      localEditData.outputModel !== (system.outputModel || 'gemini-3-flash-preview');
   }, [localEditData, system]);
 
   const isFormValid = !!(localEditData.teamName?.trim() &&
@@ -234,12 +238,69 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                   onBlur={(e) => e.target.style.borderColor = '#f4f4f5'}
                 />
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Output Type</label>
+                  <select
+                    value={localEditData.outputType || 'text'}
+                    onChange={(e) => setLocalEditData(prev => ({ ...prev, outputType: e.target.value as any }))}
+                    className="w-full bg-white border border-zinc-100 text-[11px] font-bold rounded-xl px-2.5 py-1.5 outline-none cursor-pointer"
+                  >
+                    <option value="text">TEXT</option>
+                    <option value="image">IMAGE</option>
+                    <option value="music">MUSIC</option>
+                    <option value="video">VIDEO</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Output Model</label>
+                  <select
+                    value={localEditData.outputModel || 'gemini-3-flash-preview'}
+                    onChange={(e) => setLocalEditData(prev => ({ ...prev, outputModel: e.target.value }))}
+                    className="w-full bg-white border border-zinc-100 text-[10px] font-bold rounded-xl px-2.5 py-1.5 outline-none cursor-pointer lowercase"
+                  >
+                    {localEditData.outputType === 'text' ? (
+                      <>
+                        <option value="gemini-3-flash-preview">gemini-3-flash-preview</option>
+                        <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview</option>
+                        <option value="gemini-3.1-flash-lite-preview">gemini-3.1-flash-lite-preview</option>
+                      </>
+                    ) : localEditData.outputType === 'image' ? (
+                      <>
+                        <option value="gemini-3.1-flash-image-preview">gemini-3.1-flash-image-preview</option>
+                        <option value="gemini-3-pro-image-preview">gemini-3-pro-image-preview</option>
+                        <option value="gemini-2.5-flash-image">gemini-2.5-flash-image</option>
+                      </>
+                    ) : localEditData.outputType === 'music' ? (
+                      <>
+                        <option value="lyria-3-clip-preview">lyria-3-clip-preview</option>
+                        <option value="lyria-3-pro-preview">lyria-3-pro-preview</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="veo-3.1-fast-generate-preview">veo-3.1-fast-generate-preview</option>
+                        <option value="veo-3.1-generate-preview">veo-3.1-generate-preview</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+              </div>
               <button onClick={handleSave} disabled={!isFormValid} className={`w-full py-2.5 mt-1 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all shadow-lg ${isFormValid ? 'bg-zinc-900 text-white shadow-black/10' : 'bg-zinc-50 text-zinc-300 shadow-none cursor-not-allowed'}`}>Save Changes</button>
             </div>
           ) : (
             <div className="space-y-0.5 mb-2">
               <h4 className={`text-[11px] font-black leading-tight uppercase tracking-wider truncate mb-0.5 ${system.teamName ? 'text-zinc-900' : 'text-zinc-300'}`}>{system.teamName || 'Untitled Team'}</h4>
-              <p className={`text-[9px] font-bold uppercase tracking-[0.1em] ${system.teamType ? 'text-zinc-300' : 'text-zinc-200'}`}>{system.teamType || 'Unspecified Type'}</p>
+              <div className="flex items-center gap-2 mb-1">
+                <p className={`text-[9px] font-bold uppercase tracking-[0.1em] ${system.teamType ? 'text-zinc-300' : 'text-zinc-200'}`}>{system.teamType || 'Unspecified Type'}</p>
+                <div className="w-1 h-1 rounded-full bg-zinc-200" />
+                <div className="flex items-center gap-1 text-[8px] font-black text-zinc-400 uppercase tracking-widest">
+                  {system.outputType === 'text' && <FileText size={10} />}
+                  {system.outputType === 'image' && <Image size={10} />}
+                  {system.outputType === 'music' && <Music size={10} />}
+                  {system.outputType === 'video' && <Video size={10} />}
+                  {system.outputType || 'TEXT'}
+                </div>
+              </div>
               <p className={`text-[10px] leading-relaxed font-medium mt-1.5 line-clamp-3 ${system.teamDescription ? 'text-zinc-500/80' : 'text-zinc-300 italic'}`}>{system.teamDescription || 'No description provided.'}</p>
             </div>
           )}

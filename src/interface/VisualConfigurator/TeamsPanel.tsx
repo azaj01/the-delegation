@@ -30,6 +30,8 @@ export const TeamsPanel: React.FC<TeamsPanelProps> = ({ onSelectTeam, selectedTe
       teamType: 'Custom',
       teamDescription: 'A custom agentic team.',
       color: '#A855F7',
+      outputType: 'text',
+      outputModel: 'gemini-3-flash-preview',
       user: {
         index: 0,
         model: 'Human',

@@ -4,6 +4,8 @@ import { AgentState } from '../../types';
 import { LLMFactory } from '../../core/llm/LLMFactory';
 import { useUiStore } from '../../integration/store/uiStore';
 import { useCoreStore } from '../../integration/store/coreStore';
+import { useTeamStore } from '../../integration/store/teamStore';
+import { AGENTIC_SETS } from '../../data/agents';
 import { ToolRegistry, AgentActionContext } from '../../core/agent/ToolRegistry';
 
 
@@ -128,7 +130,11 @@ export class AgentHost implements AgentActionContext {
 
       // Process tools
       for (const tc of toolCalls) {
-        ToolRegistry.process(this, tc as any);
+        const handled = ToolRegistry.process(this, tc as any);
+        // SPECIAL: If deliver_project was called, check if we need multimodal generation
+        if (tc.name === 'deliver_project' && handled) {
+          this.handleFinalAssetGeneration(tc.args.output);
+        }
       }
 
       // If we were on hold and resolved it via tool calls, go back to idle so simulation continues
@@ -143,6 +149,68 @@ export class AgentHost implements AgentActionContext {
     } finally {
       this.isThinking = false;
       this.simulation.processScheduledTasks();
+    }
+  }
+
+  private async handleFinalAssetGeneration(prompt: string) {
+    const core = useCoreStore.getState();
+    const teamId = useTeamStore.getState().selectedAgentSetId;
+    const activeTeam = useTeamStore.getState().customSystems.find(s => s.id === teamId) 
+      || AGENTIC_SETS.find(s => s.id === teamId);
+
+    if (!activeTeam || activeTeam.outputType === 'text') return;
+
+    try {
+      const llmConfig = useUiStore.getState().llmConfig;
+      const provider = LLMFactory.getProvider(llmConfig) as any;
+      const model = activeTeam.outputModel || llmConfig.model;
+
+      core.addLogEntry({
+        agentIndex: 0, // System
+        action: `Generating final ${activeTeam.outputType} using ${model}...`,
+        taskId: undefined
+      });
+
+      let assetContent: string = '';
+      let usage: any = undefined;
+
+      if (activeTeam.outputType === 'image') {
+        const result = await provider.generateMultimodal(prompt, model, ["IMAGE", "TEXT"]);
+        assetContent = result.data || '';
+        usage = result.usage;
+      } else if (activeTeam.outputType === 'music') {
+        const result = await provider.generateMultimodal(prompt, model, ["AUDIO", "TEXT"]);
+        assetContent = result.data || '';
+        usage = result.usage;
+      } else if (activeTeam.outputType === 'video') {
+        const result = await provider.generateVideo(prompt, model, (msg) => {
+          console.log(`[System:Video] ${msg}`);
+        });
+        assetContent = result.videoUrl || '';
+        usage = result.usage;
+      }
+
+      // 2. Log Response for the Generation (System action)
+      core.addResponseLog({
+        agentIndex: 0, // System
+        agentName: 'System',
+        content: `Final ${activeTeam.outputType} generated successfully.`,
+        usage: usage,
+        raw: { model, ...usage },
+        taskId: undefined
+      });
+
+      core.setFinalAsset(activeTeam.outputType === 'music' ? 'audio' : activeTeam.outputType as any, assetContent);
+      core.setPhase('done');
+      core.setFinalOutputOpen(true);
+    } catch (error) {
+      console.error('[AgentHost] Final asset generation failed:', error);
+      core.setIsGeneratingAsset(false);
+      core.addLogEntry({
+        agentIndex: 0,
+        action: `Error generating final ${activeTeam.outputType}: ${error instanceof Error ? error.message : String(error)}`,
+        taskId: undefined
+      });
     }
   }
 
@@ -172,6 +240,12 @@ export class AgentHost implements AgentActionContext {
         }).join('\n')
       : 'Empty';
 
+    const activeTeam = useTeamStore.getState().customSystems.find(s => s.id === useTeamStore.getState().selectedAgentSetId) 
+      || AGENTIC_SETS.find(s => s.id === useTeamStore.getState().selectedAgentSetId);
+    const outputInstruction = activeTeam?.outputType !== 'text' 
+      ? `\n4. TEAM OUTPUT: ${activeTeam?.outputType?.toUpperCase()}. Your 'deliver_project' output MUST be a highly detailed PROMPT for a ${activeTeam?.outputType} generator model (${activeTeam?.outputModel}).`
+      : '';
+
     return `ID: ${this.data.name}. Role: ${this.data.description}. Phase: ${phase}.
 ${brief ? `Brief: ${brief}` : ''}
 Team: [0]User, ${team}
@@ -180,7 +254,7 @@ ${board}
 RULES:
 1. MAX 30 WORDS for conversational/chat responses. Outputs for 'complete_task' and 'deliver_project' MUST be rich, professional, and detailed (Markdown supported).
 2. Tools only in WORKING (except set_user_brief in IDLE).
-3. consultation needs taskId & targetId.
+3. consultation needs taskId & targetId.${outputInstruction}
 Goal: ${objectives[phase as keyof typeof objectives] || ''}`;
   }
 

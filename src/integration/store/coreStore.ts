@@ -67,6 +67,9 @@ interface CoreState {
   agentTokenUsage: Record<number, LLMTokenUsage>
   totalEstimatedCost: number
   agentEstimatedCost: Record<number, number>
+  finalAssetType: 'text' | 'image' | 'audio' | 'video'
+  finalAssetContent: string | null
+  isGeneratingAsset: boolean
 
   // ── Tasks ────────────────────────────────────────────────────
   tasks: Task[]
@@ -93,6 +96,8 @@ interface CoreState {
   setPhase: (phase: ProjectPhase) => void;
   startProject: (brief: string) => void;
   setFinalOutput: (output: string) => void;
+  setFinalAsset: (type: 'image' | 'audio' | 'video', content: string) => void;
+  setIsGeneratingAsset: (isGenerating: boolean) => void;
 
   // ── Actions — Tasks ───────────────────────────────────────────
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Task;
@@ -141,6 +146,9 @@ export const useCoreStore = create<CoreState>()(
       agentTokenUsage: {},
       totalEstimatedCost: 0,
       agentEstimatedCost: {},
+      finalAssetType: 'text',
+      finalAssetContent: null,
+      isGeneratingAsset: false,
       tasks: [],
       actionLog: [],
       debugLog: [],
@@ -171,12 +179,17 @@ export const useCoreStore = create<CoreState>()(
         agentTokenUsage: {},
         totalEstimatedCost: 0,
         agentEstimatedCost: {},
+        finalAssetType: 'text',
+        finalAssetContent: null,
+        isGeneratingAsset: false,
       }),
 
       setUserBrief: (brief) => set({ userBrief: brief }),
       setPhase: (phase) => set({ phase }),
-      startProject: (brief) => set({ userBrief: brief, phase: 'working' }),
-      setFinalOutput: (output) => set({ finalOutput: output }),
+      startProject: (brief) => set({ userBrief: brief, phase: 'working', finalAssetType: 'text', finalAssetContent: null }),
+      setFinalOutput: (output) => set({ finalOutput: output, finalAssetType: 'text' }),
+      setFinalAsset: (type, content) => set({ finalAssetType: type, finalAssetContent: content, isGeneratingAsset: false }),
+      setIsGeneratingAsset: (isGenerating) => set({ isGeneratingAsset: isGenerating }),
 
       addTask: (task) => {
         const newTask: Task = {
@@ -280,11 +293,10 @@ export const useCoreStore = create<CoreState>()(
           let nextAgentCost = { ...s.agentEstimatedCost };
 
           if (entry.usage) {
-            // Get model from UI store (current global model)
-            // Note: In a multi-model team this might be slightly off if agents use different models,
-            // but for now it's a good estimate.
-            const modelName = useUiStore.getState().llmConfig.model;
-            const callCost = calculateCost(entry.usage.promptTokens, entry.usage.completionTokens, modelName);
+            const modelName = entry.raw?.model || useUiStore.getState().llmConfig.model;
+            // For multimodal outputs, we might need to pass the duration/count if available in raw
+            const durationOrCount = entry.raw?.duration || entry.raw?.count;
+            const callCost = calculateCost(entry.usage.promptTokens, entry.usage.completionTokens, modelName, durationOrCount);
             
             nextTotalCost += callCost;
             nextAgentCost[entry.agentIndex] = (s.agentEstimatedCost[entry.agentIndex] || 0) + callCost;

@@ -2,62 +2,136 @@ import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useCoreStore } from '../integration/store/coreStore'
+import { Loader2 } from 'lucide-react'
 
 export function FinalOutputModal() {
-  const { isFinalOutputOpen, setFinalOutputOpen, finalOutput } = useCoreStore()
+  const { isFinalOutputOpen, setFinalOutputOpen, finalOutput, finalAssetType, finalAssetContent, isGeneratingAsset } = useCoreStore()
   const [copied, setCopied] = useState(false)
 
-  if (!isFinalOutputOpen || !finalOutput) return null
+  if (!isFinalOutputOpen) return null
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(finalOutput)
+    const textToCopy = finalAssetType === 'text' ? (finalOutput || '') : (finalAssetContent || '');
+    await navigator.clipboard.writeText(textToCopy)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const renderContent = () => {
+    if (isGeneratingAsset) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <Loader2 className="animate-spin text-zinc-300" size={40} strokeWidth={1.5} />
+          <p className="text-zinc-400 font-black uppercase tracking-widest text-[10px]">Generating {finalAssetType} asset...</p>
+        </div>
+      );
+    }
+
+    if (finalAssetType === 'text') {
+      return (
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {finalOutput || ''}
+        </ReactMarkdown>
+      );
+    }
+
+    if (finalAssetType === 'image' && finalAssetContent) {
+      return (
+        <div className="space-y-4">
+          <img 
+            src={`data:image/png;base64,${finalAssetContent}`} 
+            alt="Final Generated Asset" 
+            className="w-full rounded-2xl shadow-xl border border-black/5"
+          />
+          <div className="p-4 bg-zinc-100 rounded-xl">
+             <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">PROMPT USED:</p>
+             <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (finalAssetType === 'audio' && finalAssetContent) {
+      return (
+        <div className="space-y-6 flex flex-col items-center py-10">
+          <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 shadow-inner">
+             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+          </div>
+          <audio controls className="w-full max-w-sm">
+            <source src={`data:audio/mp3;base64,${finalAssetContent}`} type="audio/mp3" />
+            Your browser does not support the audio element.
+          </audio>
+          <div className="w-full p-4 bg-zinc-100 rounded-xl">
+             <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">LYRICS / PROMPT:</p>
+             <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (finalAssetType === 'video' && finalAssetContent) {
+      return (
+        <div className="space-y-4">
+          <video controls className="w-full rounded-2xl shadow-xl border border-black/5">
+            <source src={finalAssetContent} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <div className="p-4 bg-zinc-100 rounded-xl">
+             <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">SCRIPT / PROMPT:</p>
+             <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput}</p>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  }
+
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
       onClick={() => setFinalOutputOpen(false)}
     >
       <div
-        className="bg-zinc-50 border border-black/10 rounded-2xl w-160 max-w-[95vw] max-h-[80vh] flex flex-col shadow-2xl"
+        className="bg-zinc-50 border border-black/10 rounded-[32px] w-180 max-w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-black/5">
+        <div className="flex items-center justify-between px-8 py-6 border-b border-black/5 bg-white">
           <div>
-            <h2 className="text-sm font-black uppercase tracking-widest text-zinc-800">
-              Final Output
+            <h2 className="text-sm font-black uppercase tracking-widest text-zinc-800 flex items-center gap-2">
+              {finalAssetType !== 'text' && <span className="px-2 py-0.5 bg-zinc-900 text-white text-[8px] rounded-md tracking-tighter">MULTIMODAL</span>}
+              Final {finalAssetType} Deliverable
             </h2>
             <p className="text-[11px] text-zinc-400 mt-0.5">
-              Crafted by your agentic team
+              Refined and generated by your autonomous team
             </p>
           </div>
           <button
             onClick={() => setFinalOutputOpen(false)}
-            className="text-zinc-400 hover:text-zinc-700 transition-colors text-lg leading-none"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors text-lg leading-none transition-all"
           >
             ✕
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-8 py-8">
           <div className="markdown-content text-sm text-zinc-700 leading-relaxed font-sans">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {finalOutput}
-            </ReactMarkdown>
+            {renderContent()}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-black/5 flex justify-end">
+        <div className="px-8 py-6 border-t border-black/5 flex justify-between items-center bg-white">
+           <div className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest leading-none">
+             Generated March 2026
+           </div>
           <button
             onClick={handleCopy}
-            className="px-5 py-2.5 bg-zinc-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black active:scale-[0.98] transition-all"
+            className="px-6 py-3 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-black/10"
           >
-            {copied ? 'Copied!' : 'Copy Output'}
+            {copied ? 'Copied!' : `Copy ${finalAssetType === 'text' ? 'Output' : 'Prompt'}`}
           </button>
         </div>
       </div>

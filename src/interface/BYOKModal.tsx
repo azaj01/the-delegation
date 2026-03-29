@@ -10,8 +10,6 @@ const STORAGE_KEY = 'byok-config';
 
 const PROVIDERS = [
   { id: 'gemini', label: 'Gemini', model: 'gemini-3-flash-preview', enabled: true },
-  { id: 'openai', label: 'OpenAI', model: 'gpt-4o', enabled: false },
-  { id: 'anthropic', label: 'Anthropic', model: 'claude-opus-4-5', enabled: false },
 ] as const;
 
 const BYOKModal: React.FC<BYOKModalProps> = ({ onClose }) => {
@@ -75,16 +73,28 @@ const BYOKModal: React.FC<BYOKModalProps> = ({ onClose }) => {
           <X size={18} />
         </button>
 
-        <div className="max-w-sm mx-auto">
+        <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="mb-6">
-            <h2 className="text-2xl font-black text-zinc-900 tracking-tight mb-1">
-              API Key
-            </h2>
-            <p className="text-zinc-400 text-xs font-medium leading-relaxed">
-              Your key is stored locally and never leaves your browser.
-            </p>
-          </div>
+              <h2 className="text-3xl font-black text-zinc-900 tracking-tight mb-2">
+                Gemini API Key
+              </h2>
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noopener"
+                className="group inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 hover:border-emerald-200 rounded-full transition-all duration-200 mb-3"
+              >
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Get Gemini API Key</span>
+                <svg className="text-emerald-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="7" y1="17" x2="17" y2="7"></line>
+                  <polyline points="7 7 17 7 17 17"></polyline>
+                </svg>
+              </a>
+              <p className="text-zinc-400 text-sm font-medium leading-relaxed max-w-[240px]">
+                Your key is stored locally and never leaves your browser.
+              </p>
+            </div>
 
           {/* Error Message */}
           {byokError && (() => {
@@ -116,69 +126,26 @@ const BYOKModal: React.FC<BYOKModalProps> = ({ onClose }) => {
             );
           })()}
 
-          {/* Provider selector */}
-          <div className="mb-5">
-            <label className="block text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 mb-2">
-              Provider
-            </label>
-            <div className="flex gap-2 flex-wrap">
-              {PROVIDERS.map((p) => (
-                <button
-                  key={p.id}
-                  disabled={!p.enabled}
-                  onClick={() => p.enabled && setSelectedProvider(p.id)}
-                  className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all border
-                    ${selectedProvider === p.id && p.enabled
-                      ? 'bg-zinc-900 text-white border-zinc-900'
-                      : p.enabled
-                        ? 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-400 hover:text-zinc-900 cursor-pointer'
-                        : 'bg-white text-zinc-300 border-zinc-100 cursor-not-allowed'
-                    }`}
-                >
-                  {p.label}
-                  {!p.enabled && (
-                    <span className="ml-1 text-[9px] normal-case tracking-normal font-medium opacity-60">soon</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* API Key input */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400">
-                Key
-              </label>
-              {selectedProvider === 'gemini' && (
-                <a
-                  href="https://aistudio.google.com/app/apikey"
-                  target="_blank"
-                  rel="noopener"
-                  className="group flex items-center gap-2 px-3 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 hover:border-emerald-200 rounded-full transition-all duration-200"
-                >
-                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Get Gemini API Key</span>
-                  <svg className="text-emerald-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="7" y1="17" x2="17" y2="7"></line>
-                    <polyline points="7 7 17 7 17 17"></polyline>
-                  </svg>
-                </a>
-              )}
-            </div>
-            <div className="relative">
+          <div className="mb-10">
+            <label className="block text-[11px] font-black uppercase tracking-[0.2em] text-zinc-300 mb-4 ml-1">
+              API Key
+            </label>
+            <div className="relative group">
               <input
                 type={showKey ? 'text' : 'password'}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="Paste your API key here"
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 pr-10 text-sm text-zinc-900 font-mono placeholder:text-zinc-300 placeholder:font-sans focus:outline-none focus:border-zinc-400 transition-colors"
+                className="w-full bg-zinc-50 border border-zinc-100 rounded-3xl px-6 py-4 pr-14 text-sm text-zinc-900 font-mono placeholder:text-zinc-300 placeholder:font-sans focus:outline-none focus:border-zinc-200 transition-all shadow-sm group-hover:shadow-md"
               />
               <button
                 type="button"
                 onClick={() => setShowKey(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-300 hover:text-zinc-600 transition-colors cursor-pointer"
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-200 hover:text-zinc-400 transition-colors cursor-pointer"
               >
-                {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showKey ? <EyeOff size={20} strokeWidth={2.5} /> : <Eye size={20} strokeWidth={2.5} />}
               </button>
             </div>
           </div>
@@ -188,16 +155,18 @@ const BYOKModal: React.FC<BYOKModalProps> = ({ onClose }) => {
             <button
               onClick={handleClear}
               disabled={!isSaved && !apiKey}
-              className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-zinc-300 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed group"
             >
-              <Trash2 size={13} />
+              <div className="p-2 rounded-xl group-hover:bg-red-50 transition-colors">
+                <Trash2 size={16} strokeWidth={2.5} />
+              </div>
               Clear
             </button>
 
             <button
               onClick={handleSave}
               disabled={!apiKey.trim()}
-              className="px-8 py-3 bg-zinc-900 text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] hover:bg-black transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100"
+              className="px-12 py-4 bg-zinc-900 text-white rounded-[24px] text-xs font-black uppercase tracking-[0.2em] hover:bg-black transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100 shadow-xl shadow-black/10"
             >
               Save
             </button>

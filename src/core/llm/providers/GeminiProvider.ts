@@ -83,6 +83,78 @@ export class GeminiProvider implements LLMProvider {
     };
   }
 
+  async generateMultimodal(
+    prompt: string,
+    modelName: string,
+    modalities: string[] = ["IMAGE", "TEXT"]
+  ): Promise<{ content: string | null; data?: string; usage?: any }> {
+    const result = await this.client.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: {
+        responseModalities: modalities as any,
+      }
+    });
+
+    const candidate = result.candidates?.[0];
+    const parts = candidate?.content?.parts || [];
+
+    let contentStr: string | null = null;
+    let base64Data: string | undefined;
+
+    for (const part of parts) {
+      if (part.text) {
+        contentStr = (contentStr || '') + part.text;
+      } else if (part.inlineData) {
+        base64Data = part.inlineData.data;
+      }
+    }
+
+    return {
+      content: contentStr,
+      data: base64Data,
+      usage: result.usageMetadata ? {
+        promptTokens: result.usageMetadata.promptTokenCount || 0,
+        completionTokens: result.usageMetadata.candidatesTokenCount || 0,
+        totalTokens: result.usageMetadata.totalTokenCount || 0
+      } : undefined
+    };
+  }
+
+  async generateVideo(
+    prompt: string,
+    modelName: string,
+    onProgress?: (msg: string) => void
+  ): Promise<{ videoUrl: string; usage?: any }> {
+    let operation = await (this.client.models as any).generateVideos({
+      model: modelName,
+      prompt: prompt,
+    });
+
+    // Poll the operation status until the video is ready.
+    while (!operation.done) {
+      if (onProgress) onProgress("Waiting for video generation to complete...");
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      operation = await (this.client as any).operations.getVideosOperation({
+        operation: operation,
+      });
+    }
+
+    // In a browser environment, we might get a URI or have to download.
+    // Assuming the SDK returns a video object with a URI or similar.
+    const video = operation.response?.generatedVideos?.[0]?.video;
+    
+    return {
+      videoUrl: video || '',
+      usage: {
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        duration: operation.response?.generatedVideos?.[0]?.durationSeconds || 5
+      }
+    };
+  }
+
   private mapMessagesToGemini(messages: LLMMessage[]): any[] {
     return messages
       .filter(m => m.role !== 'system')
