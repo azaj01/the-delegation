@@ -2,18 +2,26 @@ import { AgentActionContext } from '../ToolRegistry';
 import { useCoreStore } from '../../../integration/store/coreStore';
 import { useTeamStore } from '../../../integration/store/teamStore';
 import { AGENTIC_SETS } from '../../../data/agents';
+import { requestConsultation } from './requestConsultation';
 
 export function deliverProject(agent: AgentActionContext, args: { output: string }): boolean {
   const store = useCoreStore.getState();
   const { output } = args;
 
   // VALIDATION: Only Lead Agent (index 1) can deliver
-  if (agent.data.index !== 1) {
-    console.warn(`[ToolRegistry] Agent ${agent.data.name} attempted deliver_project, but is not the Lead Agent.`);
+  if (store.phase !== 'working') return false;
+  
+  // SAFETY: Prevent project delivery if subagents are still working or waiting for approval
+  const pendingTasks = store.tasks.filter(t => t.status === 'in_progress' || t.status === 'on_hold');
+  if (pendingTasks.length > 0) {
+    const names = pendingTasks.map(t => t.title).join(', ');
+    agent.appendHistory({
+      role: 'user',
+      content: `[SYSTEM] You cannot deliver the project yet. There are pending tasks: ${names}. All subagents must finish their work first.`,
+      metadata: { internal: true }
+    });
     return false;
   }
-  
-  if (store.phase !== 'working') return false;
 
   const teamId = useTeamStore.getState().selectedAgentSetId;
   const activeTeam = useTeamStore.getState().customSystems.find(s => s.id === teamId) 

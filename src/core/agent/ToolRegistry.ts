@@ -15,7 +15,7 @@ export interface ToolCall {
  * This allows the tool logic to be tested and used independently of the simulation.
  */
 export interface AgentActionContext {
-  data: { index: number; name: string, subagents?: any[] };
+  data: { index: number; name: string, subagents?: any[], humanInTheLoop?: boolean };
   setState: (state: 'idle' | 'moving' | 'working' | 'on_hold' | 'talking') => void;
   appendHistory: (message: LLMMessage) => void;
   triggerMeeting?: (agentIndex: number, taskId: string, targetId?: number, message?: string) => void;
@@ -112,13 +112,13 @@ export class ToolRegistry {
           type: 'function',
           function: {
             name: 'request_consultation',
-            description: 'Meeting with agent. User=0.',
+            description: 'Pauses current task to seek clarification, feedback, or to resolve a blocker. Use targetId 0 to talk with the User. Mandatory if the brief is ambiguous or you need validation before proceeding with tokens.',
             parameters: {
               type: 'object',
               properties: {
-                targetId: { type: 'number' },
-                taskId: { type: 'string' },
-                message: { type: 'string' }
+                targetId: { type: 'number', description: '0 for User, or the index of another agent.' },
+                taskId: { type: 'string', description: 'The ID of the task you are stuck on.' },
+                message: { type: 'string', description: 'Clear explanation of why you need consultation.' }
               },
               required: ['targetId', 'taskId', 'message']
             }

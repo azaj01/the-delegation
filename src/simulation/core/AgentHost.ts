@@ -254,7 +254,8 @@ ${board}
 RULES:
 1. MAX 30 WORDS for conversational/chat responses. Outputs for 'complete_task' and 'deliver_project' MUST be rich, professional, and detailed (Markdown supported).
 2. Tools only in WORKING (except set_user_brief in IDLE).
-3. consultation needs taskId & targetId.${outputInstruction}
+3. MANDATORY: If any instruction is ambiguous, use 'request_consultation' with [0] (User) immediately.
+4. QUALITY: If your node has 'Human-in-the-loop' enabled, you MUST consult the user with your final result before finalizing.${outputInstruction}
 Goal: ${objectives[phase as keyof typeof objectives] || ''}`;
   }
 

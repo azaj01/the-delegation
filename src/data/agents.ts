@@ -12,6 +12,7 @@ export interface AgentNode {
   description: string;
   color: string;
   model: string;
+  humanInTheLoop?: boolean;
   position?: { x: number; y: number };
   subagents?: AgentNode[];
 }
@@ -51,6 +52,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       description: 'Handles project direction, roadmap, and ecosystem growth strategy.',
       color: '#64748B',
       model: 'gemini-3-flash-preview',
+      humanInTheLoop: true,
       position: { x: 0, y: 130 }
     }
   },
@@ -72,6 +74,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       description: 'Coordinates campaign assets and synthesizes the final message.',
       color: '#6366F1',
       model: 'gemini-3-flash-preview',
+      humanInTheLoop: true,
       position: { x: 0, y: 130 },
       subagents: [
         {
@@ -81,6 +84,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           description: 'Crafts persuasive narratives for social and PR.',
           color: '#818CF8',
           model: 'gemini-3-flash-preview',
+          humanInTheLoop: true,
           position: { x: -300, y: 280 }
         },
         {
@@ -122,6 +126,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       description: 'Orchestrates the 4 pillars of sound into a cohesive track.',
       color: '#F43F5E',
       model: 'gemini-3-flash-preview',
+      humanInTheLoop: true,
       position: { x: 0, y: 130 },
       subagents: [
         {
@@ -180,6 +185,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       name: 'Art Director',
       description: 'Synthesizes descriptions into valid Nano Banana prompts.',
       color: '#F59E0B',
+      humanInTheLoop: true,
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 },
       subagents: [
@@ -189,6 +195,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'Scene Designer',
           description: 'Focuses on Subject and Action within the scene.',
           color: '#FBBF24',
+          humanInTheLoop: true,
           model: 'gemini-3-flash-preview',
           position: { x: -150, y: 280 }
         },
@@ -198,6 +205,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'Lighting Stylist',
           description: 'Focuses on Composition, Lighting, and Style/Materiality.',
           color: '#D97706',
+          humanInTheLoop: true,
           model: 'gemini-3-flash-preview',
           position: { x: 150, y: 280 }
         }
@@ -222,6 +230,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       description: 'Orchestrates visuals and soundstage with global cinematic vision.',
       color: '#10B981',
       model: 'gemini-3-flash-preview',
+      humanInTheLoop: true,
       position: { x: 0, y: 130 },
       subagents: [
         {
@@ -285,6 +294,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       description: 'Synthesizes project results and oversees the case study narrative.',
       color: '#06B6D4',
       model: 'gemini-3-flash-preview',
+      humanInTheLoop: true,
       position: { x: 0, y: 130 },
       subagents: [
         {

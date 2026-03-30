@@ -176,6 +176,45 @@ const ChatPanel: React.FC = () => {
             </div>
           </div>
         )}
+
+        {(() => {
+          const pendingTask = coreStore.tasks.find(t => 
+            t.assignedAgentId === selectedNpcIndex && 
+            t.status === 'on_hold' && 
+            t.consultationTargetId === 0
+          );
+          
+          if (!pendingTask) return null;
+          
+          return (
+            <div className="px-4 py-6 flex flex-col items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-500 bg-amber-50/30 rounded-3xl border border-amber-100/50 my-4 mx-2">
+              <div className="p-3 bg-amber-100/50 rounded-2xl mb-3 text-amber-600">
+                <Send size={24} className="rotate-[-20deg]" />
+              </div>
+              <h4 className="text-sm font-black text-amber-900 uppercase tracking-widest mb-1.5">Human-in-the-loop</h4>
+              <p className="text-[11px] text-amber-700/80 text-center max-w-[220px] mb-6 leading-relaxed font-medium">
+                The agent is waiting for your validation of the results before finalizing the task.
+              </p>
+              
+              <button
+                onClick={() => {
+                  coreStore.approveTask(pendingTask.id);
+                  coreStore.addLogEntry({ 
+                    agentIndex: 0, 
+                    action: `Approved task "${pendingTask.title}" for ${agent.name}`, 
+                    taskId: pendingTask.id 
+                  });
+                }}
+                className="w-full max-w-[200px] h-11 bg-zinc-900 hover:bg-black text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-black/10 active:scale-95 flex items-center justify-center gap-2 group"
+              >
+                Approve & Finish Task
+                <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                  <Send size={10} className="text-white" />
+                </div>
+              </button>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Input */}

@@ -105,6 +105,7 @@ interface CoreState {
   updateTaskStatus: (taskId: string, status: TaskStatus) => void;
   holdTaskForConsultation: (taskId: string, targetId: number) => void;
   setTaskOutput: (taskId: string, output: string) => void;
+  approveTask: (taskId: string) => void;
 
   // ── Actions — Log ─────────────────────────────────────────────
   addLogEntry: (entry: Omit<ActionLogEntry, 'id' | 'timestamp'>) => void;
@@ -253,6 +254,21 @@ export const useCoreStore = create<CoreState>()(
             t.id === taskId ? { ...t, output, updatedAt: Date.now() } : t
           ),
         })),
+
+      approveTask: (taskId) => {
+        set((s) => {
+          const task = s.tasks.find(t => t.id === taskId);
+          if (task) {
+            // Also notify UI store that this agent is back to idle
+            useUiStore.getState().setAgentStatus(task.assignedAgentId, 'idle');
+          }
+          return {
+            tasks: s.tasks.map((t) =>
+              t.id === taskId ? { ...t, status: 'done', updatedAt: Date.now() } : t
+            ),
+          };
+        });
+      },
 
       addLogEntry: (entry) =>
         set((s) => ({

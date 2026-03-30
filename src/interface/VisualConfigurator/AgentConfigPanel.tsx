@@ -214,47 +214,80 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
             </div>
 
 
-            {/* Capabilities Info */}
-            {renderField('Capabilities', <Zap size={12} />, (
-              <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-4 gap-y-3 flex flex-col">
-                {isLead && (
+            {/* Capabilities & Controls */}
+            <div className="space-y-6">
+              {renderField('Capabilities', <Zap size={12} />, (
+                <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-4 gap-y-3 flex flex-col">
+                  {isLead && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
+                        <Check size={10} className="text-zinc-700" />
+                      </div>
+                      <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Set Project Brief</span>
+                    </div>
+                  )}
+                  {(editData.subagents?.length || 0) > 0 && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
+                        <Check size={10} className="text-zinc-700" />
+                      </div>
+                      <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Propose Tasks</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
                       <Check size={10} className="text-zinc-700" />
                     </div>
-                    <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Set Project Brief</span>
+                    <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Execute & Complete Tasks</span>
                   </div>
-                )}
-                {(editData.subagents?.length || 0) > 0 && (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
                       <Check size={10} className="text-zinc-700" />
                     </div>
-                    <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Propose Tasks</span>
+                    <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Request Consultation</span>
                   </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
-                    <Check size={10} className="text-zinc-700" />
-                  </div>
-                  <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Execute & Complete Tasks</span>
+                  {isLead && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
+                        <Check size={10} className="text-zinc-700" />
+                      </div>
+                      <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Deliver Project</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
-                    <Check size={10} className="text-zinc-700" />
+              ), "Tools are automatically assigned based on the agent's role and team hierarchy.")}
+
+              {renderField('Supervision', <Zap size={12} />, (
+                <div 
+                  onClick={() => !isView && updateDraft({ humanInTheLoop: !editData.humanInTheLoop })}
+                  className={`
+                    group flex items-center justify-between p-4 rounded-2xl border transition-all duration-200
+                    ${editData.humanInTheLoop 
+                      ? 'bg-amber-50 border-amber-200 shadow-sm' 
+                      : 'bg-zinc-50 border-zinc-100 hover:border-zinc-200'}
+                    ${isView ? 'pointer-events-none' : 'cursor-pointer active:scale-[0.98]'}
+                  `}
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className={`text-[10px] font-black uppercase tracking-tight ${editData.humanInTheLoop ? 'text-amber-700' : 'text-zinc-700'}`}>
+                      Human-in-the-loop
+                    </span>
+                    <span className="text-[9px] text-zinc-500 font-medium leading-tight max-w-[160px]">
+                      Agent must request your validation before completing any task.
+                    </span>
                   </div>
-                  <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Request Consultation</span>
+                  <div className={`
+                    w-8 h-4 rounded-full relative transition-colors duration-200
+                    ${editData.humanInTheLoop ? 'bg-amber-500' : 'bg-zinc-300'}
+                  `}>
+                    <div className={`
+                      absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform duration-200 shadow-sm
+                      ${editData.humanInTheLoop ? 'translate-x-4.5' : 'translate-x-0.5'}
+                    `} />
+                  </div>
                 </div>
-                {isLead && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
-                      <Check size={10} className="text-zinc-700" />
-                    </div>
-                    <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Deliver Project</span>
-                  </div>
-                )}
-              </div>
-            ), "Tools are automatically assigned based on the agent's role and team hierarchy.")}
+              ), "When enabled, the agent will pause and open a chat with you to review their work before finalizing it.")}
+            </div>
           </>
         )}
       </div>
