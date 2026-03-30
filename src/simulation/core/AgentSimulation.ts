@@ -90,11 +90,10 @@ export class AgentSimulation {
     if (!lead || lead.isThinking || core.tasks.length > 0) return;
     if (ui.isChatting && ui.selectedNpcIndex === lead.data.index) return;
     
-    // THROTTLE: Only trigger once per second to avoid race conditions from multiple store subscriptions
     if (Date.now() - this.lastSparkTriggerTime < 1000) return;
     this.lastSparkTriggerTime = Date.now();
 
-    await lead.think('Start the project by proposing initial tasks.', { silent: true });
+    await lead.spark();
   }
 
   private async startTaskExecution(agentIndex: number, taskId: string) {
@@ -108,7 +107,7 @@ export class AgentSimulation {
 
     try {
       if (!agent.isThinking) {
-        await agent.think(`Proceed with task: ${taskId}`, { silent: true });
+        await agent.executeTask(taskId);
       }
     } catch (err) {
       console.error(`[AgentSimulation] Agent ${agentIndex} failed:`, err);
@@ -135,7 +134,7 @@ export class AgentSimulation {
     if (state.phase === 'working' && allTasksFinished) {
       const lead = this.getAgent(this.system.leadAgent.index);
       if (lead && !lead.isThinking) {
-        await lead.think('All tasks are complete! Use the deliver_project tool to fulfill the final delivery with the project result.', { silent: true });
+        await lead.concludeProject();
       }
     }
   }
