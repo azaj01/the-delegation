@@ -1,4 +1,4 @@
-import { FolderOpen, Lock, MessageSquare, MessageSquareWarning, MessageSquareQuote } from 'lucide-react';
+import { FolderOpen, Lock, MessageSquare, MessageSquareWarning, GitPullRequest } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { getAgentSet, getAllCharacters } from '../data/agents';
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand';
@@ -157,7 +157,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                         </>
                       ) : (
                         <>
-                          <MessageSquareQuote size={14} strokeWidth={3} />
+                          <GitPullRequest size={14} strokeWidth={3} />
                           Review Task
                         </>
                       )}

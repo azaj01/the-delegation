@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, MessageSquareWarning, Trash2, Eye } from 'lucide-react'
+import { ChevronDown, ChevronRight, MessageSquareWarning, Trash2, GitPullRequest } from 'lucide-react'
 import React, { useState } from 'react'
 import { getAllAgents, USER_NAME } from '../data/agents'
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand'
@@ -127,10 +127,15 @@ function TaskCard({ task }: { task: Task; key?: string }) {
                 e.stopPropagation();
                 setActiveAuditTaskId(task.id);
               }}
-              className="p-1 text-zinc-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all"
+              className="p-1 px-2 text-zinc-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all flex items-center gap-1.5 group/audit"
               title="View work details"
             >
-              <Eye size={14} strokeWidth={2.5} />
+              {task.revisions?.length > 0 && (
+                <span className="text-[10px] font-black text-zinc-300 group-hover/audit:text-emerald-400 transition-colors">
+                  {task.revisions.length}
+                </span>
+              )}
+              <GitPullRequest size={13} strokeWidth={2.5} />
             </button>
           )}
         </div>

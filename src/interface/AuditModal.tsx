@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, AlertCircle, MessageSquareQuote } from 'lucide-react';
+import { X, CheckCircle2, AlertCircle, GitPullRequest } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useCoreStore } from '../integration/store/coreStore';
@@ -191,7 +191,7 @@ export const AuditModal: React.FC<AuditModalProps> = ({ taskId, isOpen, onClose,
         {!isViewMode && selectedRevisionIndex === null && (
           <div className="px-8 py-4 border-t border-zinc-100 bg-white">
              <div className="flex items-center gap-2 mb-2 text-zinc-400">
-                <MessageSquareQuote size={12} />
+                <GitPullRequest size={12} />
                 <span className="text-[9px] font-black uppercase tracking-widest">Your Feedback</span>
              </div>
              <textarea

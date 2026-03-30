@@ -92,12 +92,12 @@ export class ToolRegistry {
           type: 'function',
           function: {
             name: 'complete_task',
-            description: 'Finish task with a professional and detailed output of the work and reasoning.',
+            description: 'Finish task. Output must be raw content, no introductions or credit for the work.',
             parameters: {
               type: 'object',
               properties: {
                 taskId: { type: 'string' },
-                output: { type: 'string', description: 'Comprehensive result of the task in Markdown.' }
+                output: { type: 'string', description: 'Task result in Markdown (e.g. code blocks, text, or research).' }
               },
               required: ['taskId', 'output']
             }
@@ -110,13 +110,13 @@ export class ToolRegistry {
           type: 'function',
           function: {
             name: 'deliver_project',
-            description: 'Final delivery of the project result in rich Markdown format.',
+            description: 'Final delivery of the full project results.',
             parameters: {
               type: 'object',
               properties: { 
                 output: { 
                   type: 'string', 
-                  description: 'Rich Markdown document with project results and agent attribution.' 
+                  description: 'Full project document in Markdown. NO attribution needed.' 
                 } 
               },
               required: ['output']

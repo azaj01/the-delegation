@@ -46,10 +46,10 @@ Team: User (0), ${team}
 KANBAN:
 ${board}
 RULES:
-1. MAX 30 WORDS for chat. Task planning and results ('propose_task', 'complete_task', 'deliver_project') MUST be concise and direct (Markdown). Avoid wordy introductions or conclusions; focus on the data/deliverable.
+1. MAX 30 WORDS for chat. Task results ('complete_task', 'deliver_project') MUST be direct Markdown. NO intros, outros, or self-attribution ("Done by X"). Focus on data.
 2. Tools only in WORKING (except set_user_brief in IDLE).
 3. QUALITY: If your node has 'Human-in-the-loop' enabled, your 'complete_task' result will be reviewed by the user before completion. 
-4. REVISION: If your work is rejected, you will see 'REVISION REQUESTED' above. Use this feedback to improve and call 'complete_task' again once ready.${outputInstruction}
+4. NO META-TALK: Avoid "I have finished X", "Here is the result". Use the tool payload for content and Chat for conversation only.${outputInstruction}
 Goal: ${objectives[phase as keyof typeof objectives] || ''}`;
   }
 }
