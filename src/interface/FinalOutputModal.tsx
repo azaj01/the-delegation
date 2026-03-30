@@ -22,7 +22,7 @@ export function FinalOutputModal() {
 
   const handleDownload = () => {
     if (!finalAssetContent) return;
-    
+
     const link = document.createElement('a');
     if (finalAssetType === 'image') {
       link.href = `data:image/png;base64,${finalAssetContent}`;
@@ -60,22 +60,22 @@ export function FinalOutputModal() {
       return (
         <div className="space-y-4">
           <div className="relative group">
-            <img 
-              src={`data:image/png;base64,${finalAssetContent}`} 
-              alt="Final Generated Asset" 
+            <img
+              src={`data:image/png;base64,${finalAssetContent}`}
+              alt="Final Generated Asset"
               className="w-full rounded-2xl shadow-xl border border-black/5"
             />
             <button
-               onClick={handleDownload}
-               className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-black/5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-600 active:scale-95"
-               title="Download Image"
+              onClick={handleDownload}
+              className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-black/5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-600 active:scale-95"
+              title="Download Image"
             >
-               <Download size={18} />
+              <Download size={18} />
             </button>
           </div>
           <div className="p-4 bg-zinc-100/50 rounded-xl border border-zinc-100/50">
-             <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">PROMPT USED:</p>
-             <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput || "No prompt metadata available."}</p>
+            <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">PROMPT USED:</p>
+            <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput || "No prompt metadata available."}</p>
           </div>
         </div>
       );
@@ -90,16 +90,16 @@ export function FinalOutputModal() {
               Your browser does not support the audio element.
             </audio>
             <button
-               onClick={handleDownload}
-               className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 shrink-0"
+              onClick={handleDownload}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 shrink-0"
             >
-               <Download size={14} strokeWidth={2.5} />
-               Download Audio
+              <Download size={14} strokeWidth={2.5} />
+              Download Audio
             </button>
           </div>
           <div className="p-4 bg-zinc-100/50 rounded-xl border border-zinc-100/50">
-             <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">LYRICS / PROMPT:</p>
-             <p className="text-xs text-zinc-500 italic leading-relaxed">{finalOutput || "No prompt metadata available."}</p>
+            <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">LYRICS / PROMPT:</p>
+            <p className="text-xs text-zinc-500 italic leading-relaxed">{finalOutput || "No prompt metadata available."}</p>
           </div>
         </div>
       );
@@ -114,16 +114,16 @@ export function FinalOutputModal() {
               Your browser does not support the video tag.
             </video>
             <button
-               onClick={handleDownload}
-               className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-black/5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-600 active:scale-95 z-10"
-               title="Download Video"
+              onClick={handleDownload}
+              className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-black/5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-600 active:scale-95 z-10"
+              title="Download Video"
             >
-               <Download size={18} />
+              <Download size={18} />
             </button>
           </div>
           <div className="p-4 bg-zinc-100/50 rounded-xl border border-zinc-100/50">
-             <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">SCRIPT / PROMPT:</p>
-             <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput || "No prompt metadata available."}</p>
+            <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">SCRIPT / PROMPT:</p>
+            <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput || "No prompt metadata available."}</p>
           </div>
         </div>
       );
@@ -134,7 +134,7 @@ export function FinalOutputModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-white/60 backdrop-blur-xl p-4"
       onClick={() => setFinalOutputOpen(false)}
     >
       <div
@@ -176,9 +176,9 @@ export function FinalOutputModal() {
 
         {/* Footer */}
         <div className="px-8 py-6 border-t border-black/5 flex justify-between items-center bg-white">
-           <div className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest leading-none">
-             Generated March 2026
-           </div>
+          <div className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest leading-none">
+            Generated March 2026
+          </div>
           <button
             onClick={handleCopy}
             className="px-6 py-3 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-black/10"

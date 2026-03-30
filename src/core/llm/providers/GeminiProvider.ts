@@ -4,7 +4,7 @@ import { LLMMessage, LLMProvider, LLMResponse, LLMToolCall, LLMToolDefinition } 
 export class GeminiProvider implements LLMProvider {
   private client: GoogleGenAI;
 
-  constructor(apiKey: string) {
+  constructor(private apiKey: string) {
     this.client = new GoogleGenAI({ apiKey });
   }
 
@@ -143,31 +143,42 @@ export class GeminiProvider implements LLMProvider {
     modelName: string,
     onProgress?: (msg: string) => void
   ): Promise<{ videoUrl: string; usage?: any }> {
+    // 1. Initial request with explicit config to control quality and cost (720p is more economical than 4k)
     let operation = await (this.client.models as any).generateVideos({
       model: modelName,
       prompt: prompt,
+      config: {
+        resolution: '720p',
+        aspectRatio: '16:9',
+      }
     });
 
-    // Poll the operation status until the video is ready.
+    // 2. Poll the operation status until the video is ready (interval of 10s to avoid API spam)
     while (!operation.done) {
-      if (onProgress) onProgress("Waiting for video generation to complete...");
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      if (onProgress) onProgress("Generating video (this may take a minute)...");
+      await new Promise((resolve) => setTimeout(resolve, 10000));
       operation = await (this.client as any).operations.getVideosOperation({
         operation: operation,
       });
     }
 
-    // In a browser environment, we might get a URI or have to download.
-    // Assuming the SDK returns a video object with a URI or similar.
-    const video = operation.response?.generatedVideos?.[0]?.video;
+    // 3. Extract the URI from the generated video object
+    const videoData = operation.response?.generatedVideos?.[0];
+    let videoUri = (videoData?.video as any)?.uri || '';
+    
+    // Append API key to allow direct browser download
+    if (videoUri && videoUri.includes('generativelanguage.googleapis.com')) {
+      const separator = videoUri.includes('?') ? '&' : '?';
+      videoUri += `${separator}key=${this.apiKey}`;
+    }
     
     return {
-      videoUrl: video || '',
+      videoUrl: videoUri,
       usage: {
         promptTokens: 0,
         completionTokens: 0,
         totalTokens: 0,
-        duration: operation.response?.generatedVideos?.[0]?.durationSeconds || 5
+        duration: videoData?.durationSeconds || 8
       }
     };
   }
