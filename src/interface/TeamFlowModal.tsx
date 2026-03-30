@@ -102,15 +102,7 @@ const TeamFlowModal: React.FC<TeamFlowModalProps> = ({ isOpen, onClose, system }
            <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="w-3 h-0.5 bg-zinc-300 border-t border-dashed border-zinc-400" />
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Hierarchy</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-0.5 bg-emerald-500" />
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">On Success</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-0.5 bg-red-400 border-t border-dashed border-red-500" />
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">On Failure</span>
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Hierarchy (Consultation)</span>
             </div>
            </div>
            

@@ -34,154 +34,129 @@ export interface AgenticSystem {
 }
 
 export const AGENTIC_SETS: AgenticSystem[] = [
-  // 1. Single Agent (The Solo Expert)
+  // 1. Strategy Coach (Pattern: Solo Expert)
   {
-    id: 'single-agent',
-    teamName: 'Solo Expert',
-    teamType: 'Consultancy',
-    teamDescription: 'A single high-capability agent for direct tasks.',
-    color: '#C084FC',
+    id: 'strategy-coach',
+    teamName: 'Strategy Coach',
+    teamType: 'Strategic',
+    teamDescription: 'A high-level strategic advisor for project direction and roadmap.',
+    color: '#64748B',
     outputType: 'text',
     outputModel: 'gemini-3-flash-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
-      id: 'expert',
+      id: 'visionary-advisor',
       index: 1,
-      name: 'Expert',
-      description: 'Provide professional, concise, and technically accurate responses to all user requests.',
-      color: '#C084FC',
+      name: 'Visionary Advisor',
+      description: 'Handles project direction, roadmap, and ecosystem growth strategy.',
+      color: '#64748B',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 }
     }
   },
 
-  // 2. The Content Factory (Sequential Pipeline)
+  // 2. Communications Agency (Horizontal Hub)
   {
-    id: 'content-pipeline',
-    teamName: 'Content Factory',
-    teamType: 'Pipeline',
-    teamDescription: 'A linear chain of production for content creation.',
-    color: '#FB923C',
+    id: 'comm-agency',
+    teamName: 'PR Agency',
+    teamType: 'Agency',
+    teamDescription: 'A horizontal hub for parallel creative campaign management.',
+    color: '#6366F1',
     outputType: 'text',
     outputModel: 'gemini-3-flash-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
-      id: 'writer-lead',
+      id: 'campaign-director',
       index: 1,
-      name: 'Writer',
-      description: 'Drafts the requested content. Acts as the first step in a linear chain.',
-      color: '#FB923C',
+      name: 'Campaign Director',
+      description: 'Coordinates campaign assets and synthesizes the final message.',
+      color: '#6366F1',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 },
       subagents: [
         {
-          id: 'editor',
+          id: 'copywriter',
           index: 2,
-          name: 'Editor',
-          description: 'Refines and proofreads the content received from the Writer.',
-          color: '#FACC15',
+          name: 'Copywriter',
+          description: 'Crafts persuasive narratives for social and PR.',
+          color: '#818CF8',
           model: 'gemini-3-flash-preview',
-          position: { x: 0, y: 260 },
-          subagents: [
-            {
-              id: 'translator',
-              index: 3,
-              name: 'Translator',
-              description: 'Translates edited content professionally. Final step in the pipeline.',
-              color: '#4ADE80',
-              model: 'gemini-3-flash-preview',
-              position: { x: 0, y: 390 }
-            }
-          ]
+          position: { x: -300, y: 280 }
+        },
+        {
+          id: 'community-manager',
+          index: 3,
+          name: 'Community Manager',
+          description: 'Handles engagement strategies and potential FAQ.',
+          color: '#4F46E5',
+          model: 'gemini-3-flash-preview',
+          position: { x: 0, y: 280 }
+        },
+        {
+          id: 'pr-strategist',
+          index: 4,
+          name: 'PR Strategist',
+          description: 'Manages media relations and influencer outreach.',
+          color: '#312E81',
+          model: 'gemini-3-flash-preview',
+          position: { x: 300, y: 280 }
         }
       ]
     }
   },
 
-  // 3. Engineering Loop (The Quality Guard)
+  // 3. Music Studio (Specialized Panel - Lyria)
   {
-    id: 'engineering-loop',
-    teamName: 'Safe Code',
-    teamType: 'Engineering',
-    teamDescription: 'A secure development pipeline with built-in auditing.',
-    color: '#2DD4BF',
-    outputType: 'text',
-    outputModel: 'gemini-3-flash-preview',
+    id: 'music-studio',
+    teamName: 'Music Studio',
+    teamType: 'Production',
+    teamDescription: 'High-fidelity audio production following Lyria guidelines.',
+    color: '#F43F5E',
+    outputType: 'music',
+    outputModel: 'lyria-3-pro-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
-      id: 'lead-dev',
+      id: 'master-producer',
       index: 1,
-      name: 'Lead Developer',
-      description: 'Writes core logic and triggers security reviews via request_consultation.',
-      color: '#2DD4BF',
+      name: 'Master Producer',
+      description: 'Orchestrates the 4 pillars of sound into a cohesive track.',
+      color: '#F43F5E',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 },
       subagents: [
         {
-          id: 'security-auditor',
+          id: 'genre-expert',
           index: 2,
-          name: 'Security Auditor',
-          description: 'Audits code for vulnerabilities. Suggests improvements via Request Revision.',
+          name: 'Genre Expert',
+          description: 'Defines style, mood, and global aesthetic (e.g., Synthwave, Lofi).',
           color: '#FB7185',
-          model: 'gemini-3-flash-preview',
-          position: { x: 0, y: 260 }
-        }
-      ]
-    }
-  },
-
-  // 4. The Swarm (Parallel Task Force)
-  {
-    id: 'swarm-parallel',
-    teamName: 'The Swarm',
-    teamType: 'Task Force',
-    teamDescription: 'Massive parallel execution power for large-scale tasks.',
-    color: '#818CF8',
-    outputType: 'text',
-    outputModel: 'gemini-3-flash-preview',
-    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
-    leadAgent: {
-      id: 'swarm-leader',
-      index: 1,
-      name: 'Swarm Lead',
-      description: 'Decomposes requests into parallel sub-tasks and delegates to workers.',
-      color: '#818CF8',
-      model: 'gemini-3-flash-preview',
-      position: { x: 0, y: 130 },
-      subagents: [
-        {
-          id: 'worker-alpha',
-          index: 2,
-          name: 'Worker Alpha',
-          description: 'Execute technical tasks assigned by the Swarm Lead.',
-          color: '#F87171',
           model: 'gemini-3-flash-preview',
           position: { x: -450, y: 280 }
         },
         {
-          id: 'worker-beta',
+          id: 'tempo-architect',
           index: 3,
-          name: 'Worker Beta',
-          description: 'Execute creative tasks assigned by the Swarm Lead.',
-          color: '#FBBC05',
+          name: 'Tempo Architect',
+          description: 'Specifies BPM, rhythmical complexity, and time signatures.',
+          color: '#FDA4AF',
           model: 'gemini-3-flash-preview',
           position: { x: -150, y: 280 }
         },
         {
-          id: 'worker-gamma',
+          id: 'instrumentalist',
           index: 4,
-          name: 'Worker Gamma',
-          description: 'Execute data tasks assigned by the Swarm Lead.',
-          color: '#34A853',
+          name: 'Instrumentalist',
+          description: 'Selects timbres, arrangement, and orchestration layers.',
+          color: '#E11D48',
           model: 'gemini-3-flash-preview',
           position: { x: 150, y: 280 }
         },
         {
-          id: 'worker-delta',
+          id: 'dynamics-engineer',
           index: 5,
-          name: 'Worker Delta',
-          description: 'Execute research tasks assigned by the Swarm Lead.',
-          color: '#A78BFA',
+          name: 'Dynamics Engineer',
+          description: 'Controls volume, texture, contrast, and emotional progression.',
+          color: '#9F1239',
           model: 'gemini-3-flash-preview',
           position: { x: 450, y: 280 }
         }
@@ -189,60 +164,101 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     }
   },
 
-  // 5. The Hybrid Hub (Matrix/Branching)
+  // 4. Photo Studio (Visual Composition - Nano Banana)
   {
-    id: 'hybrid-hub',
-    teamName: 'Matrix Agency',
-    teamType: 'Matrix',
-    teamDescription: 'A delegating hub that manages specialized departments.',
-    color: '#34D399',
-    outputType: 'text',
-    outputModel: 'gemini-3-flash-preview',
+    id: 'photo-studio',
+    teamName: 'Photo Studio',
+    teamType: 'Visual',
+    teamDescription: 'Pro image generation using the [Subject] + [Action] + [Context] + [Comp] + [Style] formula.',
+    color: '#F59E0B',
+    outputType: 'image',
+    outputModel: 'gemini-3.1-flash-image-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
-      id: 'studio-head',
+      id: 'art-director',
       index: 1,
-      name: 'Studio Head',
-      description: 'Manages departmental leads and delegates high-level goals.',
-      color: '#34D399',
+      name: 'Art Director',
+      description: 'Synthesizes descriptions into valid Nano Banana prompts.',
+      color: '#F59E0B',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 },
       subagents: [
         {
-          id: 'creative-lead',
+          id: 'scene-designer',
           index: 2,
-          name: 'Creative Lead',
-          description: 'Manages creative execution and delegates art tasks.',
-          color: '#F472B6',
+          name: 'Scene Designer',
+          description: 'Focuses on Subject and Action within the scene.',
+          color: '#FBBF24',
+          model: 'gemini-3-flash-preview',
+          position: { x: -150, y: 280 }
+        },
+        {
+          id: 'lighting-stylist',
+          index: 3,
+          name: 'Lighting Stylist',
+          description: 'Focuses on Composition, Lighting, and Style/Materiality.',
+          color: '#D97706',
+          model: 'gemini-3-flash-preview',
+          position: { x: 150, y: 280 }
+        }
+      ]
+    }
+  },
+
+  // 5. Film Studio (Matrix/Departmental - Veo 3.1)
+  {
+    id: 'film-studio',
+    teamName: 'Film Studio',
+    teamType: 'Cinematic',
+    teamDescription: 'Full cinematic production: Visuals + Soundstage (Veo 3.1 style).',
+    color: '#10B981',
+    outputType: 'video',
+    outputModel: 'veo-3.1-generate-preview',
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'film-director',
+      index: 1,
+      name: 'Film Director',
+      description: 'Orchestrates visuals and soundstage with global cinematic vision.',
+      color: '#10B981',
+      model: 'gemini-3-flash-preview',
+      position: { x: 0, y: 130 },
+      subagents: [
+        {
+          id: 'visual-lead',
+          index: 2,
+          name: 'Visual Lead',
+          description: 'Manages cinematography and VFX direction.',
+          color: '#34D399',
           model: 'gemini-3-flash-preview',
           position: { x: -200, y: 280 },
           subagents: [
             {
-              id: 'artist',
+              id: 'cinematographer',
               index: 4,
-              name: 'Artist',
-              description: 'Execution art specialist.',
-              color: '#FB7185',
+              name: 'Cinematographer',
+              description: 'Defines camera work, shot composition, and subject action.',
+              color: '#059669',
               model: 'gemini-3-flash-preview',
               position: { x: -200, y: 430 }
             }
           ]
         },
         {
-          id: 'tech-lead',
+          id: 'audio-lead',
           index: 3,
-          name: 'Tech Lead',
-          description: 'Manages technical execution and delegates code tasks.',
-          color: '#C084FC',
+          name: 'Audio Lead',
+          description: 'Manages the soundstage: Dialogue, SFX, and Ambience.',
+          color: '#059669',
           model: 'gemini-3-flash-preview',
           position: { x: 200, y: 280 },
           subagents: [
             {
-              id: 'developer',
+              id: 'sound-designer',
               index: 5,
-              name: 'Developer',
-              description: 'Execution code specialist.',
-              color: '#A78BFA',
+              name: 'Sound Designer',
+              description: 'Specifies SFX (SFX:), Ambient Noise (Ambient noise:), and Dialogue (" ").',
+              color: '#064E3B',
               model: 'gemini-3-flash-preview',
               position: { x: 200, y: 430 }
             }
@@ -252,53 +268,42 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     }
   },
 
-  // 6. Corporate Ladder (Deep Hierarchy)
+  // 6. Case Study Squad (Sequential Pipeline)
   {
-    id: 'corporate-ladder',
-    teamName: 'Global Corp',
-    teamType: 'Enterprise',
-    teamDescription: 'A deep chain of command from Strategy to Execution.',
-    color: '#94A3B8',
+    id: 'case-study-squad',
+    teamName: 'Case Study Squad',
+    teamType: 'Documentation',
+    teamDescription: 'A linear chain for extracting metrics and drafting project case studies.',
+    color: '#06B6D4',
     outputType: 'text',
     outputModel: 'gemini-3-flash-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
-      id: 'ceo',
+      id: 'strategy-lead',
       index: 1,
-      name: 'CEO',
-      description: 'Strategic lead; sets vision and delegates to VP of Operations.',
-      color: '#94A3B8',
+      name: 'Strategy Lead',
+      description: 'Synthesizes project results and oversees the case study narrative.',
+      color: '#06B6D4',
       model: 'gemini-3-flash-preview',
       position: { x: 0, y: 130 },
       subagents: [
         {
-          id: 'vp-ops',
+          id: 'researcher',
           index: 2,
-          name: 'VP of Ops',
-          description: 'Operational manager; translates strategy into project plans.',
-          color: '#CBD5E1',
+          name: 'Researcher',
+          description: 'Extracts data, metrics, and key achievements from the project.',
+          color: '#22D3EE',
           model: 'gemini-3-flash-preview',
           position: { x: 0, y: 260 },
           subagents: [
             {
-              id: 'supervisor',
+              id: 'case-writer',
               index: 3,
-              name: 'Supervisor',
-              description: 'Direct task manager; assigns tasks and audits progress.',
-              color: '#CBD5E1',
+              name: 'Case Writer',
+              description: 'Drafts the final case study narrative and formats the results.',
+              color: '#0891B2',
               model: 'gemini-3-flash-preview',
-              position: { x: 0, y: 390 },
-              subagents: [
-                {
-                  id: 'intern',
-                  index: 4,
-                  name: 'Intern',
-                  description: 'Technical execution worker.',
-                  color: '#CBD5E1',
-                  model: 'gemini-3-flash-preview',
-                  position: { x: 0, y: 520 }
-                }
-             ]
+              position: { x: 0, y: 390 }
             }
           ]
         }

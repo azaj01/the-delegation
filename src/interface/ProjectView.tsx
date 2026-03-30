@@ -1,4 +1,4 @@
-import { Info, RefreshCcw, ScrollText } from 'lucide-react';
+import { Info, RefreshCcw, ScrollText, FileText, Image, Music, Video } from 'lucide-react';
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
@@ -49,10 +49,11 @@ const ProjectView: React.FC = () => {
           <h2 className="text-xl font-black text-zinc-900 leading-tight">Project Info</h2>
           <div className="flex items-center gap-2">
             <div
-              className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+              className="px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-colors border border-transparent"
               style={{
                 backgroundColor: phase === 'working' ? USER_COLOR : (phase === 'done' ? '#22c55e' : '#f4f4f5'),
-                color: phase === 'idle' ? '#a1a1aa' : 'white'
+                color: phase === 'idle' ? '#a1a1aa' : 'white',
+                borderColor: phase === 'idle' ? '#e4e4e7' : 'transparent'
               }}
             >
               <div className={`w-1.5 h-1.5 rounded-full ${phase === 'working' ? 'bg-white animate-pulse' : 'bg-white opacity-40'}`} />

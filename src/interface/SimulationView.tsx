@@ -1,4 +1,4 @@
-import { Maximize2, Minimize2, Eye } from 'lucide-react';
+import { Maximize2, Minimize2, Eye, FileText, Image, Music, Video } from 'lucide-react';
 import React, { useState } from 'react';
 import { useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore, useActiveTeam } from '../integration/store/teamStore';
@@ -34,6 +34,26 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
               <Eye size={14} />
             </div>
           </button>
+
+          {/* Team Output Info */}
+          <div className="hidden md:flex items-center gap-2.5 px-2.5 py-1.5 bg-zinc-50 border border-zinc-100/50 rounded-xl">
+            <div className="flex items-center gap-1.5 text-zinc-400">
+              {activeSet.outputType === 'text' && <FileText size={12} strokeWidth={2.5} />}
+              {activeSet.outputType === 'image' && <Image size={12} strokeWidth={2.5} />}
+              {activeSet.outputType === 'music' && <Music size={12} strokeWidth={2.5} />}
+              {activeSet.outputType === 'video' && <Video size={12} strokeWidth={2.5} />}
+              <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500">
+                {activeSet.outputType || 'TEXT'}
+              </span>
+            </div>
+            <div className="w-px h-3 bg-zinc-200" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[8px] font-black text-zinc-300 uppercase tracking-tight">LLM</span>
+              <span className="text-[9px] font-bold text-zinc-600 font-mono lowercase">
+                {activeSet.outputModel}
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className="flex-1 flex items-center justify-end gap-1">

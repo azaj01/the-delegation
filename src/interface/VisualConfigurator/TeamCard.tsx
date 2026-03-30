@@ -180,24 +180,25 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         </button>
       )}
 
-      <div className="flex items-start gap-3.5">
-        {!isEditing && (
-          <div className="relative shrink-0">
-            <div
-              className="h-9 px-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-black/5"
-              style={{ backgroundColor: system.color }}
-            >
-              <Users size={14} className="text-white opacity-90" strokeWidth={3} />
-              <span className="text-xs font-black text-white leading-none">
-                {agentCount}
-              </span>
+      <div className="flex flex-col">
+        {/* Header Row: Badge + Name/Type */}
+        <div className="flex items-start gap-3.5 mb-3">
+          {!isEditing && (
+            <div className="relative shrink-0">
+              <div
+                className="h-9 px-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-black/5"
+                style={{ backgroundColor: system.color }}
+              >
+                <Users size={14} className="text-white opacity-90" strokeWidth={3} />
+                <span className="text-xs font-black text-white leading-none">
+                  {agentCount}
+                </span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <div className="flex-1 min-w-0 flex flex-col">
-          {isEditing ? (
-            <div className="space-y-2 mb-3" onClick={(e) => e.stopPropagation()}>
+          <div className="flex-1 min-w-0 flex flex-col">
+            {isEditing ? (
               <div className="space-y-1 mb-2">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Team Color</label>
                 <div className="px-1">
@@ -207,6 +208,19 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                   />
                 </div>
               </div>
+            ) : (
+              <div className="space-y-0.5">
+                <h4 className={`text-[11px] font-black leading-tight uppercase tracking-wider truncate mb-0.5 ${system.teamName ? 'text-zinc-900' : 'text-zinc-300'}`}>{system.teamName || 'Untitled Team'}</h4>
+                <p className={`text-[9px] font-bold uppercase tracking-[0.1em] ${system.teamType ? 'text-zinc-400' : 'text-zinc-200'}`}>{system.teamType || 'Unspecified Type'}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Body Content: Spans full width */}
+        <div className="flex flex-col flex-1 min-w-0">
+          {isEditing ? (
+            <div className="space-y-2 mb-3" onClick={(e) => e.stopPropagation()}>
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Team Name</label>
                 <input
@@ -288,20 +302,28 @@ export const TeamCard: React.FC<TeamCardProps> = ({
               <button onClick={handleSave} disabled={!isFormValid} className={`w-full py-2.5 mt-1 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all shadow-lg ${isFormValid ? 'bg-zinc-900 text-white shadow-black/10' : 'bg-zinc-50 text-zinc-300 shadow-none cursor-not-allowed'}`}>Save Changes</button>
             </div>
           ) : (
-            <div className="space-y-0.5 mb-2">
-              <h4 className={`text-[11px] font-black leading-tight uppercase tracking-wider truncate mb-0.5 ${system.teamName ? 'text-zinc-900' : 'text-zinc-300'}`}>{system.teamName || 'Untitled Team'}</h4>
-              <div className="flex items-center gap-2 mb-1">
-                <p className={`text-[9px] font-bold uppercase tracking-[0.1em] ${system.teamType ? 'text-zinc-300' : 'text-zinc-200'}`}>{system.teamType || 'Unspecified Type'}</p>
-                <div className="w-1 h-1 rounded-full bg-zinc-200" />
-                <div className="flex items-center gap-1 text-[8px] font-black text-zinc-400 uppercase tracking-widest">
-                  {system.outputType === 'text' && <FileText size={10} />}
-                  {system.outputType === 'image' && <Image size={10} />}
-                  {system.outputType === 'music' && <Music size={10} />}
-                  {system.outputType === 'video' && <Video size={10} />}
-                  {system.outputType || 'TEXT'}
+            <div className="space-y-0.5 mb-2.5 px-2">
+              <div className="mt-1 p-2 bg-zinc-50/50 border border-zinc-100 rounded-xl space-y-1.5 backdrop-blur-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 text-zinc-400">
+                    {system.outputType === 'text' && <FileText size={10} strokeWidth={2.5} />}
+                    {system.outputType === 'image' && <Image size={10} strokeWidth={2.5} />}
+                    {system.outputType === 'music' && <Music size={10} strokeWidth={2.5} />}
+                    {system.outputType === 'video' && <Video size={10} strokeWidth={2.5} />}
+                    <span className="text-[8px] font-black uppercase tracking-wider text-zinc-500">
+                      {system.outputType || 'TEXT'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-white/80 border border-zinc-100 rounded-lg shadow-sm">
+                    <span className="text-[7px] font-black text-zinc-300 uppercase tracking-tight shrink-0">LLM</span>
+                    <span className="text-[8px] font-bold text-zinc-600 font-mono lowercase">
+                      {system.outputModel}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <p className={`text-[10px] leading-relaxed font-medium mt-1.5 line-clamp-3 ${system.teamDescription ? 'text-zinc-500/80' : 'text-zinc-300 italic'}`}>{system.teamDescription || 'No description provided.'}</p>
+
+              <p className={`text-[10px] leading-relaxed font-medium mt-2 line-clamp-2 ${system.teamDescription ? 'text-zinc-500/80' : 'text-zinc-300 italic'}`}>{system.teamDescription || 'No description provided.'}</p>
             </div>
           )}
 
