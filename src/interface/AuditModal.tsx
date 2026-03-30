@@ -134,21 +134,6 @@ export const AuditModal: React.FC<AuditModalProps> = ({ taskId, isOpen, onClose,
                 </div>
               </section>
 
-              {/* Feedback Input (Oculto en viewMode o al revisar historial) */}
-              {!isViewMode && selectedRevisionIndex === null && (
-                <section className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-1 h-4 bg-zinc-200 rounded-full" />
-                    <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Your Feedback</h3>
-                  </div>
-                  <textarea
-                    value={feedback}
-                    onChange={(e) => setFeedback(e.target.value)}
-                    placeholder="Optionally describe what needs to be changed before rejecting..."
-                    className="w-full bg-white border border-zinc-200 rounded-2xl p-8 text-sm focus:outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all resize-none h-32 placeholder:text-zinc-300 placeholder:italic"
-                  />
-                </section>
-              )}
             </div>
 
             {/* Revision Sidebar (Creativa) */}
@@ -201,6 +186,22 @@ export const AuditModal: React.FC<AuditModalProps> = ({ taskId, isOpen, onClose,
             )}
           </div>
         </div>
+
+        {/* Feedback Area (Always Visible in Review Mode) */}
+        {!isViewMode && selectedRevisionIndex === null && (
+          <div className="px-8 py-4 border-t border-zinc-100 bg-white">
+             <div className="flex items-center gap-2 mb-2 text-zinc-400">
+                <MessageSquareQuote size={12} />
+                <span className="text-[9px] font-black uppercase tracking-widest">Your Feedback</span>
+             </div>
+             <textarea
+               value={feedback}
+               onChange={(e) => setFeedback(e.target.value)}
+               placeholder="Describe what needs to be changed before rejecting..."
+               className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-zinc-900/5 transition-all resize-none h-20 placeholder:text-zinc-300 placeholder:italic"
+             />
+          </div>
+        )}
 
         {/* Footer Actions */}
         <div className="px-8 py-8 bg-zinc-50/50 border-t border-zinc-100 flex items-center justify-end gap-4 shrink-0">

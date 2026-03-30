@@ -102,11 +102,18 @@ export class AgentHost implements AgentActionContext {
       const isBrief = response.tool_calls?.some(tc => tc.function.name === 'set_user_brief');
       const isResolution = false; // No more autonomous resolutions via tools while on_hold
       let finalContent = text;
+      const isMalformed = response.finishReason === 'MALFORMED_FUNCTION_CALL';
 
-      if (hasToolCallsOnly && !isInternalTrigger) {
+      if (isMalformed) {
+        finalContent = 'ERROR: Your last response was a malformed function call. Please try again with valid arguments for the tools.';
+        console.warn(`[AgentHost:${this.data.name}] Malformed function call detected.`);
+      } else if (hasToolCallsOnly && !isInternalTrigger) {
         finalContent = isBrief
           ? "Perfect! I've set the project brief based on our chat. Let's get to work!"
           : 'Understood. I am going back to work now.';
+      } else if (!text && !response.tool_calls && !isInternalTrigger) {
+        // Fallback for empty responses that are NOT malformed but also not tool calls
+        finalContent = '... (Thinking)';
       }
 
       // Auto-close chat for system acknowledgments after tool calls
@@ -263,7 +270,7 @@ Team: User (0), ${team}
 KANBAN:
 ${board}
 RULES:
-1. MAX 30 WORDS for chat. Task results ('complete_task', 'deliver_project') MUST be concise and direct (Markdown). Avoid wordy introductions or conclusions; focus on the data/deliverable.
+1. MAX 30 WORDS for chat. Task planning and results ('propose_task', 'complete_task', 'deliver_project') MUST be concise and direct (Markdown). Avoid wordy introductions or conclusions; focus on the data/deliverable.
 2. Tools only in WORKING (except set_user_brief in IDLE).
 3. QUALITY: If your node has 'Human-in-the-loop' enabled, your 'complete_task' result will be reviewed by the user before completion. 
 If your work is rejected, you will see 'REVISION REQUESTED' above. Use this feedback to improve and call 'complete_task' again once ready.${outputInstruction}

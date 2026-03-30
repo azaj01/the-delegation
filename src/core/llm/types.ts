@@ -52,6 +52,7 @@ export interface LLMResponse {
   content: string | null;
   tool_calls?: LLMToolCall[];
   usage?: LLMTokenUsage;
+  finishReason?: string;
   raw?: any; // The original provider response
   request?: LLMRequestDetails;
 }

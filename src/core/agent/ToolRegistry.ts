@@ -78,7 +78,7 @@ export class ToolRegistry {
               properties: {
                 title: { type: 'string' },
                 description: { type: 'string' },
-                agentId: { type: 'number', description: 'Agent index' },
+                agentId: { type: 'integer', description: 'Agent index' },
                 requiresApproval: { type: 'boolean' }
               },
               required: ['title', 'description', 'agentId']

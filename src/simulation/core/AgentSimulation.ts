@@ -25,9 +25,14 @@ export class AgentSimulation {
   }
 
   private startStateMonitoring() {
-    // 1. Heartbeat safety net (Periodically check for scheduled tasks)
+    // 1. Heartbeat safety net (Periodically check for scheduled tasks and empty boards)
     this.heartbeatInterval = setInterval(() => {
-      this.processScheduledTasks();
+      const state = useCoreStore.getState();
+      if (state.phase === 'working' && state.tasks.length === 0) {
+        this.triggerAutonomousStrategy();
+      } else if (state.phase === 'working') {
+        this.processScheduledTasks();
+      }
     }, 5000);
 
     // 2. Core Store Monitoring

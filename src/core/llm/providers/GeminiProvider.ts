@@ -50,8 +50,23 @@ export class GeminiProvider implements LLMProvider {
       }
     }
 
-    // Also pull tool calls from the root result if that's where the SDK puts them
-    if (result.functionCalls) {
+    // Pull tool calls from both candidates and root (some SDK versions vary)
+    if (candidate?.content?.parts) {
+      for (const part of candidate.content.parts) {
+        if (part.functionCall) {
+          toolCalls.push({
+            id: Math.random().toString(36).substring(7),
+            type: 'function',
+            function: {
+              name: part.functionCall.name,
+              arguments: JSON.stringify(part.functionCall.args)
+            }
+          });
+        }
+      }
+    }
+
+    if (result.functionCalls && toolCalls.length === 0) {
       for (const call of result.functionCalls) {
         toolCalls.push({
           id: Math.random().toString(36).substring(7),
@@ -74,6 +89,7 @@ export class GeminiProvider implements LLMProvider {
       content: contentStr,
       tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
       usage,
+      finishReason: candidate?.finishReason as string,
       raw: result, // Return the original SDK result for technical logging
       request: {
         contents,
