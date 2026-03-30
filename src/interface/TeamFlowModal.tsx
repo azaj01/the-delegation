@@ -8,6 +8,7 @@ import { VisualFlowNode } from './VisualConfigurator/nodes/VisualFlowNode';
 import { systemToFlow, VisualAgentNode } from './VisualConfigurator/flowUtils';
 import { useFlowFocus } from './VisualConfigurator/hooks/useFlowFocus';
 import { TeamBadge } from './components/TeamBadge';
+import { TeamOutputBadge } from './components/TeamOutputBadge';
 
 const nodeTypes = {
   agent: VisualFlowNode,
@@ -80,7 +81,10 @@ const TeamFlowModal: React.FC<TeamFlowModalProps> = ({ isOpen, onClose, system }
       <div className="relative w-full h-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-zinc-200/50 flex flex-col pointer-events-auto animate-in zoom-in-95 fade-in duration-300 ease-out">
         {/* Header */}
         <div className="h-16 border-b border-zinc-100 flex items-center justify-between px-6 bg-white shrink-0">
-          <TeamBadge system={system} />
+          <div className="flex items-center gap-4">
+            <TeamBadge system={system} />
+            <TeamOutputBadge system={system} className="hidden sm:flex" />
+          </div>
 
           <button
             onClick={onClose}

@@ -1,4 +1,4 @@
-import { Edit2, Pipette, Trash2, Users, X, FileText, Image, Music, Video } from 'lucide-react';
+import { Edit2, Pipette, Trash2, Users, X } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AgenticSystem, DEFAULT_AGENTIC_SET_ID, getAllAgents } from '../../data/agents';
 import { USER_COLOR } from '../../theme/brand';
@@ -6,6 +6,7 @@ import { useTeamStore } from '../../integration/store/teamStore';
 import { useSceneManager } from '../../simulation/SceneContext';
 import { getBrightness, getDarkenedColor } from './colorUtils';
 import { ColorPicker } from './ColorPicker';
+import { TeamOutputBadge } from '../components/TeamOutputBadge';
 
 interface TeamCardProps {
   system: AgenticSystem;
@@ -303,25 +304,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
             </div>
           ) : (
             <div className="space-y-0.5 mb-2.5 px-2">
-              <div className="mt-1 p-2 bg-zinc-50/50 border border-zinc-100 rounded-xl space-y-1.5 backdrop-blur-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 text-zinc-400">
-                    {system.outputType === 'text' && <FileText size={10} strokeWidth={2.5} />}
-                    {system.outputType === 'image' && <Image size={10} strokeWidth={2.5} />}
-                    {system.outputType === 'music' && <Music size={10} strokeWidth={2.5} />}
-                    {system.outputType === 'video' && <Video size={10} strokeWidth={2.5} />}
-                    <span className="text-[8px] font-black uppercase tracking-wider text-zinc-500">
-                      {system.outputType || 'TEXT'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-white/80 border border-zinc-100 rounded-lg shadow-sm">
-                    <span className="text-[7px] font-black text-zinc-300 uppercase tracking-tight shrink-0">LLM</span>
-                    <span className="text-[8px] font-bold text-zinc-600 font-mono lowercase">
-                      {system.outputModel}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <TeamOutputBadge system={system} className="mt-1" />
 
               <p className={`text-[10px] leading-relaxed font-medium mt-2 line-clamp-2 ${system.teamDescription ? 'text-zinc-500/80' : 'text-zinc-300 italic'}`}>{system.teamDescription || 'No description provided.'}</p>
             </div>
