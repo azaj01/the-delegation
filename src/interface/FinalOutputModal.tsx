@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useCoreStore } from '../integration/store/coreStore'
 import { useActiveTeam } from '../integration/store/teamStore'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Download } from 'lucide-react'
 import { TeamOutputBadge } from './components/TeamOutputBadge'
 
 export function FinalOutputModal() {
@@ -14,10 +14,28 @@ export function FinalOutputModal() {
   if (!isFinalOutputOpen) return null
 
   const handleCopy = async () => {
-    const textToCopy = finalAssetType === 'text' ? (finalOutput || '') : (finalAssetContent || '');
-    await navigator.clipboard.writeText(textToCopy)
+    // We always copy finalOutput which contains the text result or the prompt/metadata
+    await navigator.clipboard.writeText(finalOutput || '')
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleDownload = () => {
+    if (!finalAssetContent) return;
+    
+    const link = document.createElement('a');
+    if (finalAssetType === 'image') {
+      link.href = `data:image/png;base64,${finalAssetContent}`;
+      link.download = `agentic-image-${Date.now()}.png`;
+    } else if (finalAssetType === 'audio') {
+      link.href = `data:audio/mp3;base64,${finalAssetContent}`;
+      link.download = `agentic-audio-${Date.now()}.mp3`;
+    } else if (finalAssetType === 'video') {
+      link.href = finalAssetContent; // It's usually a URL
+      link.download = `agentic-video-${Date.now()}.mp4`;
+      link.target = "_blank";
+    }
+    link.click();
   }
 
   const renderContent = () => {
@@ -41,14 +59,23 @@ export function FinalOutputModal() {
     if (finalAssetType === 'image' && finalAssetContent) {
       return (
         <div className="space-y-4">
-          <img 
-            src={`data:image/png;base64,${finalAssetContent}`} 
-            alt="Final Generated Asset" 
-            className="w-full rounded-2xl shadow-xl border border-black/5"
-          />
-          <div className="p-4 bg-zinc-100 rounded-xl">
+          <div className="relative group">
+            <img 
+              src={`data:image/png;base64,${finalAssetContent}`} 
+              alt="Final Generated Asset" 
+              className="w-full rounded-2xl shadow-xl border border-black/5"
+            />
+            <button
+               onClick={handleDownload}
+               className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-black/5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-600 active:scale-95"
+               title="Download Image"
+            >
+               <Download size={18} />
+            </button>
+          </div>
+          <div className="p-4 bg-zinc-100/50 rounded-xl border border-zinc-100/50">
              <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">PROMPT USED:</p>
-             <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput}</p>
+             <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput || "No prompt metadata available."}</p>
           </div>
         </div>
       );
@@ -56,17 +83,23 @@ export function FinalOutputModal() {
 
     if (finalAssetType === 'audio' && finalAssetContent) {
       return (
-        <div className="space-y-6 flex flex-col items-center py-10">
-          <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 shadow-inner">
-             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-center gap-3 p-3 bg-white border border-zinc-100 rounded-2xl shadow-sm">
+            <audio controls className="flex-1 h-9">
+              <source src={`data:audio/mp3;base64,${finalAssetContent}`} type="audio/mp3" />
+              Your browser does not support the audio element.
+            </audio>
+            <button
+               onClick={handleDownload}
+               className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 shrink-0"
+            >
+               <Download size={14} strokeWidth={2.5} />
+               Download Audio
+            </button>
           </div>
-          <audio controls className="w-full max-w-sm">
-            <source src={`data:audio/mp3;base64,${finalAssetContent}`} type="audio/mp3" />
-            Your browser does not support the audio element.
-          </audio>
-          <div className="w-full p-4 bg-zinc-100 rounded-xl">
+          <div className="p-4 bg-zinc-100/50 rounded-xl border border-zinc-100/50">
              <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">LYRICS / PROMPT:</p>
-             <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput}</p>
+             <p className="text-xs text-zinc-500 italic leading-relaxed">{finalOutput || "No prompt metadata available."}</p>
           </div>
         </div>
       );
@@ -75,13 +108,22 @@ export function FinalOutputModal() {
     if (finalAssetType === 'video' && finalAssetContent) {
       return (
         <div className="space-y-4">
-          <video controls className="w-full rounded-2xl shadow-xl border border-black/5">
-            <source src={finalAssetContent} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <div className="p-4 bg-zinc-100 rounded-xl">
+          <div className="relative group">
+            <video controls className="w-full rounded-2xl shadow-xl border border-black/5">
+              <source src={finalAssetContent} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <button
+               onClick={handleDownload}
+               className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-black/5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-600 active:scale-95 z-10"
+               title="Download Video"
+            >
+               <Download size={18} />
+            </button>
+          </div>
+          <div className="p-4 bg-zinc-100/50 rounded-xl border border-zinc-100/50">
              <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-1">SCRIPT / PROMPT:</p>
-             <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput}</p>
+             <p className="text-xs text-zinc-600 italic leading-relaxed">{finalOutput || "No prompt metadata available."}</p>
           </div>
         </div>
       );
@@ -104,7 +146,11 @@ export function FinalOutputModal() {
           <div className="flex items-center gap-6">
             <div>
               <h2 className="text-sm font-black uppercase tracking-widest text-zinc-800 flex items-center gap-2">
-                {finalAssetType !== 'text' && <span className="px-2 py-0.5 bg-zinc-900 text-white text-[8px] rounded-md tracking-tighter">MULTIMODAL</span>}
+                {finalAssetType !== 'text' && (
+                  <span className="px-2 py-0.5 bg-zinc-900 text-white text-[8px] rounded-md tracking-tighter">
+                    {(activeTeam?.outputType || finalAssetType).toUpperCase()}
+                  </span>
+                )}
                 Final {finalAssetType} Deliverable
               </h2>
               <p className="text-[11px] text-zinc-400 mt-0.5">

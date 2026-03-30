@@ -117,7 +117,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamDescription: 'High-fidelity audio production following Lyria guidelines.',
     color: '#F43F5E',
     outputType: 'music',
-    outputModel: 'lyria-3-pro-preview',
+    outputModel: 'lyria-3-clip-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'master-producer',

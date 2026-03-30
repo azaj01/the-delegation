@@ -46,11 +46,12 @@ export const useTeamStore = create<TeamState>()(
       }),
 
       updateSystem: (id, changes) => set((s) => {
-        const system = s.customSystems.find(cs => cs.id === id);
-        if (!system) return {};
+        const system = getAgentSet(id, s.customSystems);
         const updatedSystem = { ...system, ...changes };
         return {
-          customSystems: s.customSystems.map((cs) => (cs.id === id ? updatedSystem : cs)),
+          customSystems: s.customSystems.some((cs) => cs.id === id)
+            ? s.customSystems.map((cs) => (cs.id === id ? updatedSystem : cs))
+            : [...s.customSystems, updatedSystem],
         };
       }),
 

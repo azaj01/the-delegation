@@ -109,6 +109,7 @@ export class GeminiProvider implements LLMProvider {
       contents: prompt,
       config: {
         responseModalities: modalities as any,
+        candidateCount: 1,
       }
     });
 

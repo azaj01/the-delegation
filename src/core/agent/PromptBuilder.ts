@@ -22,9 +22,17 @@ export class PromptBuilder {
     const board = tasks.length > 0
       ? tasks.map(t => {
           const agentName = allAgents.find((a: any) => a.data.index === t.assignedAgentId)?.data?.name || `Agent ${t.assignedAgentId}`;
-          const outputStr = t.output ? `\n   Result: ${t.output}` : '';
-          return `- [${t.status.toUpperCase()}] ${t.title} (${agentName})${outputStr}`;
-        }).join('\n')
+          
+          const feedbackStr = t.reviewComments 
+            ? `\n   >> USER FEEDBACK / REVISION REQUESTED: "${t.reviewComments}"` 
+            : '';
+            
+          const outputStr = (t.status === 'done' && t.output)
+            ? `\n   >> FINAL APPROVED WORK:\n   """\n   ${t.output}\n   """` 
+            : '';
+
+          return `* [${t.status.toUpperCase()}] ${t.title} (Owner: ${agentName})${feedbackStr}${outputStr}`;
+        }).join('\n\n')
       : 'Empty';
 
     const selectedTeamId = useTeamStore.getState().selectedAgentSetId;
@@ -32,7 +40,9 @@ export class PromptBuilder {
       || AGENTIC_SETS.find(s => s.id === selectedTeamId);
       
     const outputInstruction = activeTeam?.outputType !== 'text' 
-      ? `\n4. TEAM OUTPUT: ${activeTeam?.outputType?.toUpperCase()}. Your 'deliver_project' output MUST be a highly detailed PROMPT for a ${activeTeam?.outputType} generator model (${activeTeam?.outputModel}).`
+      ? `\n4. TEAM OUTPUT: ${activeTeam?.outputType?.toUpperCase()}. Your 'deliver_project' output MUST be a highly detailed PROMPT for a ${activeTeam?.outputType} generator model (${activeTeam?.outputModel}).
+CRITICAL: You MUST synthesize all subagent findings, research results, and any user feedback into this final prompt. DO NOT just repeat your initial brief.
+The generation model expects a SINGLE prompt to produce a SINGLE ${activeTeam?.outputType}. Be precise.`
       : '';
 
     const pendingReviews = tasks.filter(t => t.assignedAgentId === agent.index && t.reviewComments);

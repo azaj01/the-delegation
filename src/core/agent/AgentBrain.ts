@@ -212,6 +212,7 @@ export class AgentBrain {
         taskId: undefined
       });
 
+      core.setFinalOutput(prompt);
       core.setFinalAsset(activeTeam.outputType === 'music' ? 'audio' : activeTeam.outputType as any, assetContent);
       core.setPhase('done');
       core.setFinalOutputOpen(true);

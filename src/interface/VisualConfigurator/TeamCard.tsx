@@ -47,7 +47,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         teamDescription: system.teamDescription || 'A custom agentic team.',
         color: system.color || '#A855F7',
         outputType: system.outputType || 'text',
-        outputModel: system.outputModel || 'gemini-1.5-flash-latest'
+        outputModel: system.outputModel || 'gemini-3-flash-preview'
       });
       setErrorMsg(null);
       setShowDeleteConfirm(false);
@@ -258,7 +258,20 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                   <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Output Type</label>
                   <select
                     value={localEditData.outputType || 'text'}
-                    onChange={(e) => setLocalEditData(prev => ({ ...prev, outputType: e.target.value as any }))}
+                    onChange={(e) => {
+                      const newType = e.target.value as any;
+                      const defaultModels: Record<string, string> = {
+                        text: 'gemini-3-flash-preview',
+                        image: 'gemini-3.1-flash-image-preview',
+                        music: 'lyria-3-clip-preview',
+                        video: 'veo-3.1-generate-preview'
+                      };
+                      setLocalEditData(prev => ({
+                        ...prev,
+                        outputType: newType,
+                        outputModel: defaultModels[newType] || prev.outputModel
+                      }));
+                    }}
                     className="w-full bg-white border border-zinc-100 text-[11px] font-bold rounded-xl px-2.5 py-1.5 outline-none cursor-pointer"
                   >
                     <option value="text">TEXT</option>

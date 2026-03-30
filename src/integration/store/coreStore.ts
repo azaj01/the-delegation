@@ -197,7 +197,7 @@ export const useCoreStore = create<CoreState>()(
       setUserBrief: (brief) => set({ userBrief: brief }),
       setPhase: (phase) => set({ phase }),
       startProject: (brief) => set({ userBrief: brief, phase: 'working', finalAssetType: 'text', finalAssetContent: null }),
-      setFinalOutput: (output) => set({ finalOutput: output, finalAssetType: 'text' }),
+      setFinalOutput: (output) => set({ finalOutput: output }),
       setFinalAsset: (type, content) => set({ finalAssetType: type, finalAssetContent: content, isGeneratingAsset: false }),
       setIsGeneratingAsset: (isGenerating) => set({ isGeneratingAsset: isGenerating }),
 
