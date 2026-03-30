@@ -24,14 +24,7 @@ export class AgentHost implements AgentActionContext {
 
   /** Determines if the agent is currently available to respond to user messages. */
   public canChat(): boolean {
-    if (this.state === 'idle') return true;
-    if (this.state === 'on_hold') {
-      const core = useCoreStore.getState();
-      const myHoldTask = core.tasks.find(t => t.status === 'on_hold' && t.assignedAgentId === this.data.index);
-      // Only available if specifically waiting for the user (targetId 0)
-      return myHoldTask?.consultationTargetId === 0;
-    }
-    return false;
+    return this.state === 'idle';
   }
 
   public async think(prompt: string, options: {
@@ -43,18 +36,22 @@ export class AgentHost implements AgentActionContext {
     this.isThinking = true;
 
     try {
+      this.refreshFromStore();
       const core = useCoreStore.getState();
       const llmConfig = useUiStore.getState().llmConfig;
       const provider = LLMFactory.getProvider(llmConfig);
       const model = this.data.model || llmConfig.model;
 
-      // Append user prompt to history FIRST so it persists and is visible in UI (unless silent)
-      this.history.push({
-        role: 'user',
-        content: prompt,
-        metadata: options.silent ? { internal: true } : undefined
-      });
-      this.syncToStore();
+      // Append user prompt to history FIRST if it's not already there (autonomous triggers)
+      // For chat, SceneManager already added it to the store, and refreshFromStore loaded it.
+      if (!options.isChat) {
+        this.history.push({
+          role: 'user',
+          content: prompt,
+          metadata: options.silent ? { internal: true } : undefined
+        });
+        this.syncToStore();
+      }
 
       // Prune history to last 10 messages to save tokens
       const messages: LLMMessage[] = this.history.slice(-10);
@@ -103,7 +100,7 @@ export class AgentHost implements AgentActionContext {
       const isInternalTrigger = options.silent;
       const hasToolCallsOnly = !text && !!response.tool_calls && response.tool_calls.length > 0;
       const isBrief = response.tool_calls?.some(tc => tc.function.name === 'set_user_brief');
-      const isResolution = this.state === 'on_hold' && response.tool_calls && response.tool_calls.length > 0;
+      const isResolution = false; // No more autonomous resolutions via tools while on_hold
       let finalContent = text;
 
       if (hasToolCallsOnly && !isInternalTrigger) {
@@ -116,6 +113,8 @@ export class AgentHost implements AgentActionContext {
       if (options.isChat && (isBrief || isResolution)) {
         setTimeout(() => {
           if (useUiStore.getState().isChatting) useUiStore.getState().setChatting(false);
+          // Return to Project View (Dashboard) by deselecting the NPC
+          useUiStore.getState().setSelectedNpc(null);
         }, 3000);
       }
 
@@ -214,6 +213,13 @@ export class AgentHost implements AgentActionContext {
     }
   }
 
+  private refreshFromStore() {
+    const history = useCoreStore.getState().agentHistories[this.data.index];
+    if (history) {
+      this.history = [...history];
+    }
+  }
+
   private syncToStore() {
     useCoreStore.getState().setAgentHistory(this.data.index, this.history);
   }
@@ -226,7 +232,7 @@ export class AgentHost implements AgentActionContext {
 
     const objectives = {
       idle: isLead ? 'Chat with [0] to define brief, then set_user_brief.' : 'Wait for Lead to start.',
-      working: isLead ? 'Manage board. deliver_project when all Done.' : 'Complete tasks. request_consultation if stuck.',
+      working: isLead ? 'Manage board. deliver_project when all Done.' : 'Complete tasks.',
       done: 'Project finished.'
     };
 
@@ -246,20 +252,26 @@ export class AgentHost implements AgentActionContext {
       ? `\n4. TEAM OUTPUT: ${activeTeam?.outputType?.toUpperCase()}. Your 'deliver_project' output MUST be a highly detailed PROMPT for a ${activeTeam?.outputType} generator model (${activeTeam?.outputModel}).`
       : '';
 
+    const pendingReviews = tasks.filter(t => t.assignedAgentId === this.data.index && t.reviewComments);
+    const reviewContext = pendingReviews.length > 0
+      ? `\nREVISION REQUESTED:\n${pendingReviews.map(t => `- [${t.title}] Feedback: ${t.reviewComments}`).join('\n')}`
+      : '';
+
     return `ID: ${this.data.name}. Role: ${this.data.description}. Phase: ${phase}.
-${brief ? `Brief: ${brief}` : ''}
-Team: [0]User, ${team}
+${brief ? `Brief: ${brief}` : ''}${reviewContext}
+Team: User (0), ${team}
 KANBAN:
 ${board}
 RULES:
-1. MAX 30 WORDS for conversational/chat responses. Outputs for 'complete_task' and 'deliver_project' MUST be rich, professional, and detailed (Markdown supported).
+1. MAX 30 WORDS for chat. Task results ('complete_task', 'deliver_project') MUST be concise and direct (Markdown). Avoid wordy introductions or conclusions; focus on the data/deliverable.
 2. Tools only in WORKING (except set_user_brief in IDLE).
-3. MANDATORY: If any instruction is ambiguous, use 'request_consultation' with [0] (User) immediately.
-4. QUALITY: If your node has 'Human-in-the-loop' enabled, you MUST consult the user with your final result before finalizing.${outputInstruction}
+3. QUALITY: If your node has 'Human-in-the-loop' enabled, your 'complete_task' result will be reviewed by the user before completion. 
+If your work is rejected, you will see 'REVISION REQUESTED' above. Use this feedback to improve and call 'complete_task' again once ready.${outputInstruction}
 Goal: ${objectives[phase as keyof typeof objectives] || ''}`;
   }
 
   public appendHistory(message: LLMMessage) {
+    this.refreshFromStore();
     this.history.push(message);
     this.syncToStore();
   }
@@ -278,13 +290,7 @@ Goal: ${objectives[phase as keyof typeof objectives] || ''}`;
     useUiStore.getState().setAgentStatus(this.data.index, state);
   }
 
-  public getParticipantIds(): number[] {
-    return (this.simulation.getAllAgents() as any[]).map(a => a.data.index);
-  }
 
-  public triggerMeeting(agentIndex: number, taskId: string, targetId?: number, message?: string) {
-    this.simulation?.onAgentRequestMeeting?.(agentIndex, taskId, targetId, message);
-  }
 
   public dispose() {
     // No-op for now

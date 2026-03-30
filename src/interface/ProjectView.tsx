@@ -67,13 +67,17 @@ const ProjectView: React.FC = () => {
 
       {/* Reset Project Button */}
       {hasLogs && (
-        <div className="mb-8 flex justify-end">
+        <div className="mb-8 w-full">
           <button
             onClick={() => setIsResetModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100/50 hover:bg-zinc-100 text-zinc-400 hover:text-red-500 rounded-lg transition-all active:scale-95 group border border-transparent hover:border-red-100"
+            className={`w-full flex items-center justify-center gap-2 px-4 py-4 rounded-2xl transition-all active:scale-[0.98] group ${
+              phase === 'done' 
+                ? 'bg-zinc-900 hover:bg-black text-white shadow-xl shadow-zinc-900/10' 
+                : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-400 hover:text-zinc-600'
+            }`}
           >
-            <RefreshCcw size={12} className="transition-transform group-hover:rotate-180 duration-500" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Reset Project</span>
+            <RefreshCcw size={14} strokeWidth={3} className="transition-transform group-hover:rotate-180 duration-500" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Start New Project</span>
           </button>
         </div>
       )}

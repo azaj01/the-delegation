@@ -1,18 +1,27 @@
 import { AgentActionContext } from '../ToolRegistry';
 import { useCoreStore } from '../../../integration/store/coreStore';
-import { requestConsultation } from './requestConsultation';
+import { useUiStore } from '../../../integration/store/uiStore';
 
 export function completeTask(agent: AgentActionContext, args: { taskId: string, output: string }): boolean {
   const store = useCoreStore.getState();
   const { taskId, output } = args;
 
-  // HUMAN-IN-THE-LOOP: If agent requires validation, redirect to consultation instead of completing
-  if (agent.data.humanInTheLoop) {
-    return requestConsultation(agent, {
-      targetId: 0, // User
-      taskId,
-      message: `I've finished the task. Please review the output below before I finalize it:\n\n${output}`
+  // HUMAN-IN-THE-LOOP: If agent requires validation, submit for review instead of completing.
+  const agentStatus = useUiStore.getState().agentStatuses[agent.data.index];
+  
+  if (agent.data.humanInTheLoop && agentStatus !== 'on_hold') {
+    const tasks = useCoreStore.getState().tasks;
+    const task = tasks.find(t => t.id === taskId);
+    const taskTitle = task?.title || taskId;
+    
+    store.submitTaskForReview(taskId, output);
+    agent.setState('on_hold');
+    agent.appendHistory({
+      role: 'assistant',
+      content: `I've finished the task **"${taskTitle}"**. Since I am under supervision, I've submitted my work for your review.`,
+      metadata: { reviewTaskId: taskId }
     });
+    return true;
   }
 
   store.updateTaskStatus(taskId, 'done');

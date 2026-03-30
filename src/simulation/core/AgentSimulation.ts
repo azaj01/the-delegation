@@ -14,13 +14,6 @@ import { useUiStore } from '../../integration/store/uiStore';
 export class AgentSimulation {
   private agents: Map<number, AgentHost> = new Map();
   private system: AgenticSystem;
-  private meetingRegistry: Map<string, { 
-    requesterIndex: number, 
-    targetIndex?: number, 
-    arrived: Set<number>, 
-    message?: string,
-    started: boolean 
-  }> = new Map();
   private unsubs: (() => void)[] = [];
   private heartbeatInterval: any = null;
   private lastSparkTriggerTime: number = 0;
@@ -35,7 +28,7 @@ export class AgentSimulation {
     // 1. Heartbeat safety net (Periodically check for scheduled tasks)
     this.heartbeatInterval = setInterval(() => {
       this.processScheduledTasks();
-    }, 10000);
+    }, 5000);
 
     // 2. Core Store Monitoring
     this.unsubs.push(
@@ -71,11 +64,14 @@ export class AgentSimulation {
     const state = useCoreStore.getState();
     if (state.phase !== 'working') return;
 
-    state.tasks.filter(t => t.status === 'scheduled').forEach(task => {
+    state.tasks.filter(t => t.status === 'scheduled' || t.status === 'in_progress').forEach(task => {
       const agent = this.getAgent(task.assignedAgentId);
+      const uiStatus = useUiStore.getState().agentStatuses[task.assignedAgentId];
+      
       // Resilience check: only start if agent is truly idle and not currently thinking.
-      if (agent && agent.state === 'idle' && !agent.isThinking) {
-         this.startTaskExecution(task.assignedAgentId, task.id);
+      // We check both internal state and UI status as safety.
+      if (agent && (agent.state === 'idle' || uiStatus === 'idle') && !agent.isThinking) {
+        this.startTaskExecution(task.assignedAgentId, task.id);
       }
     });
   }
@@ -112,7 +108,7 @@ export class AgentSimulation {
     } catch (err) {
       console.error(`[AgentSimulation] Agent ${agentIndex} failed:`, err);
     } finally {
-      // Resilience check: only clear task if not waiting for consultation/meeting
+      // Resilience check: only clear task if not waiting for review or meeting
       if (agent.state !== 'on_hold' && agent.state !== 'talking') {
         agent.setTask(null);
         agent.setState('idle');
@@ -134,7 +130,7 @@ export class AgentSimulation {
     if (state.phase === 'working' && allTasksFinished) {
       const lead = this.getAgent(this.system.leadAgent.index);
       if (lead && !lead.isThinking) {
-        await lead.think('All tasks are complete! Use the deliver_project tool to fulfill the final delivery with a summary of the accomplishments.', { silent: true });
+        await lead.think('All tasks are complete! Use the deliver_project tool to fulfill the final delivery with the project result.', { silent: true });
       }
     }
   }
@@ -154,49 +150,7 @@ export class AgentSimulation {
     return Array.from(this.agents.values());
   }
 
-  public onAgentRequestMeeting(agentIndex: number, taskId: string, targetIndex?: number, message?: string) {
-    this.meetingRegistry.set(taskId, { requesterIndex: agentIndex, targetIndex, arrived: new Set(), message, started: false });
-    
-    setTimeout(() => {
-      const meeting = this.meetingRegistry.get(taskId);
-      if (meeting && !meeting.started) this.startMeetingCognition(taskId, meeting);
-    }, 15000);
-  }
 
-  public async onAgentReady(agentIndex: number, taskId: string) {
-    const meeting = this.meetingRegistry.get(taskId);
-    if (!meeting || meeting.started) return;
-    meeting.arrived.add(agentIndex);
-    const both = meeting.targetIndex === undefined || (meeting.arrived.has(meeting.requesterIndex) && meeting.arrived.has(meeting.targetIndex!));
-    if (both) this.startMeetingCognition(taskId, meeting);
-    else this.getAgent(agentIndex)?.setState('on_hold');
-  }
-
-  private async startMeetingCognition(taskId: string, meeting: any) {
-    if (meeting.started) return;
-    meeting.started = true;
-    const requester = this.getAgent(meeting.requesterIndex);
-    const target = meeting.targetIndex !== undefined ? this.getAgent(meeting.targetIndex) : null;
-    if (!requester || requester.isThinking) return;
-
-    if (target) {
-      if (target.isThinking) { meeting.started = false; return; }
-      requester.setState('talking'); target.setState('talking');
-      try {
-        await requester.think(meeting.message || `Meeting for ${taskId}.`, { silent: true });
-        await target.think(`Review meeting for ${taskId}.`, { silent: true });
-      } finally {
-        requester.setState('idle'); 
-        if (target) target.setState('idle');
-        
-        // Return task to scheduled so it can be picked up by the loop
-        useCoreStore.getState().updateTaskStatus(taskId, 'scheduled');
-        this.processScheduledTasks();
-      }
-    } else {
-      // Just waiting for User (0) - no action needed, AgentHost already set to on_hold
-    }
-  }
 
   public async handleUserMessage(agentIndex: number, text: string) {
     const agent = this.getAgent(agentIndex);

@@ -26,7 +26,7 @@ const ResetModal: React.FC<ResetModalProps> = ({ isOpen, onClose, onConfirm }) =
                 <AlertTriangle size={32} strokeWidth={2.5} />
               </div>
               <h3 className="text-2xl font-black text-zinc-900 leading-tight">
-                Reset Project?
+                Start New Project?
               </h3>
             </div>
             <button

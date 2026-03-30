@@ -244,7 +244,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                     <div className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center shrink-0">
                       <Check size={10} className="text-zinc-700" />
                     </div>
-                    <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Request Consultation</span>
+                    <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tight">Autonomous Reasoning</span>
                   </div>
                   {isLead && (
                     <div className="flex items-center gap-2">
@@ -286,7 +286,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                     `} />
                   </div>
                 </div>
-              ), "When enabled, the agent will pause and open a chat with you to review their work before finalizing it.")}
+              ), "When enabled, the agent will pause their work to submit the result for your review and feedback before finalizing.")}
             </div>
           </>
         )}

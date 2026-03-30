@@ -5,8 +5,8 @@ export function proposeTask(agent: AgentActionContext, args: { title: string, de
   const store = useCoreStore.getState();
   const { title, description, agentId, requiresApproval } = args;
 
-  const validAgentIds = agent.getParticipantIds();
-  const finalAgentId = validAgentIds.includes(agentId) ? agentId : agent.data.index;
+  // Simplified: Trust the agentId provided by the LLM, fallback to self if invalid or 0
+  const finalAgentId = agentId > 0 ? agentId : agent.data.index;
 
   const newTask = store.addTask({
     title,

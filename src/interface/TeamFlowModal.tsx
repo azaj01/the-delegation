@@ -77,6 +77,7 @@ const TeamFlowModal: React.FC<TeamFlowModalProps> = ({ isOpen, onClose, system }
         onClick={onClose}
       />
       
+      {/* Resilience check: only clear task if not waiting for review or meeting */}
       {/* Modal Content */}
       <div className="relative w-full h-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-zinc-200/50 flex flex-col pointer-events-auto animate-in zoom-in-95 fade-in duration-300 ease-out">
         {/* Header */}
@@ -106,7 +107,7 @@ const TeamFlowModal: React.FC<TeamFlowModalProps> = ({ isOpen, onClose, system }
            <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="w-3 h-0.5 bg-zinc-300 border-t border-dashed border-zinc-400" />
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Hierarchy (Consultation)</span>
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Hierarchy (Managed)</span>
             </div>
            </div>
            

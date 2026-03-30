@@ -29,6 +29,9 @@ export const useUiStore = create<CharacterState>()(
     setBYOKOpen: (open: boolean, error: string | null = null) =>
       set({ isBYOKOpen: open, byokError: error }),
 
+    activeAuditTaskId: null,
+    setActiveAuditTaskId: (taskId: string | null) => set({ activeAuditTaskId: taskId }),
+
     llmConfig: (() => {
       try {
         const saved = localStorage.getItem('byok-config');

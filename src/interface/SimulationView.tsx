@@ -6,6 +6,7 @@ import { useUiStore } from '../integration/store/uiStore';
 import InspectorPanel from './InspectorPanel';
 import UIOverlay from './UIOverlay';
 import TeamFlowModal from './TeamFlowModal';
+import { AuditModal } from './AuditModal';
 import { TeamBadge } from './components/TeamBadge';
 import { TeamOutputBadge } from './components/TeamOutputBadge';
 
@@ -16,9 +17,17 @@ interface SimulationViewProps {
 }
 
 const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen, setIsFullscreen }) => {
-  const selectedNpcIndex = useUiStore((s) => s.selectedNpcIndex);
+  const { selectedNpcIndex, activeAuditTaskId, setActiveAuditTaskId } = useUiStore();
   const activeSet = useActiveTeam();
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    if (activeAuditTaskId) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [activeAuditTaskId]);
 
   return (
     <div className="flex flex-col flex-1 min-w-0 min-h-0 relative">
@@ -64,6 +73,14 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
           isOpen={isFlowModalOpen} 
           onClose={() => setIsFlowModalOpen(false)} 
           system={activeSet}
+        />
+      )}
+
+      {activeAuditTaskId && (
+        <AuditModal 
+          isOpen={!!activeAuditTaskId} 
+          taskId={activeAuditTaskId} 
+          onClose={() => setActiveAuditTaskId(null)} 
         />
       )}
     </div>

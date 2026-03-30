@@ -2,7 +2,6 @@ import { LLMMessage } from '../llm/types';
 import { setUserBrief } from './tools/setUserBrief';
 import { proposeTask } from './tools/proposeTask';
 import { completeTask } from './tools/completeTask';
-import { requestConsultation } from './tools/requestConsultation';
 import { deliverProject } from './tools/deliverProject';
 
 export interface ToolCall {
@@ -18,8 +17,6 @@ export interface AgentActionContext {
   data: { index: number; name: string, subagents?: any[], humanInTheLoop?: boolean };
   setState: (state: 'idle' | 'moving' | 'working' | 'on_hold' | 'talking') => void;
   appendHistory: (message: LLMMessage) => void;
-  triggerMeeting?: (agentIndex: number, taskId: string, targetId?: number, message?: string) => void;
-  getParticipantIds: () => number[];
 }
 
 export class ToolRegistry {
@@ -36,8 +33,6 @@ export class ToolRegistry {
         return proposeTask(agent, args);
       case 'complete_task':
         return completeTask(agent, args);
-      case 'request_consultation':
-        return requestConsultation(agent, args);
       case 'deliver_project':
         return deliverProject(agent, args);
       default:
@@ -108,22 +103,6 @@ export class ToolRegistry {
             }
           }
         },
-        {
-          type: 'function',
-          function: {
-            name: 'request_consultation',
-            description: 'Pauses current task to seek clarification, feedback, or to resolve a blocker. Use targetId 0 to talk with the User. Mandatory if the brief is ambiguous or you need validation before proceeding with tokens.',
-            parameters: {
-              type: 'object',
-              properties: {
-                targetId: { type: 'number', description: '0 for User, or the index of another agent.' },
-                taskId: { type: 'string', description: 'The ID of the task you are stuck on.' },
-                message: { type: 'string', description: 'Clear explanation of why you need consultation.' }
-              },
-              required: ['targetId', 'taskId', 'message']
-            }
-          }
-        }
       );
 
       if (isLead) {
@@ -131,7 +110,7 @@ export class ToolRegistry {
           type: 'function',
           function: {
             name: 'deliver_project',
-            description: 'Final delivery. MUST include a "## Team Contributions" header attributing work to each agent based on KANBAN results.',
+            description: 'Final delivery of the project result in rich Markdown format.',
             parameters: {
               type: 'object',
               properties: { 

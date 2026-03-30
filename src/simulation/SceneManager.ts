@@ -69,19 +69,18 @@ export class SceneManager {
   private startWatchingCoreStore() {
     this.unsubs.push(
       useCoreStore.subscribe((state, prevState) => {
-        const agentIndices = Array.from(new Set(state.tasks.flatMap(t => [t.assignedAgentId, t.consultationTargetId].filter(id => id !== undefined && id !== 0))));
+        const agentIndices = Array.from(new Set(state.tasks.flatMap(t => [t.assignedAgentId].filter(id => id !== undefined && id !== 0))));
 
         agentIndices.forEach(id => {
           const myTasks = state.tasks.filter(t => t.assignedAgentId === id);
-          const consultTasks = state.tasks.filter(t => t.consultationTargetId === id);
-          const hasChange = [...myTasks, ...consultTasks].some(t => {
+          const hasChange = myTasks.some(t => {
             const pt = prevState.tasks.find(old => old.id === t.id);
             return !pt || pt.status !== t.status;
           });
           
           if (!hasChange) return;
 
-          const onHold = myTasks.find(t => t.status === 'on_hold') || consultTasks.find(t => t.status === 'on_hold');
+          const onHold = myTasks.find(t => t.status === 'on_hold');
           const inProgress = myTasks.find(t => t.status === 'in_progress');
           const justDone = myTasks.some(t => t.status === 'done' && !prevState.tasks.find(pt => pt.id === t.id && pt.status === 'done'));
 
@@ -278,7 +277,7 @@ export class SceneManager {
       this.controller.setSpeaking(index, true);
     } else {
       this.controller.setSpeaking(index, false);
-      const task = useCoreStore.getState().tasks.find(t => t.status === 'on_hold' && (t.assignedAgentId === index || t.consultationTargetId === index));
+      const task = useCoreStore.getState().tasks.find(t => t.status === 'on_hold' && t.assignedAgentId === index);
       this.controller.play(index, task ? 'listen' : 'idle');
     }
   }
@@ -289,8 +288,7 @@ export class SceneManager {
     if (poi) {
       this.controller.walkToPoi(index, poi.id, () => {
         const core = useCoreStore.getState();
-        const t = core.tasks.find(t => t.status === 'on_hold' && (t.assignedAgentId === index || t.consultationTargetId === index));
-        if (t) this.simulation?.onAgentReady(index, t.id);
+        const t = core.tasks.find(t => t.status === 'on_hold' && t.assignedAgentId === index);
       });
     }
   }

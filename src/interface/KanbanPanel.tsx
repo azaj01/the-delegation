@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, MessageSquareWarning, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, MessageSquareWarning, Trash2, Eye } from 'lucide-react'
 import React, { useState } from 'react'
 import { getAllAgents, USER_NAME } from '../data/agents'
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand'
@@ -48,12 +48,10 @@ function TaskCard({ task }: { task: Task; key?: string }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const { removeTask } = useCoreStore()
-  const { setSelectedNpc } = useUiStore()
+  const { setSelectedNpc, setActiveAuditTaskId } = useUiStore()
 
   // For visual representation, we show both the owner and any consultation target
-  const effectiveAgentIds = task.consultationTargetId !== undefined
-    ? [task.assignedAgentId, task.consultationTargetId]
-    : [task.assignedAgentId]
+  const effectiveAgentIds = [task.assignedAgentId];
 
   const handleSelectAgent = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -70,41 +68,33 @@ function TaskCard({ task }: { task: Task; key?: string }) {
         <h3 className="text-xs text-zinc-900 leading-snug font-bold flex-1">
           {task.title || 'Untitled Task'}
         </h3>
-        <div className="flex items-center gap-1">
-          {task.status === 'on_hold' && task.consultationTargetId === 0 && (
-            <button
-              onClick={handleSelectAgent}
-              className="p-1 text-white bg-orange-500 hover:bg-orange-600 rounded mr-1"
-              title="Select agent waiting for approval"
-            >
-              <MessageSquareWarning size={14} />
-            </button>
-          )}
-          {task.status !== 'done' && (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setIsDeleteModalOpen(true)
-                }}
-                className="p-1 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded transition-all"
-                title="Remove task"
-              >
-                <Trash2 size={12} />
-              </button>
-              <DeleteTaskModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={() => removeTask(task.id)}
-                taskTitle={task.title}
-              />
-            </>
-          )}
+          <div className="flex items-center gap-1 opacity-100 group-hover:opacity-100 transition-opacity">
+
+            {task.status !== 'done' && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setIsDeleteModalOpen(true)
+                  }}
+                  className="p-1 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded transition-all"
+                  title="Remove task"
+                >
+                  <Trash2 size={12} />
+                </button>
+                <DeleteTaskModal
+                  isOpen={isDeleteModalOpen}
+                  onClose={() => setIsDeleteModalOpen(false)}
+                  onConfirm={() => removeTask(task.id)}
+                  taskTitle={task.title}
+                />
+              </>
+            )}
+          </div>
           <button className="text-zinc-300 group-hover:text-zinc-500 transition-colors">
             {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </button>
         </div>
-      </div>
 
       {isExpanded && (
         <p className="text-[11px] text-zinc-500 leading-relaxed bg-zinc-50/50 p-2 rounded border border-black/5 animate-in fade-in slide-in-from-top-1 duration-200">
@@ -112,21 +102,39 @@ function TaskCard({ task }: { task: Task; key?: string }) {
         </p>
       )}
 
-      <div className="flex flex-wrap gap-x-2 gap-y-1 pt-1">
-        {effectiveAgentIds.map(renderAgentTag)}
+      <div className="flex items-center justify-between gap-x-2 gap-y-1 pt-1">
+        <div className="flex flex-wrap gap-x-2 gap-y-1">
+          {effectiveAgentIds.map(renderAgentTag)}
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {task.status === 'in_progress' && (
+            <span 
+              className="inline-block text-[10px] font-black uppercase tracking-widest rounded-full px-2 py-0.5 shadow-sm border whitespace-nowrap"
+              style={{ 
+                color: USER_COLOR, 
+                backgroundColor: USER_COLOR_LIGHT, 
+                borderColor: USER_COLOR_SOFT 
+              }}
+            >
+              working
+            </span>
+          )}
+          
+          {(task.status === 'done' || task.draftOutput || (task.revisions && task.revisions.length > 0)) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveAuditTaskId(task.id);
+              }}
+              className="p-1 text-zinc-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all"
+              title="View work details"
+            >
+              <Eye size={14} strokeWidth={2.5} />
+            </button>
+          )}
+        </div>
       </div>
-      {task.status === 'in_progress' && (
-        <span 
-          className="inline-block text-[10px] font-black uppercase tracking-widest rounded-full px-2 py-0.5 shadow-sm border"
-          style={{ 
-            color: USER_COLOR, 
-            backgroundColor: USER_COLOR_LIGHT, 
-            borderColor: USER_COLOR_SOFT 
-          }}
-        >
-          working
-        </span>
-      )}
     </div>
   )
 }

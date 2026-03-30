@@ -7,6 +7,12 @@ import { useUiStore } from './uiStore';
 
 export type TaskStatus = 'scheduled' | 'on_hold' | 'in_progress' | 'done'
 
+export interface TaskRevision {
+  output: string
+  feedback?: string
+  timestamp: number
+}
+
 export interface Task {
   id: string
   title: string
@@ -14,9 +20,11 @@ export interface Task {
   assignedAgentId: number
   status: TaskStatus
   parentTaskId?: string
-  requiresUserApproval: boolean
-  consultationTargetId?: number
-  output?: string
+  requiresUserApproval: boolean,
+  draftOutput?: string,
+  reviewComments?: string,
+  output?: string,
+  revisions: TaskRevision[]
   createdAt: number
   updatedAt: number
 }
@@ -100,12 +108,13 @@ interface CoreState {
   setIsGeneratingAsset: (isGenerating: boolean) => void;
 
   // ── Actions — Tasks ───────────────────────────────────────────
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Task;
+  addTask: (task: Omit<Task, 'id' | 'revisions' | 'createdAt' | 'updatedAt'>) => Task;
   removeTask: (taskId: string) => void;
   updateTaskStatus: (taskId: string, status: TaskStatus) => void;
-  holdTaskForConsultation: (taskId: string, targetId: number) => void;
+  submitTaskForReview: (taskId: string, draftOutput?: string) => void;
   setTaskOutput: (taskId: string, output: string) => void;
   approveTask: (taskId: string) => void;
+  rejectTask: (taskId: string, comments: string) => void;
 
   // ── Actions — Log ─────────────────────────────────────────────
   addLogEntry: (entry: Omit<ActionLogEntry, 'id' | 'timestamp'>) => void;
@@ -196,6 +205,7 @@ export const useCoreStore = create<CoreState>()(
         const newTask: Task = {
           ...task,
           id: `task_${uid()}`,
+          revisions: [],
           createdAt: Date.now(),
           updatedAt: Date.now(),
         }
@@ -241,12 +251,76 @@ export const useCoreStore = create<CoreState>()(
           };
         }),
 
-      holdTaskForConsultation: (taskId, targetId) =>
+      submitTaskForReview: (taskId, draftOutput) =>
         set((s) => ({
           tasks: s.tasks.map((t) =>
-            t.id === taskId ? { ...t, status: 'on_hold', consultationTargetId: targetId, updatedAt: Date.now() } : t
+            t.id === taskId ? { 
+              ...t, 
+              status: 'on_hold', 
+              draftOutput,
+              updatedAt: Date.now() 
+            } : t
           ),
         })),
+
+      approveTask: (taskId) => {
+        set((s) => {
+          const task = s.tasks.find(t => t.id === taskId);
+          if (task) useUiStore.getState().setAgentStatus(task.assignedAgentId, 'idle');
+          
+          return {
+            tasks: s.tasks.map((t) =>
+              t.id === taskId ? { 
+                ...t, 
+                status: 'done', 
+                output: t.draftOutput || t.output,
+                revisions: t.draftOutput 
+                  ? [...t.revisions, { output: t.draftOutput, timestamp: Date.now() }] 
+                  : t.revisions,
+                draftOutput: undefined,
+                updatedAt: Date.now() 
+              } : t
+            ),
+          };
+        });
+      },
+
+      rejectTask: (taskId, comments) => {
+        set((s) => {
+          const task = s.tasks.find(t => t.id === taskId);
+          if (!task) return {};
+
+          useUiStore.getState().setAgentStatus(task.assignedAgentId, 'idle');
+          
+          const history = s.agentHistories[task.assignedAgentId] || [];
+          const updatedHistory = [
+            ...history,
+            {
+              role: 'user' as 'user',
+              content: `Rejected. Reason: ${comments}`,
+            }
+          ];
+
+          return {
+            tasks: s.tasks.map((t) =>
+              t.id === taskId ? { 
+                ...t, 
+                status: 'scheduled', 
+                reviewComments: comments,
+                revisions: t.draftOutput 
+                  ? [...t.revisions, { output: t.draftOutput, feedback: comments, timestamp: Date.now() }] 
+                  : t.revisions,
+                draftOutput: undefined,
+                updatedAt: Date.now() 
+              } : t
+            ),
+            agentHistories: {
+              ...s.agentHistories,
+              [task.assignedAgentId]: updatedHistory
+            }
+          };
+        });
+      },
 
       setTaskOutput: (taskId, output) =>
         set((s) => ({
@@ -254,21 +328,6 @@ export const useCoreStore = create<CoreState>()(
             t.id === taskId ? { ...t, output, updatedAt: Date.now() } : t
           ),
         })),
-
-      approveTask: (taskId) => {
-        set((s) => {
-          const task = s.tasks.find(t => t.id === taskId);
-          if (task) {
-            // Also notify UI store that this agent is back to idle
-            useUiStore.getState().setAgentStatus(task.assignedAgentId, 'idle');
-          }
-          return {
-            tasks: s.tasks.map((t) =>
-              t.id === taskId ? { ...t, status: 'done', updatedAt: Date.now() } : t
-            ),
-          };
-        });
-      },
 
       addLogEntry: (entry) =>
         set((s) => ({

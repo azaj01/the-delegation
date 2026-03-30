@@ -1,4 +1,4 @@
-import { FolderOpen, Lock, MessageSquare, MessageSquareWarning } from 'lucide-react';
+import { FolderOpen, Lock, MessageSquare, MessageSquareWarning, MessageSquareQuote } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { getAgentSet, getAllCharacters } from '../data/agents';
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand';
@@ -115,7 +115,7 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                       <div className="flex items-center justify-center w-4 h-4 bg-orange-500 rounded text-white shadow-sm">
                         <MessageSquareWarning size={10} strokeWidth={3} />
                       </div>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-orange-600">Approval</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-orange-600">Review Requested</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -132,25 +132,35 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
 
               {needsInput && !isChatting ? (
                 <div className="flex flex-col gap-3 p-4 bg-zinc-50 border border-zinc-100 rounded-xl animate-in fade-in slide-in-from-top-1 shadow-sm">
-                  <div className="flex items-center gap-1.5">
-                    <Avatar type="user" color={USER_COLOR} size={32} />
-                    <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: USER_COLOR }}>Needs Approval</span>
+                  <div className="flex items-center gap-1.5 font-black uppercase tracking-widest text-[9px]">
+                    <div className="flex items-center justify-center w-5 h-5 bg-amber-100 border border-amber-200 rounded-lg text-amber-600">
+                      <MessageSquareWarning size={12} strokeWidth={3} />
+                    </div>
+                    <span className="text-amber-600">Review Requested</span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <p className="text-[12px] font-bold text-zinc-900 leading-tight">
                       {isLeadAgentIdle
                         ? "Review the user brief with the team."
-                        : `"${currentTask?.title || 'This task'} is waiting for your input to proceed."`}
+                        : `I've finished the task "${tasksOnHold[0]?.title ?? 'Work'}". I've submitted my work for your review.`}
                     </p>
-                    <p className="text-[10px] text-zinc-400 italic">Waiting for your input to proceed.</p>
+                    
                     <button
-                      onClick={handleStartChat}
-                      disabled={!canChat}
-                      style={{ backgroundColor: agent.color }}
-                      className="flex items-center justify-center gap-2 hover:brightness-90 active:scale-95 disabled:opacity-50 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm mt-1"
+                      onClick={isLeadAgentIdle ? handleStartChat : () => useUiStore.getState().setActiveAuditTaskId(tasksOnHold[0]?.id)}
+                      disabled={isLeadAgentIdle ? !canChat : false}
+                      className="flex items-center justify-center gap-2 bg-zinc-900 hover:bg-black active:scale-95 disabled:opacity-50 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm mt-1"
                     >
-                      <MessageSquareWarning size={14} strokeWidth={3} />
-                      Chat about {isLeadAgentIdle ? 'the brief' : 'approval'}
+                      {isLeadAgentIdle ? (
+                        <>
+                          <MessageSquare size={14} strokeWidth={3} />
+                          Chat about the brief
+                        </>
+                      ) : (
+                        <>
+                          <MessageSquareQuote size={14} strokeWidth={3} />
+                          Review Task
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>

@@ -62,7 +62,7 @@ function getAgentPhaseLabel(
     t => t.assignedAgentId === agentIndex && t.status === 'on_hold',
   );
   if (holdTask && phase !== 'done') {
-    return { text: 'Human-in-the-loop', className: 'text-orange-400' };
+    return { text: 'Approval Needed', className: 'text-orange-400' };
   }
   const activeTask = tasks.find(
     t => t.assignedAgentId === agentIndex && t.status === 'in_progress',
@@ -125,16 +125,10 @@ const UIOverlay: React.FC = () => {
         else {
           const pendingTask = tasks.find(t => 
             t.status === 'on_hold' && 
-            t.assignedAgentId === agent.index &&
-            t.consultationTargetId === 0
+            t.assignedAgentId === agent.index
           );
           if (pendingTask) {
-            alertIcon = (
-              <div className="relative">
-                <MessageSquareWarning size={18} />
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full animate-ping" />
-              </div>
-            );
+            alertIcon = <MessageSquareWarning size={18} />;
             alertColor = '#fb923c'; // Orange-400
           }
         }

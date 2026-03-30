@@ -2,7 +2,6 @@ import { AgentActionContext } from '../ToolRegistry';
 import { useCoreStore } from '../../../integration/store/coreStore';
 import { useTeamStore } from '../../../integration/store/teamStore';
 import { AGENTIC_SETS } from '../../../data/agents';
-import { requestConsultation } from './requestConsultation';
 
 export function deliverProject(agent: AgentActionContext, args: { output: string }): boolean {
   const store = useCoreStore.getState();
