@@ -8,16 +8,11 @@
   <a href="https://arturitu.github.io/the-delegation/"><b>Launch The Delegation · Full Experience*</b></a>
 </p>
 
----
-
 > [!IMPORTANT]
 > **\*** This experience requires **BYOK (Bring Your Own Key)**. You will need a **Gemini API** key to run the simulation. Deep integration enables native support for text, and multimodal generation (Nano Banana, Lyria 3, Veo 3.1).
 
 ---
-
-### **The Delegation** is a high-performance **3D simulation** built with **Three.js WebGPU** where autonomous LLM-powered characters collaborate in a shared physical workspace.
-
-This project is designed for **AI enthusiasts, educators, and creative teams** looking to understand multi-agent collaboration, design patterns, and human-in-the-loop workflows without writing code. These characters are **embodied**: they navigate a 3D environment, claim workstations, express emotions, and interact to fulfill complex project briefs.
+### This project is designed for **AI enthusiasts, educators, and creative teams** looking to understand multi-agent collaboration, design patterns, and human-in-the-loop workflows without writing code. These characters are **embodied**: they navigate a 3D environment, claim workstations, express emotions, and interact to fulfill complex project briefs.
 
 <p align="center">
   <img src="public/images/the-delegation-UI.png" width="100%" alt="The Delegation Hero">
@@ -57,7 +52,7 @@ npm run dev
 
 ### Embodied Simulation
 
-- **Hybrid GPU/CPU Architecture:** High-efficiency character instancing using WebGPU Compute Shaders.
+- **Hybrid GPU/CPU Architecture:** A high-performance **3D simulation** built with **Three.js WebGPU** where autonomous LLM-powered characters collaborate in a shared physical workspace.
 - **Intelligent Pathfinding:** NPCs utilize a NavMesh to navigate the office, finding and claiming specific "Points of Interest" (desks, seats, computers) based on their current task. Pathfinding is powered by [three-pathfinding](https://github.com/donmccurdy/three-pathfinding).
 - **Dynamic State Machine:** Characters transition naturally between walking, sitting, working, and talking, with sync'ed 3D speech bubbles and expressions.
 
