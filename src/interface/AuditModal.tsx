@@ -8,6 +8,7 @@ import { getAllAgents } from '../data/agents';
 import { useActiveTeam } from '../integration/store/teamStore';
 import { Avatar } from './components/Avatar';
 import { InfoBubble } from './components/InfoBubble';
+import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand';
 
 interface AuditModalProps {
   taskId: string;
@@ -78,7 +79,7 @@ export const AuditModal: React.FC<AuditModalProps> = ({ taskId, isOpen, onClose,
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-sm font-black text-zinc-900 uppercase tracking-widest">{agent?.name}</span>
                 {!isViewMode && (
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-2 py-0.5 bg-zinc-100 rounded-full">Requires Review</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ backgroundColor: USER_COLOR_LIGHT, color: USER_COLOR }}>Requires Review</span>
                 )}
               </div>
               <h2 className="text-2xl font-semibold text-zinc-800 tracking-tight leading-tight">
@@ -140,8 +141,8 @@ export const AuditModal: React.FC<AuditModalProps> = ({ taskId, isOpen, onClose,
             {/* Revision Sidebar (Creativa) */}
             {(task.revisions?.length ?? 0) > 0 && (
               <div className="w-56 shrink-0 flex flex-col pt-4 animate-in fade-in slide-in-from-right-4 duration-700">
-                <div className="flex items-center gap-2 mb-6 text-amber-500">
-                  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <div className="flex items-center gap-2 mb-6" style={{ color: USER_COLOR }}>
+                  <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: USER_COLOR }} />
                   <span className="text-[10px] font-black uppercase tracking-widest">Version History</span>
                   <InfoBubble text="View previous iterations of this task. You can see how the work evolved or revert to a stronger version." />
                 </div>

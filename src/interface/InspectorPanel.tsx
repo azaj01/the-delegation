@@ -84,9 +84,9 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
                         <div
                           className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0"
                           style={{
-                            backgroundColor: USER_COLOR_LIGHT,
-                            color: USER_COLOR,
-                            borderColor: USER_COLOR_SOFT
+                            backgroundColor: `${agent.color}15`,
+                            color: agent.color,
+                            borderColor: `${agent.color}30`
                           }}
                         >
                           Lead Agent
@@ -110,13 +110,16 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
 
               {/* Conditional Discussion/Chat Actions */}
               {needsInput && isChatting && (
-                <div className="bg-[#FFF9F2] border border-[#FFE4CC]/50 rounded-xl p-3 shadow-sm animate-in fade-in slide-in-from-top-1">
+                <div 
+                  className="border rounded-xl p-3 shadow-sm animate-in fade-in slide-in-from-top-1"
+                  style={{ backgroundColor: USER_COLOR_LIGHT, borderColor: USER_COLOR_SOFT }}
+                >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center justify-center w-4 h-4 bg-orange-500 rounded text-white shadow-sm">
+                      <div className="flex items-center justify-center w-4 h-4 rounded text-white shadow-sm" style={{ backgroundColor: USER_COLOR }}>
                         <MessageSquareWarning size={10} strokeWidth={3} />
                       </div>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-orange-600">Review Requested</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: USER_COLOR }}>Review Requested</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -134,10 +137,13 @@ const InspectorPanel: React.FC<InspectorPanelProps> = ({ isFloating }) => {
               {needsInput && !isChatting ? (
                 <div className="flex flex-col gap-3 p-4 bg-zinc-50 border border-zinc-100 rounded-xl animate-in fade-in slide-in-from-top-1 shadow-sm">
                   <div className="flex items-center gap-1.5 font-black uppercase tracking-widest text-[9px]">
-                    <div className="flex items-center justify-center w-5 h-5 bg-amber-100 border border-amber-200 rounded-lg text-amber-600">
+                    <div 
+                      className="flex items-center justify-center w-5 h-5 border rounded-lg"
+                      style={{ backgroundColor: USER_COLOR_LIGHT, borderColor: USER_COLOR_SOFT, color: USER_COLOR }}
+                    >
                       <MessageSquareWarning size={12} strokeWidth={3} />
                     </div>
-                    <span className="text-amber-600">Review Requested</span>
+                    <span style={{ color: USER_COLOR }}>Review Requested</span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <p className="text-[12px] font-bold text-zinc-900 leading-tight">

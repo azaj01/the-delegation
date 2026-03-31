@@ -147,7 +147,10 @@ const ChatPanel: React.FC = () => {
                       {msg.metadata?.reviewTaskId && (
                         <div className="mt-4 p-4 bg-white/50 rounded-2xl border border-zinc-200/50 flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
                           <div className="flex items-center gap-2 pr-2">
-                            <div className="p-2 bg-amber-100 rounded-xl text-amber-600 flex-shrink-0">
+                            <div 
+                              className="p-2 rounded-xl flex-shrink-0"
+                              style={{ backgroundColor: USER_COLOR_LIGHT, color: USER_COLOR }}
+                            >
                               <FileSearch size={18} />
                             </div>
                             <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">

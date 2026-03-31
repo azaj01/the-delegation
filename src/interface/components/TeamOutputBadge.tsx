@@ -2,6 +2,7 @@ import { FileText, Image as ImageIcon, Music, Video } from 'lucide-react';
 import React from 'react';
 import { AgenticSystem } from '../../data/agents';
 import { InfoTooltip } from './InfoTooltip';
+import { USER_COLOR, USER_COLOR_SOFT } from '../../theme/brand';
 
 interface TeamOutputBadgeProps {
   system: AgenticSystem;
@@ -32,7 +33,13 @@ export const TeamOutputBadge: React.FC<TeamOutputBadgeProps> = ({ system, classN
               : 'Output requires your manual review and approval before generation'}
           >
             <div className="flex items-center gap-1.5">
-              <div className={`w-1 h-1 rounded-full ${system.outputAutoApprove ? 'bg-emerald-500' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.2)]'}`} />
+              <div 
+                className="w-1 h-1 rounded-full" 
+                style={{ 
+                  backgroundColor: system.outputAutoApprove ? '#10b981' : USER_COLOR,
+                  boxShadow: system.outputAutoApprove ? undefined : `0 0 8px ${USER_COLOR_SOFT}`
+                }} 
+              />
               <span className="text-[7px] font-bold text-zinc-300 uppercase tracking-tighter leading-none whitespace-nowrap">
                 {system.outputAutoApprove ? 'AUTO APPROVE' : 'MANUAL REVIEW'}
               </span>

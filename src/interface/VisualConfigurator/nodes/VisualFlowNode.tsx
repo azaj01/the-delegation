@@ -27,7 +27,7 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
   return (
     <div
       className={`
-        relative px-3 py-2.5 shadow-sm rounded-2xl border-2 pointer-events-auto transition-all duration-300 w-fit min-w-[220px] bg-white
+        relative px-3 py-2.5 shadow-sm rounded-2xl border-2 pointer-events-auto transition-all duration-300 w-fit min-w-[280px] bg-white
         ${selected ? 'ring-4 scale-105 z-20 shadow-lg' : 'z-10'}
         ${data.isDimmed ? 'opacity-20 translate-y-1' : 'opacity-100'}
 
@@ -59,45 +59,47 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            {data.isLead && !isUser && (
-              <div
-                className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 w-fit"
-                style={{
-                  backgroundColor: USER_COLOR_LIGHT,
-                  color: USER_COLOR,
-                  borderColor: USER_COLOR_SOFT
-                }}
-              >
-                Lead Agent
-              </div>
-            )}
+            <div className="flex flex-wrap gap-1.5 items-center">
+              {data.isLead && !isUser && (
+                <div
+                  className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 w-fit"
+                  style={{
+                    backgroundColor: `${data.color}20`,
+                    color: data.color,
+                    borderColor: `${data.color}40`
+                  }}
+                >
+                  Lead Agent
+                </div>
+              )}
 
-            {!data.isLead && !isUser && (
-              <div
-                className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 w-fit"
-                style={{
-                  backgroundColor: `${data.color}20`,
-                  color: data.color,
-                  borderColor: `${data.color}40`
-                }}
-              >
-                Subagent
-              </div>
-            )}
+              {!data.isLead && !isUser && (
+                <div
+                  className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 w-fit"
+                  style={{
+                    backgroundColor: `${data.color}20`,
+                    color: data.color,
+                    borderColor: `${data.color}40`
+                  }}
+                >
+                  Subagent
+                </div>
+              )}
 
-            {data.agent?.humanInTheLoop && (
-              <div
-                className="text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter border leading-none flex items-center h-4 shrink-0 w-fit gap-1"
-                style={{
-                  backgroundColor: '#fffbeb', // amber-50
-                  color: '#b45309', // amber-700
-                  borderColor: '#fde68a' // amber-200
-                }}
-              >
-                <User size={8} strokeWidth={3} />
-                Human-in-the-loop
-              </div>
-            )}
+              {data.agent?.humanInTheLoop && (
+                <div
+                  className="text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter border leading-none flex items-center h-4 shrink-0 w-fit gap-1"
+                  style={{
+                    backgroundColor: USER_COLOR_LIGHT,
+                    color: USER_COLOR,
+                    borderColor: USER_COLOR_SOFT
+                  }}
+                >
+                  <User size={8} strokeWidth={3} />
+                  Human-in-the-loop
+                </div>
+              )}
+            </div>
 
             {!isUser && (
               <div

@@ -30,7 +30,7 @@ interface TeamFlowModalProps {
 const FlowViewport: React.FC<{ system: AgenticSystem }> = ({ system }) => {
   const { fitView } = useReactFlow();
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => systemToFlow(system), [system]);
-  
+
   const [nodes] = useState<VisualAgentNode[]>(initialNodes);
   const [edges] = useState<Edge[]>(initialEdges);
 
@@ -72,14 +72,14 @@ const TeamFlowModal: React.FC<TeamFlowModalProps> = ({ isOpen, onClose, system }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-10 pointer-events-none">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-white/40 backdrop-blur-sm pointer-events-auto animate-in fade-in duration-300"
         onClick={onClose}
       />
-      
+
       {/* Resilience check: only clear task if not waiting for review or meeting */}
       {/* Modal Content */}
-      <div className="relative w-full h-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-zinc-200/50 flex flex-col pointer-events-auto animate-in zoom-in-95 fade-in duration-300 ease-out">
+      <div className="relative w-full h-full max-w-7xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-zinc-200/50 flex flex-col pointer-events-auto animate-in zoom-in-95 fade-in duration-300 ease-out">
         {/* Header */}
         <div className="h-16 border-b border-zinc-100 flex items-center justify-between px-6 bg-white shrink-0">
           <div className="flex items-center gap-4">
@@ -104,16 +104,16 @@ const TeamFlowModal: React.FC<TeamFlowModalProps> = ({ isOpen, onClose, system }
 
         {/* Footer/Legend */}
         <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between gap-6 overflow-x-auto shrink-0">
-           <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="w-3 h-0.5 bg-zinc-300 border-t border-dashed border-zinc-400" />
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Hierarchy (Managed)</span>
             </div>
-           </div>
-           
-           <p className="text-[10px] font-medium text-zinc-400 italic">
-             Visual representation of the team's operational flow.
-           </p>
+          </div>
+
+          <p className="text-[10px] font-medium text-zinc-400 italic">
+            Visual representation of the team's operational flow.
+          </p>
         </div>
       </div>
     </div>

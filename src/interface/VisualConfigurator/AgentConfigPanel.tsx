@@ -258,34 +258,43 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
               ), "Tools are automatically assigned based on the agent's role and team hierarchy.")}
 
               {renderField('Supervision', <User size={12} />, (
-                <div
-                  onClick={() => !isView && updateDraft({ humanInTheLoop: !editData.humanInTheLoop })}
-                  className={`
-                    group flex items-center justify-between p-4 rounded-2xl border transition-all duration-200
-                    ${editData.humanInTheLoop
-                      ? 'bg-amber-50 border-amber-200 shadow-sm'
-                      : 'bg-zinc-50 border-zinc-100 hover:border-zinc-200'}
-                    ${isView ? 'pointer-events-none' : 'cursor-pointer active:scale-[0.98]'}
-                  `}
-                >
-                  <div className="flex flex-col gap-0.5">
-                    <span className={`text-[10px] font-black uppercase tracking-tight ${editData.humanInTheLoop ? 'text-amber-700' : 'text-zinc-700'}`}>
-                      Human-in-the-loop
-                    </span>
-                    <span className="text-[9px] text-zinc-500 font-medium leading-tight max-w-[160px]">
-                      Agent must request your validation before completing any task.
-                    </span>
-                  </div>
-                  <div className={`
-                    w-8 h-4 rounded-full relative transition-colors duration-200
-                    ${editData.humanInTheLoop ? 'bg-amber-500' : 'bg-zinc-300'}
-                  `}>
+                  <div
+                    onClick={() => !isView && updateDraft({ humanInTheLoop: !editData.humanInTheLoop })}
+                    className={`
+                      group flex items-center justify-between p-4 rounded-2xl border transition-all duration-200
+                      ${editData.humanInTheLoop
+                        ? 'shadow-sm'
+                        : 'bg-zinc-50 border-zinc-100 hover:border-zinc-200'}
+                      ${isView ? 'pointer-events-none' : 'cursor-pointer active:scale-[0.98]'}
+                    `}
+                    style={{
+                      backgroundColor: editData.humanInTheLoop ? USER_COLOR_LIGHT : undefined,
+                      borderColor: editData.humanInTheLoop ? USER_COLOR_SOFT : undefined
+                    }}
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <span 
+                        className={`text-[10px] font-black uppercase tracking-tight ${editData.humanInTheLoop ? '' : 'text-zinc-700'}`}
+                        style={{ color: editData.humanInTheLoop ? USER_COLOR : undefined }}
+                      >
+                        Human-in-the-loop
+                      </span>
+                      <span className="text-[9px] text-zinc-500 font-medium leading-tight max-w-[160px]">
+                        Agent must request your validation before completing any task.
+                      </span>
+                    </div>
                     <div className={`
-                      absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform duration-200 shadow-sm
-                      ${editData.humanInTheLoop ? 'translate-x-4.5' : 'translate-x-0.5'}
-                    `} />
+                      w-8 h-4 rounded-full relative transition-colors duration-200
+                      ${editData.humanInTheLoop ? '' : 'bg-zinc-300'}
+                    `}
+                    style={{ backgroundColor: editData.humanInTheLoop ? USER_COLOR : undefined }}
+                    >
+                      <div className={`
+                        absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform duration-200 shadow-sm
+                        ${editData.humanInTheLoop ? 'translate-x-4.5' : 'translate-x-0.5'}
+                      `} />
+                    </div>
                   </div>
-                </div>
               ), "When enabled, the agent will pause their work to submit the result for your review and feedback before finalizing.")}
             </div>
           </>

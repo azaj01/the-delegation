@@ -7,6 +7,7 @@ import InfoModal from './InfoModal';
 import { MessageSquareWarning, PartyPopper, Siren, Loader2 } from 'lucide-react';
 import { Task, useCoreStore } from '../integration/store/coreStore';
 import { useTeamStore, useActiveTeam } from '../integration/store/teamStore';
+import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../theme/brand';
 
 
 
@@ -66,7 +67,7 @@ function getAgentPhaseLabel(
     t => t.assignedAgentId === agentIndex && t.status === 'on_hold',
   );
   if (holdTask && phase !== 'done') {
-    return { text: 'Approval Needed', className: 'text-orange-400' };
+    return { text: 'Approval Needed', className: 'text-[#7EACEA]' };
   }
   const activeTask = tasks.find(
     t => t.assignedAgentId === agentIndex && t.status === 'in_progress',
@@ -138,7 +139,7 @@ const UIOverlay: React.FC = () => {
           );
           if (pendingTask) {
             alertIcon = <MessageSquareWarning size={18} />;
-            alertColor = '#fb923c'; // Orange-400
+            alertColor = USER_COLOR;
           }
         }
 
