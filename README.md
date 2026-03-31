@@ -1,12 +1,30 @@
-# The Delegation
+<p align="center">
+  <img src="public/images/the-delegation.svg" width="256" alt="The Delegation Logo">
+</p>
 
-![The Delegation Hero](public/images/the-delegation-UI.png)
+<h1 align="center">A no-code playground to explore, design, and interact with Agentic AI systems.</h1>
 
-## Online Demo
+<p align="center">
+  <a href="https://arturitu.github.io/the-delegation/"><b>Launch The Delegation · Full Experience*</b></a>
+</p>
 
-**Try the Live Demo: [arturitu.github.io/the-delegation](https://arturitu.github.io/the-delegation/)**
+---
 
-This simulation requires **BYOK (Bring Your Own Key)**. Currently, it only supports the **Gemini API** by Google. Multi-provider support is planned for future updates.
+> [!IMPORTANT]
+> **\*** This experience requires **BYOK (Bring Your Own Key)**. You will need a **Gemini API** key to run the simulation. Deep integration enables native support for text, and multimodal generation (Nano Banana, Lyria 3, Veo 3.1).
+
+---
+
+### **The Delegation** is a high-performance **3D simulation** built with **Three.js WebGPU** where autonomous LLM-powered characters collaborate in a shared physical workspace.
+
+This project is designed for **AI enthusiasts, educators, and creative teams** looking to understand multi-agent collaboration, design patterns, and human-in-the-loop workflows without writing code. These characters are **embodied**: they navigate a 3D environment, claim workstations, express emotions, and interact to fulfill complex project briefs.
+
+<p align="center">
+  <img src="public/images/the-delegation-UI.png" width="100%" alt="The Delegation Hero">
+</p>
+
+---
+
 
 ## Getting Started
 
@@ -24,21 +42,18 @@ npm run dev
 
 3. **Open the app:** Navigate to the local URL shown in your terminal (usually `http://localhost:3000/the-delegation`).
 
-## About the Project
-
-### What if you could stop prompting & start delegating to a team of AI agents in a living 3D office?
-
-**The Delegation** is a high-performance 3D simulation built with **Three.js WebGPU** where autonomous LLM-powered characters collaborate in a shared physical workspace.
-
-Unlike traditional "chat-only" agent frameworks, these characters are _embodied_: they navigate a 3D environment, claim workstations, express emotions through animations, and interact with the user and each other to fulfill complex project briefs.
-
 ## Features
 
-### Advanced Agency System
+### Agentic AI System (v0.2.0)
 
-- **Orchestrated Workflow:** A specialized agency service manages the project lifecycle from initial briefing to final delivery.
-- **Autonomous Task Management:** Agents propose their own tasks, request client approval when stuck, and update a real-time Kanban board.
-- **Tool-Augmented Intelligence:** Deep integration with LLM function calling, allowing agents to "act" (e.g., `propose_task`, `request_approval`) within the simulation.
+- **Team Editor (React Flow):** Create your own [multi-agent design patterns](https://developers.googleblog.com/developers-guide-to-multi-agent-patterns-in-adk/) using an interactive node-based interface.
+- **6 Predefined Teams:** Industry-specific templates (Creative Agency, Film Studio, PR Agency, etc.) to get you started.
+- **Multimodal Outputs:** Generate professional assets including text, image (Nano Banana), music (Lyria 3), and video (Veo 3.1) directly from your agent teams.
+- **Per-Agent LLM:** Assign different [Gemini Models](https://ai.google.dev/gemini-api/docs/models) to specific roles (e.g., Flash for speed, Pro for reasoning).
+- **Cost & Token Tracking:** Real-time estimation of usage costs and token consumption for transparency.
+- **PR-style Workflows:** Learn about Pull Request and Review workflows where agents with `human-in-the-loop` properties require your approval to proceed.
+- **Guardrails:** Controlled generation with the `Auto-approve output` option, ensuring quality before final asset production.
+- **Technical Logs:** Improved visibility into raw LLM traces, tool calls, and structured agent responses.
 
 ### Embodied Simulation
 
@@ -48,30 +63,38 @@ Unlike traditional "chat-only" agent frameworks, these characters are _embodied_
 
 ### Interactive UI
 
-- **Real-time 3D Overlay:** Status indicators and interaction menus projected from 3D space into a polished React UI.
-- **Agent Inspector:** Select any agent to view their current "thoughts", mission, and history.
-- **Kanban & Action Logs:** Complete transparency into the agency's progress and the "hidden" tool calls made by the LLMs.
+- **Team Flow Visualizer:** Real-time node-based view of your agent hierarchy and task flows.
+- **Simulated PR Reviews:** Interactive modals for reviewing agent proposals, providing feedback, and merging tasks.
+- **Real-time 3D Overlay:** Status indicators and interaction menus projected from 3D space into a polished UI.
+- **Agent Inspector:** Select any agent to view their "thoughts", mission, and history.
+- **Kanban & Action Logs:** Complete transparency into the agency's progress and tool-level interactions.
 
 ## Tech Stack Deep Dive
 
 - **Engine:** [Three.js](https://threejs.org/) (WebGPU & TSL) for advanced rendering and compute.
-- **UI:** [React](https://react.dev/) for a modern, component-based interface.
-- **AI:** [Gemini API](https://deepmind.google/technologies/gemini/) (BYOK: Bring Your Own Key) is the current LLM provider. The architecture is designed for future multi-provider support (see Roadmap).
-- **State:** [Zustand](https://github.com/pmndrs/zustand) for a unified, reactive store bridging the 3D world and React UI.
-- **3D Assets:** All modeling and animation were done in Blender, exported to glTF for efficient use with Three.js. The animation system uses a custom state machine to handle instanced GLTF character animations.
+- **UI:** [React](https://react.dev/) & [React Flow](https://reactflow.dev/) for node-based team visualization.
+- **AI:** [Gemini API](https://deepmind.google/technologies/gemini/) is the core LLM provider. We follow official prompting best practices for:
+    - **Images:** [Nano Banana Prompt Guide](https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-nano-banana)
+    - **Video:** [Veo 3.1 Prompt Guide](https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-veo-3-1)
+    - **Music:** [Lyria 3 Prompt Guide](https://deepmind.google/models/lyria/prompt-guide/)
+- **State:** [Zustand](https://github.com/pmndrs/zustand) for a unified, reactive store across the 3D world and React UI.
+- **3D Assets:** Custom models and animations rigged in Blender, using an instanced animation system.
 
 ## Roadmap
 
-My goal is to move towards a fully sandboxable agency experience:
-
-- **Intelligence**
-  - [ ] **Multi-Model Support:** Integration for OpenAI, Anthropic, and local Ollama models.
-  - [ ] **Per-Agent LLM:** Assign different models/providers to specific roles.
-  - [ ] **Custom Teams:** Create your own expert sets with unique personalities and missions via UI.
-- **Creative Outputs**
-  - [ ] **Rich Deliverables:** Final project output including generated images, videos, code snippets, or synthesized music.
 - **World Building**
-  - [ ] **Office/3D Space Editor:** Drag-and-drop editor to customize the workspace layout and POIs.
+    - [ ] **Office/3D Space Editor:** Drag-and-drop workspace layout and POI customization.
+    - [ ] **Dynamic Environment:** Real-time prop generation and environment modification by agents.
+- **Advanced Interactions**
+    - [ ] **Direct Collaborative Chat:** Richer multi-party interactions between user and agents.
+    - [ ] **Inter-Agent Knowledge Sharing:** Long-term memory for agent teams across projects.
+- **Refinement**
+    - [ ] **Architecture Decoupling:** Further separation of core logic from the simulation environment.
+    - [ ] **UX/UI Overhaul:** Unified CSS styling based on "The Delegation" brand identity.
+
+## Developer Note
+
+This release (**v0.2.0**) was developed entirely using **Google Antigravity** as the primary IDE and powered by **Gemini 3 Flash**.
 
 ## License & IP
 

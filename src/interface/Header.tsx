@@ -27,13 +27,14 @@ const Header: React.FC = () => {
   return (
     <header className="h-14 border-b border-zinc-100 flex items-center justify-between px-6 bg-white shrink-0 relative z-40">
       {/* Left: Project Title */}
-      <div className="flex items-center gap-4 min-w-0">
-        <div className="flex flex-col shrink-0">
-          <span className="text-xs font-bold text-zinc-900 leading-none tracking-tight">The</span>
-          <span className="text-lg font-bold text-zinc-900 leading-none tracking-tighter">Delegation</span>
-        </div>
+      <div className="flex items-center min-w-0">
+        <img
+          src="images/the-delegation.svg"
+          alt="The Delegation"
+          className="h-10 w-auto shrink-0"
+        />
 
-       <div className="flex items-center gap-3 self-start mt-2 min-w-0">
+        <div className="flex items-center gap-3 self-start mt-3 ml-2 min-w-0">
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => setIsInfoOpen(true)}
