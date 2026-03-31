@@ -9,7 +9,7 @@
 </p>
 
 > [!IMPORTANT]
-> **\*** This experience requires **BYOK (Bring Your Own Key)**. You will need a **Gemini API** key to run the simulation. Deep integration enables native support for text, and multimodal generation (Nano Banana, Lyria 3, Veo 3.1).
+> **\*** This experience requires **BYOK (Bring Your Own Key)**. You will need a **Gemini API** key to run the simulation. Deep integration enables native support for text, and multimodal generation (Nano Banana, Lyria 3, Veo 3.1). You can also **clone or fork** this repository to run it locally.
 
 ---
 ### This project is designed for **AI enthusiasts, educators, and creative teams** looking to understand multi-agent collaboration, design patterns, and human-in-the-loop workflows without writing code. These characters are **embodied**: they navigate a 3D environment, claim workstations, express emotions, and interact to fulfill complex project briefs.
@@ -73,7 +73,7 @@ npm run dev
     - **Video:** [Veo 3.1 Prompt Guide](https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-veo-3-1)
     - **Music:** [Lyria 3 Prompt Guide](https://deepmind.google/models/lyria/prompt-guide/)
 - **State:** [Zustand](https://github.com/pmndrs/zustand) for a unified, reactive store across the 3D world and React UI.
-- **3D Assets:** Custom models and animations rigged in Blender, using an instanced animation system.
+- **3D Assets:** Custom models and animations rigged in [Blender](https://blender.org), using an instanced animation system.
 
 ## Roadmap
 
@@ -81,7 +81,9 @@ npm run dev
     - [ ] **Office/3D Space Editor:** Drag-and-drop workspace layout and POI customization.
     - [ ] **Dynamic Environment:** Real-time prop generation and environment modification by agents.
 - **Advanced Interactions**
-    - [ ] **Direct Collaborative Chat:** Richer multi-party interactions between user and agents.
+    - [ ] **Advanced Embodied AI:** Deeper integration between agent reasoning and physical 3D world actions.
+    - [ ] **Enhanced Animations:** Richer character expressions and more fluid, context-aware animations.
+    - [ ] **Human-Agent Spatial Interaction:** Direct collaboration and richer multi-party interactions in the 3D office.
     - [ ] **Inter-Agent Knowledge Sharing:** Long-term memory for agent teams across projects.
 - **Refinement**
     - [ ] **Architecture Decoupling:** Further separation of core logic from the simulation environment.
@@ -96,6 +98,6 @@ This release (**v0.2.0**) was developed entirely using **Google Antigravity** as
 This project follows a dual-licensing model:
 
 - **Source Code (MIT):** All logic, shaders, and UI code are free to use, modify, and distribute.
-- **3D Models & Assets (CC BY-NC 4.0):** The custom 3D office and character models are Copyright © 2026 **Arturo Paracuellos (unboring.net)**. They are free for personal and educational use but _cannot_ be used for commercial purposes without permission.
+- **3D Models & Assets (CC BY-NC 4.0):** The custom 3D office and character models are Copyright © 2026 **Arturo Paracuellos ([unboring.net](https://unboring.net))**. They are free for personal and educational use but _cannot_ be used for commercial purposes without permission.
 
 Developed with ❤️ by [Arturo Paracuellos](https://unboring.net)
