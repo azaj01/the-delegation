@@ -105,14 +105,14 @@ export class AgentBrain {
       const isMalformed = response.finishReason === 'MALFORMED_FUNCTION_CALL';
 
       if (isMalformed) {
-        finalContent = 'ERROR: Your last response was a malformed function call. Please try again with valid arguments for the tools.';
+        finalContent = 'ERROR: Malformed function call. Please try again.';
         console.warn(`[AgentBrain:${this.host.data.name}] Malformed function call detected.`);
       } else if (hasToolCallsOnly && !isInternalTrigger) {
         finalContent = isBrief
-          ? "Perfect! I've set the project brief based on our chat. Let's get to work!"
-          : 'Understood. I am going back to work now.';
+          ? "Project brief set. Let's begin!"
+          : 'Working on it...';
       } else if (!text && toolCalls.length === 0 && !isInternalTrigger) {
-        finalContent = '... (Thinking)';
+        finalContent = '...';
       }
 
       // UI/UX handling for chat auto-closing
@@ -168,7 +168,7 @@ export class AgentBrain {
   private async handleFinalAssetGeneration(prompt: string) {
     const core = useCoreStore.getState();
     const teamId = useTeamStore.getState().selectedAgentSetId;
-    const activeTeam = useTeamStore.getState().customSystems.find(s => s.id === teamId) 
+    const activeTeam = useTeamStore.getState().customSystems.find(s => s.id === teamId)
       || AGENTIC_SETS.find(s => s.id === teamId);
 
     if (!activeTeam) return;
@@ -176,7 +176,7 @@ export class AgentBrain {
     // Check if we need manual approval
     if (activeTeam.outputAutoApprove === false) {
       core.setPendingOutputPrompt(prompt);
-      
+
       // Prepare default params based on output type
       const defaultParams: any = { model: activeTeam.outputModel };
       if (activeTeam.outputType === 'image') {
@@ -188,7 +188,7 @@ export class AgentBrain {
         defaultParams.durationSeconds = 4;
         defaultParams.generateAudio = true;
       }
-      
+
       core.setPendingOutputParams(defaultParams);
       core.setReviewingOutput(true);
       return;
@@ -201,7 +201,7 @@ export class AgentBrain {
   public async processFinalAsset(prompt: string, options: any) {
     const core = useCoreStore.getState();
     const teamId = useTeamStore.getState().selectedAgentSetId;
-    const activeTeam = useTeamStore.getState().customSystems.find(s => s.id === teamId) 
+    const activeTeam = useTeamStore.getState().customSystems.find(s => s.id === teamId)
       || AGENTIC_SETS.find(s => s.id === teamId);
 
     if (!activeTeam) return;
