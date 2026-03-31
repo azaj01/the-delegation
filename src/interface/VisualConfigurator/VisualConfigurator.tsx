@@ -32,8 +32,8 @@ const edgeTypes = {
 const InternalHeader = ({ onClose, system }: { onClose: () => void, system: any }) => (
   <div className="h-14 border-b border-zinc-100 bg-white flex items-center justify-between px-6 z-50 shrink-0">
     <div className="flex items-center gap-2">
-      <Settings size={18} className="text-zinc-900" strokeWidth={2} />
-      <h2 className="text-xs font-black text-zinc-900 uppercase tracking-[0.2em] ml-2">Manage Teams</h2>
+      <Settings size={18} className="text-darkDelegation" strokeWidth={2} />
+      <h2 className="text-xs font-black text-darkDelegation uppercase tracking-[0.2em] ml-2">Manage Teams</h2>
 
       <div className="ml-4">
         <SystemDebugOverlay system={system} />
@@ -45,7 +45,7 @@ const InternalHeader = ({ onClose, system }: { onClose: () => void, system: any 
         onClick={onClose}
         className="p-2 hover:bg-zinc-100 rounded-xl transition-colors group border border-transparent hover:border-zinc-200"
       >
-        <X className="w-5 h-5 text-zinc-400 group-hover:text-zinc-900" />
+        <X className="w-5 h-5 text-zinc-400 group-hover:text-darkDelegation" />
       </button>
     </div>
   </div>
@@ -184,29 +184,29 @@ const VisualConfiguratorContent: React.FC = () => {
     const newId = `agent-${Date.now()}`;
     const targetParentId = selectedAgentId && selectedAgentId !== 'user' ? selectedAgentId : system.leadAgent.id;
     const parentAgent = characters.find(a => a.id === targetParentId);
-    
+
     // Calculate new position
     let newPosition = { x: 0, y: 0 };
     if (parentAgent) {
       const parentPos = parentAgent.position || { x: 0, y: 0 };
       const siblings = parentAgent.subagents || [];
       const siblingCount = siblings.length;
-      
+
       // Vertical gap (below parent)
       const verticalGap = 160;
-      
+
       // Horizontal distribution
       // Alternating offsets to spread them: 0, -280, 280, -560, 560
       const offsets = [0, -280, 280, -560, 560];
       const xOffset = offsets[siblingCount % offsets.length];
-      
+
       newPosition = {
         x: parentPos.x + xOffset,
         y: parentPos.y + verticalGap
       };
 
       // Safety check: ensure we don't overlap with ANY existing agent's position
-      const isOverlapping = (pos: {x: number, y: number}) => 
+      const isOverlapping = (pos: { x: number, y: number }) =>
         characters.some(a => {
           if (!a.position) return false;
           const dx = Math.abs(a.position.x - pos.x);
@@ -301,10 +301,10 @@ const VisualConfiguratorContent: React.FC = () => {
                 <button
                   onClick={handleAddAgent}
                   disabled={characters.length >= MAX_AGENTS + 1}
-                  className={`flex items-center gap-2 px-8 py-3 bg-zinc-900 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.1em] shadow-lg shadow-black/5 transition-all ${characters.length >= MAX_AGENTS + 1 
-                    ? 'opacity-40 cursor-not-allowed grayscale' 
+                  className={`flex items-center gap-2 px-8 py-3 bg-darkDelegation text-white rounded-xl text-[10px] font-black uppercase tracking-[0.1em] shadow-lg shadow-black/5 transition-all ${characters.length >= MAX_AGENTS + 1
+                    ? 'opacity-40 cursor-not-allowed grayscale'
                     : 'hover:bg-black hover:scale-105 active:scale-95'
-                  }`}
+                    }`}
                 >
                   <Plus size={16} strokeWidth={3} />
                   Add Subagent to {characters.find(a => a.id === (selectedAgentId && selectedAgentId !== 'user' ? selectedAgentId : system.leadAgent.id))?.name || 'Lead'}

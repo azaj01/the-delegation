@@ -66,25 +66,25 @@ const BYOKModal: React.FC<BYOKModalProps> = ({ onClose }) => {
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="mb-6">
-              <h2 className="text-3xl font-black text-zinc-900 tracking-tight mb-2">
-                Gemini API Key
-              </h2>
-              <a
-                href="https://aistudio.google.com/app/apikey"
-                target="_blank"
-                rel="noopener"
-                className="group inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 hover:border-emerald-200 rounded-full transition-all duration-200 mb-3"
-              >
-                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Get Gemini API Key</span>
-                <svg className="text-emerald-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="7" y1="17" x2="17" y2="7"></line>
-                  <polyline points="7 7 17 7 17 17"></polyline>
-                </svg>
-              </a>
-              <p className="text-zinc-400 text-sm font-medium leading-relaxed max-w-[240px]">
-                Your key is stored locally and never leaves your browser.
-              </p>
-            </div>
+            <h2 className="text-3xl font-black text-darkDelegation tracking-tight mb-2">
+              Gemini API Key
+            </h2>
+            <a
+              href="https://aistudio.google.com/app/apikey"
+              target="_blank"
+              rel="noopener"
+              className="group inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 hover:border-emerald-200 rounded-full transition-all duration-200 mb-3"
+            >
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Get Gemini API Key</span>
+              <svg className="text-emerald-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="7" y1="17" x2="17" y2="7"></line>
+                <polyline points="7 7 17 7 17 17"></polyline>
+              </svg>
+            </a>
+            <p className="text-zinc-400 text-sm font-medium leading-relaxed max-w-[240px]">
+              Your key is stored locally and never leaves your browser.
+            </p>
+          </div>
 
           {/* Error Message */}
           {byokError && (() => {
@@ -128,7 +128,7 @@ const BYOKModal: React.FC<BYOKModalProps> = ({ onClose }) => {
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="Paste your API key here"
-                className="w-full bg-zinc-50 border border-zinc-100 rounded-3xl px-6 py-4 pr-14 text-sm text-zinc-900 font-mono placeholder:text-zinc-300 placeholder:font-sans focus:outline-none focus:border-zinc-200 transition-all shadow-sm group-hover:shadow-md"
+                className="w-full bg-zinc-50 border border-zinc-100 rounded-3xl px-6 py-4 pr-14 text-sm text-darkDelegation font-mono placeholder:text-zinc-300 placeholder:font-sans focus:outline-none focus:border-zinc-200 transition-all shadow-sm group-hover:shadow-md"
               />
               <button
                 type="button"
@@ -156,7 +156,7 @@ const BYOKModal: React.FC<BYOKModalProps> = ({ onClose }) => {
             <button
               onClick={handleSave}
               disabled={!apiKey.trim()}
-              className="px-12 py-4 bg-zinc-900 text-white rounded-[24px] text-xs font-black uppercase tracking-[0.2em] hover:bg-black transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100 shadow-xl shadow-black/10"
+              className="px-12 py-4 bg-darkDelegation text-white rounded-[24px] text-xs font-black uppercase tracking-[0.2em] hover:bg-black transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100 shadow-xl shadow-black/10"
             >
               Save
             </button>

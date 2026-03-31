@@ -11,7 +11,7 @@ export const TeamBadge: React.FC<TeamBadgeProps> = ({ system }) => {
 
   return (
     <div className="flex items-center gap-3">
-      <div 
+      <div
         className="h-9 px-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-black/5"
         style={{ backgroundColor: system.color }}
       >
@@ -21,7 +21,7 @@ export const TeamBadge: React.FC<TeamBadgeProps> = ({ system }) => {
         </span>
       </div>
       <div className="flex flex-col items-start">
-        <span className="text-sm font-black text-zinc-900 leading-tight">
+        <span className="text-sm font-black text-darkDelegation leading-tight">
           {system.teamName}
         </span>
         <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-tight">

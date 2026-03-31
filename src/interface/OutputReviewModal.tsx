@@ -2,18 +2,18 @@ import { useState, useEffect } from 'react'
 import { useCoreStore } from '../integration/store/coreStore'
 import { useActiveTeam } from '../integration/store/teamStore'
 import { useSceneManager } from '../simulation/SceneContext'
-import { 
-  Sparkles, 
-  Settings2, 
-  Image as ImageIcon, 
-  Video, 
-  Music, 
-  Type, 
-  X, 
-  Check, 
-  Monitor, 
-  Clock, 
-  Maximize, 
+import {
+  Sparkles,
+  Settings2,
+  Image as ImageIcon,
+  Video,
+  Music,
+  Type,
+  X,
+  Check,
+  Monitor,
+  Clock,
+  Maximize,
   Volume2,
   AlertCircle
 } from 'lucide-react'
@@ -21,15 +21,15 @@ import { AVAILABLE_MODELS } from '../core/llm/constants'
 import { InfoBubble } from './components/InfoBubble'
 
 export function OutputReviewModal() {
-  const { 
-    isReviewingOutput, 
-    setReviewingOutput, 
-    pendingOutputPrompt, 
+  const {
+    isReviewingOutput,
+    setReviewingOutput,
+    pendingOutputPrompt,
     pendingOutputParams,
     resetProject,
     referenceImages
   } = useCoreStore()
-  
+
   const activeTeam = useActiveTeam()
   const scene = useSceneManager()
   const [prompt, setPrompt] = useState(pendingOutputPrompt)
@@ -76,10 +76,10 @@ export function OutputReviewModal() {
           <Maximize size={12} /> Aspect Ratio
           <InfoBubble text="The horizontal or vertical proportions of the generated asset." />
         </label>
-        <select 
-          value={params.aspectRatio || '16:9'} 
+        <select
+          value={params.aspectRatio || '16:9'}
           onChange={(e) => updateParam('aspectRatio', e.target.value)}
-          className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-zinc-900 outline-none"
+          className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-darkDelegation outline-none"
         >
           <option value="1:1">1:1 Square</option>
           <option value="16:9">16:9 Cinematic</option>
@@ -93,10 +93,10 @@ export function OutputReviewModal() {
           <Settings2 size={12} /> Image Size
           <InfoBubble text="Target dimensions for the final image. Higher sizes offer more detail but may take longer." />
         </label>
-        <select 
-          value={params.imageSize || '1K'} 
+        <select
+          value={params.imageSize || '1K'}
           onChange={(e) => updateParam('imageSize', e.target.value)}
-          className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-zinc-900 outline-none"
+          className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-darkDelegation outline-none"
         >
           <option value="512">512px (Fast)</option>
           <option value="1K">1K (Standard)</option>
@@ -115,10 +115,10 @@ export function OutputReviewModal() {
             <Monitor size={12} /> Resolution
             <InfoBubble text="Video output quality. Higher resolutions increase visual fidelity and processing requirements." />
           </label>
-          <select 
-            value={params.resolution || '720p'} 
+          <select
+            value={params.resolution || '720p'}
             onChange={(e) => updateParam('resolution', e.target.value)}
-            className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-zinc-900 outline-none"
+            className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-darkDelegation outline-none"
           >
             <option value="720p">720p HD</option>
             <option value="1080p">1080p Full HD</option>
@@ -130,10 +130,10 @@ export function OutputReviewModal() {
             <Clock size={12} /> Duration
             <InfoBubble text="Total runtime of the generated video clip." />
           </label>
-          <select 
-            value={params.durationSeconds || 4} 
+          <select
+            value={params.durationSeconds || 4}
             onChange={(e) => updateParam('durationSeconds', parseInt(e.target.value))}
-            className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-zinc-900 outline-none"
+            className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-darkDelegation outline-none"
           >
             <option value="4">4 Seconds</option>
             <option value="6">6 Seconds</option>
@@ -147,7 +147,7 @@ export function OutputReviewModal() {
           <span className="text-xs font-bold text-zinc-600">Generate Soundtrack</span>
           <InfoBubble text="Include a matching synthesized music track tailored to the video content." />
         </div>
-        <button 
+        <button
           onClick={() => updateParam('generateAudio', !params.generateAudio)}
           className={`w-10 h-5 rounded-full transition-colors flex items-center px-1 ${params.generateAudio ? 'bg-black' : 'bg-zinc-300'}`}
         >
@@ -160,17 +160,17 @@ export function OutputReviewModal() {
   const renderModelControl = () => {
     const type = activeTeam.outputType === 'music' ? 'music' : (activeTeam.outputType as keyof typeof AVAILABLE_MODELS);
     const models = AVAILABLE_MODELS[type] || [];
-    
+
     return (
       <div className="space-y-2">
         <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
           <Sparkles size={12} /> Generation Model
           <InfoBubble text="Select the specific Gemini model used for the final generation. Flash models are faster, Pro models are more capable." />
         </label>
-        <select 
-          value={params.model || activeTeam.outputModel} 
+        <select
+          value={params.model || activeTeam.outputModel}
           onChange={(e) => updateParam('model', e.target.value)}
-          className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-zinc-900 outline-none"
+          className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-darkDelegation outline-none"
         >
           {models.map(m => (
             <option key={m} value={m}>{m}</option>
@@ -188,22 +188,22 @@ export function OutputReviewModal() {
   }[activeTeam.outputType] || Sparkles
 
   return (
-    <div 
-      className="fixed inset-0 z-[110] flex items-center justify-center bg-zinc-900/40 backdrop-blur-md p-4"
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-darkDelegation/40 backdrop-blur-md p-4"
       onClick={handleCancelAndReset}
     >
-      <div 
+      <div
         className="bg-white border border-black/10 rounded-[32px] w-180 max-w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-zinc-100 bg-white">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-white shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-darkDelegation flex items-center justify-center text-white shadow-lg">
               <Icon size={24} />
             </div>
             <div>
-              <h2 className="text-sm font-black uppercase tracking-widest text-zinc-800 flex items-center gap-2">
+              <h2 className="text-sm font-black uppercase tracking-widest text-darkDelegation flex items-center gap-2">
                 Review & Optimize Output
               </h2>
               <p className="text-[11px] text-zinc-400 mt-0.5">
@@ -234,7 +234,7 @@ export function OutputReviewModal() {
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              className="w-full h-40 bg-white border border-zinc-200 rounded-2xl p-4 text-sm text-zinc-700 leading-relaxed font-sans focus:ring-2 focus:ring-zinc-900 outline-none resize-none shadow-sm"
+              className="w-full h-40 bg-white border border-zinc-200 rounded-2xl p-4 text-sm text-zinc-700 leading-relaxed font-sans focus:ring-2 focus:ring-darkDelegation outline-none resize-none shadow-sm"
               placeholder="Enter the final generation prompt..."
             />
           </div>
@@ -246,8 +246,8 @@ export function OutputReviewModal() {
               {activeTeam.outputType === 'image' && renderImageControls()}
               {activeTeam.outputType === 'video' && renderVideoControls()}
             </div>
-            
-            <div className="bg-zinc-900 rounded-[24px] p-6 text-white space-y-4 shadow-xl">
+
+            <div className="bg-darkDelegation rounded-[24px] p-6 text-white space-y-4 shadow-xl">
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">System Information</h3>
               <div className="space-y-4">
                 <div>
@@ -290,10 +290,10 @@ export function OutputReviewModal() {
           >
             Cancel & Reset Project
           </button>
-          
+
           <button
             onClick={handleGenerate}
-            className="px-8 py-3 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-black/10 flex items-center gap-2"
+            className="px-8 py-3 bg-darkDelegation text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-black/10 flex items-center gap-2"
           >
             <Check size={14} strokeWidth={3} />
             Approve & Generate
@@ -303,14 +303,14 @@ export function OutputReviewModal() {
 
       {/* Confirmation Modal Overlay */}
       {isConfirmingReset && (
-        <div 
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-zinc-900/40 backdrop-blur-md p-4 cursor-default"
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-darkDelegation/40 backdrop-blur-md p-4 cursor-default"
           onClick={(e) => {
             e.stopPropagation()
             setIsConfirmingReset(false)
           }}
         >
-          <div 
+          <div
             className="bg-white border border-black/10 rounded-[24px] w-96 p-8 shadow-2xl flex flex-col items-center text-center gap-6 animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
@@ -318,7 +318,7 @@ export function OutputReviewModal() {
               <AlertCircle size={32} />
             </div>
             <div>
-              <h3 className="text-sm font-black uppercase tracking-widest text-zinc-800">Are you absolutely sure?</h3>
+              <h3 className="text-sm font-black uppercase tracking-widest text-darkDelegation">Are you absolutely sure?</h3>
               <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
                 All progress will be lost and the project will be reset to its initial state. This action cannot be undone.
               </p>

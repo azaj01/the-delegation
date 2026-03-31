@@ -25,7 +25,7 @@ const ResetModal: React.FC<ResetModalProps> = ({ isOpen, onClose, onConfirm }) =
               <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center text-red-500 shadow-sm shadow-red-100">
                 <AlertTriangle size={32} strokeWidth={2.5} />
               </div>
-              <h3 className="text-2xl font-black text-zinc-900 leading-tight">
+              <h3 className="text-2xl font-black text-darkDelegation leading-tight">
                 Start New Project?
               </h3>
             </div>
@@ -48,7 +48,7 @@ const ResetModal: React.FC<ResetModalProps> = ({ isOpen, onClose, onConfirm }) =
                 onConfirm();
                 onClose();
               }}
-              className="w-full py-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+              className="w-full py-4 bg-darkDelegation hover:bg-darkDelegation text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2"
             >
               <RefreshCcw size={14} />
               Yes, Reset Everything

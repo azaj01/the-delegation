@@ -131,11 +131,11 @@ const ChatPanel: React.FC = () => {
                   style={msg.role === 'user' ? {
                     backgroundColor: USER_COLOR_LIGHT,
                     borderColor: USER_COLOR_SOFT,
-                    color: '#27272a' // text-zinc-800
+                    color: '#27272a' // text-darkDelegation
                   } : {
                     backgroundColor: '#fafafa', // bg-zinc-50
                     borderColor: '#f4f4f5', // border-zinc-100
-                    color: '#27272a' // text-zinc-800
+                    color: '#27272a' // text-darkDelegation
                   }}
                 >
                   {msg.role === 'assistant' ? (
@@ -147,23 +147,23 @@ const ChatPanel: React.FC = () => {
                       {msg.metadata?.reviewTaskId && (
                         <div className="mt-4 p-4 bg-white/50 rounded-2xl border border-zinc-200/50 flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
                           <div className="flex items-center gap-2 pr-2">
-                            <div 
+                            <div
                               className="p-2 rounded-xl flex-shrink-0"
                               style={{ backgroundColor: USER_COLOR_LIGHT, color: USER_COLOR }}
                             >
                               <FileSearch size={18} />
                             </div>
                             <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">
-                              {coreStore.tasks.find(t => t.id === msg.metadata.reviewTaskId)?.status === 'on_hold' 
-                                ? 'Review Requested' 
+                              {coreStore.tasks.find(t => t.id === msg.metadata.reviewTaskId)?.status === 'on_hold'
+                                ? 'Review Requested'
                                 : 'Review Processed'}
                             </span>
                           </div>
-                          
+
                           {coreStore.tasks.find(t => t.id === msg.metadata.reviewTaskId)?.status === 'on_hold' && (
                             <button
                               onClick={() => setActiveAuditTaskId(msg.metadata.reviewTaskId)}
-                              className="flex-1 min-w-[120px] px-4 py-2 bg-zinc-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-black active:scale-95 transition-all shadow-sm whitespace-nowrap"
+                              className="flex-1 min-w-[120px] px-4 py-2 bg-darkDelegation text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-black active:scale-95 transition-all shadow-sm whitespace-nowrap"
                             >
                               Review Task
                             </button>
@@ -245,8 +245,8 @@ const ChatPanel: React.FC = () => {
             disabled={!input.trim() || isThinking}
             style={{ backgroundColor: !input.trim() || isThinking ? undefined : agent.color }}
             className={`h-11 w-11 shrink-0 rounded-2xl flex items-center justify-center font-black text-xs uppercase tracking-widest transition-all active:scale-95 ${!input.trim() || isThinking
-                ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
-                : 'text-white shadow-lg hover:brightness-90'
+              ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
+              : 'text-white shadow-lg hover:brightness-90'
               }`}
           >
             <Send size={16} strokeWidth={3} />

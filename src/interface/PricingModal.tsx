@@ -30,7 +30,7 @@ const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="mb-4">
-            <h2 className="text-2xl font-black text-zinc-900 tracking-tight mb-1">
+            <h2 className="text-2xl font-black text-darkDelegation tracking-tight mb-1">
               Gemini API Pricing
             </h2>
             <a
@@ -53,17 +53,17 @@ const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
             <div className="space-y-1">
               {reasoningModels.map(([model, pricing]) => (
                 <div key={model} className="px-5 py-2 bg-zinc-50 rounded-2xl border border-zinc-100/60 flex items-center justify-between">
-                  <p className="text-[10px] font-bold text-zinc-800 truncate lowercase flex-1">
+                  <p className="text-[10px] font-bold text-darkDelegation truncate lowercase flex-1">
                     {model}
                   </p>
                   <div className="flex items-center gap-4 text-[10px] font-mono font-bold">
                     <div className="flex items-center gap-1.5">
                       <span className="text-zinc-300 font-medium uppercase text-[8px] tracking-tighter">In</span>
-                      <span className="text-zinc-900">${pricing.inputPer1M?.toFixed(2)}</span>
+                      <span className="text-darkDelegation">${pricing.inputPer1M?.toFixed(2)}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-zinc-300 font-medium uppercase text-[8px] tracking-tighter">Out</span>
-                      <span className="text-zinc-900">${pricing.outputPer1M?.toFixed(2)}</span>
+                      <span className="text-darkDelegation">${pricing.outputPer1M?.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -81,24 +81,24 @@ const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                   if (type === 'audio') return p.perSong !== undefined;
                   return p.perSecond !== undefined;
                 });
-                
+
                 if (typeModels.length === 0) return null;
 
                 return typeModels.map(([model, pricing]) => (
                   <div key={model} className="px-5 py-2 bg-zinc-50 rounded-2xl border border-zinc-100/60 flex items-center justify-between">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                       <span className="px-1.5 py-0.5 bg-zinc-200 text-zinc-500 text-[7px] font-black uppercase rounded-[4px] tracking-widest shrink-0">
-                         {type}
-                       </span>
-                       <p className="text-[10px] font-bold text-zinc-800 truncate lowercase">
-                         {model}
-                       </p>
+                      <span className="px-1.5 py-0.5 bg-zinc-200 text-zinc-500 text-[7px] font-black uppercase rounded-[4px] tracking-widest shrink-0">
+                        {type}
+                      </span>
+                      <p className="text-[10px] font-bold text-darkDelegation truncate lowercase">
+                        {model}
+                      </p>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-zinc-300 font-medium uppercase text-[8px] tracking-tight">
                         {pricing.perImage !== undefined ? 'Img' : pricing.perSong !== undefined ? 'Song' : 'Sec'}
                       </span>
-                      <span className="text-[12px] font-mono font-bold text-zinc-900">
+                      <span className="text-[12px] font-mono font-bold text-darkDelegation">
                         ${(pricing.perImage || pricing.perSong || pricing.perSecond || 0).toFixed(3)}
                       </span>
                     </div>

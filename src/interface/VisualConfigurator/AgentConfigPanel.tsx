@@ -118,7 +118,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
           ) : (
             <Avatar type={isLead ? 'lead' : 'sub'} color={editData.color} size={32} />
           )}
-          <h3 className="font-bold text-sm text-zinc-800 uppercase tracking-tight truncate">
+          <h3 className="font-bold text-sm text-darkDelegation uppercase tracking-tight truncate">
             {isUser ? 'User Info' : (isLead ? 'Lead Agent Info' : 'Subagent Info')}
           </h3>
         </div>
@@ -140,7 +140,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
               <Avatar type="user" color={USER_COLOR} size={64} />
             </div>
             <div>
-              <h4 className="text-sm font-black text-zinc-800 uppercase tracking-widest mb-1">Primary User</h4>
+              <h4 className="text-sm font-black text-darkDelegation uppercase tracking-widest mb-1">Primary User</h4>
               <p className="text-[11px] text-zinc-500 font-medium leading-relaxed">This is you. Your identity and role are fixed across all teams for consistency.</p>
             </div>
           </div>
@@ -162,7 +162,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
               )}
 
               {renderField('Name', <CircleUser size={12} />, isView ? (
-                <p className="text-sm font-bold text-zinc-900">{editData.name}</p>
+                <p className="text-sm font-bold text-darkDelegation">{editData.name}</p>
               ) : (
                 <div className="space-y-1">
                   <input
@@ -258,43 +258,43 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
               ), "Tools are automatically assigned based on the agent's role and team hierarchy.")}
 
               {renderField('Supervision', <User size={12} />, (
-                  <div
-                    onClick={() => !isView && updateDraft({ humanInTheLoop: !editData.humanInTheLoop })}
-                    className={`
+                <div
+                  onClick={() => !isView && updateDraft({ humanInTheLoop: !editData.humanInTheLoop })}
+                  className={`
                       group flex items-center justify-between p-4 rounded-2xl border transition-all duration-200
                       ${editData.humanInTheLoop
-                        ? 'shadow-sm'
-                        : 'bg-zinc-50 border-zinc-100 hover:border-zinc-200'}
+                      ? 'shadow-sm'
+                      : 'bg-zinc-50 border-zinc-100 hover:border-zinc-200'}
                       ${isView ? 'pointer-events-none' : 'cursor-pointer active:scale-[0.98]'}
                     `}
-                    style={{
-                      backgroundColor: editData.humanInTheLoop ? USER_COLOR_LIGHT : undefined,
-                      borderColor: editData.humanInTheLoop ? USER_COLOR_SOFT : undefined
-                    }}
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <span 
-                        className={`text-[10px] font-black uppercase tracking-tight ${editData.humanInTheLoop ? '' : 'text-zinc-700'}`}
-                        style={{ color: editData.humanInTheLoop ? USER_COLOR : undefined }}
-                      >
-                        Human-in-the-loop
-                      </span>
-                      <span className="text-[9px] text-zinc-500 font-medium leading-tight max-w-[160px]">
-                        Agent must request your validation before completing any task.
-                      </span>
-                    </div>
-                    <div className={`
+                  style={{
+                    backgroundColor: editData.humanInTheLoop ? USER_COLOR_LIGHT : undefined,
+                    borderColor: editData.humanInTheLoop ? USER_COLOR_SOFT : undefined
+                  }}
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span
+                      className={`text-[10px] font-black uppercase tracking-tight ${editData.humanInTheLoop ? '' : 'text-zinc-700'}`}
+                      style={{ color: editData.humanInTheLoop ? USER_COLOR : undefined }}
+                    >
+                      Human-in-the-loop
+                    </span>
+                    <span className="text-[9px] text-zinc-500 font-medium leading-tight max-w-[160px]">
+                      Agent must request your validation before completing any task.
+                    </span>
+                  </div>
+                  <div className={`
                       w-8 h-4 rounded-full relative transition-colors duration-200
                       ${editData.humanInTheLoop ? '' : 'bg-zinc-300'}
                     `}
                     style={{ backgroundColor: editData.humanInTheLoop ? USER_COLOR : undefined }}
-                    >
-                      <div className={`
+                  >
+                    <div className={`
                         absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform duration-200 shadow-sm
                         ${editData.humanInTheLoop ? 'translate-x-4.5' : 'translate-x-0.5'}
                       `} />
-                    </div>
                   </div>
+                </div>
               ), "When enabled, the agent will pause their work to submit the result for your review and feedback before finalizing.")}
             </div>
           </>
@@ -307,7 +307,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
           <button
             onClick={handleSave}
             disabled={!isValid}
-            className={`w-full py-3 bg-zinc-900 hover:bg-black text-white rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-black/5 active:scale-95 ${!isValid ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`w-full py-3 bg-darkDelegation hover:bg-black text-white rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-black/5 active:scale-95 ${!isValid ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Save size={16} strokeWidth={2.5} />
             Update Agent

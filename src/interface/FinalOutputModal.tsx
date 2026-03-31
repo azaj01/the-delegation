@@ -7,12 +7,12 @@ import { Loader2, Download } from 'lucide-react'
 import { TeamOutputBadge } from './components/TeamOutputBadge'
 
 export function FinalOutputModal() {
-  const { 
-    isFinalOutputOpen, 
-    setFinalOutputOpen, 
-    finalOutput, 
-    finalAssetType, 
-    finalAssetContent, 
+  const {
+    isFinalOutputOpen,
+    setFinalOutputOpen,
+    finalOutput,
+    finalAssetType,
+    finalAssetContent,
     isGeneratingAsset,
     referenceImages
   } = useCoreStore()
@@ -99,7 +99,7 @@ export function FinalOutputModal() {
             </audio>
             <button
               onClick={handleDownload}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 shrink-0"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-darkDelegation text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 shrink-0"
             >
               <Download size={14} strokeWidth={2.5} />
               Download Audio
@@ -153,9 +153,9 @@ export function FinalOutputModal() {
         <div className="flex items-center justify-between px-8 py-6 border-b border-black/5 bg-white">
           <div className="flex items-center gap-6">
             <div>
-              <h2 className="text-sm font-black uppercase tracking-widest text-zinc-800 flex items-center gap-2">
+              <h2 className="text-sm font-black uppercase tracking-widest text-darkDelegation flex items-center gap-2">
                 {finalAssetType !== 'text' && (
-                  <span className="px-2 py-0.5 bg-zinc-900 text-white text-[8px] rounded-md tracking-tighter">
+                  <span className="px-2 py-0.5 bg-darkDelegation text-white text-[8px] rounded-md tracking-tighter">
                     {(activeTeam?.outputType || finalAssetType).toUpperCase()}
                   </span>
                 )}
@@ -196,14 +196,14 @@ export function FinalOutputModal() {
               </div>
             </div>
           )}
-          
+
           <div className="flex justify-between items-center">
             <div className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest leading-none">
               Generated March 2026
             </div>
             <button
               onClick={handleCopy}
-              className="px-6 py-3 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-black/10"
+              className="px-6 py-3 bg-darkDelegation text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-black/10"
             >
               {copied ? 'Copied!' : `Copy ${finalAssetType === 'text' ? 'Output' : 'Prompt'}`}
             </button>

@@ -40,7 +40,7 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
             title="View Team Flow"
           >
             <TeamBadge system={activeSet} />
-            <div className="w-8 h-8 rounded-full border border-zinc-100 flex items-center justify-center text-zinc-300 group-hover:text-zinc-900 group-hover:border-zinc-200 transition-colors">
+            <div className="w-8 h-8 rounded-full border border-zinc-100 flex items-center justify-center text-zinc-300 group-hover:text-darkDelegation group-hover:border-zinc-200 transition-colors">
               <Eye size={14} />
             </div>
           </button>
@@ -51,7 +51,7 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
         <div className="flex items-center justify-end gap-1">
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-2 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
+            className="p-2 text-zinc-400 hover:text-darkDelegation transition-colors cursor-pointer"
             title={isFullscreen ? "Exit Fullscreen" : "Fullscreen Panel"}
           >
             {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}

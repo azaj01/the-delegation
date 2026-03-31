@@ -19,7 +19,7 @@ export const SystemDebugOverlay: React.FC<SystemDebugOverlayProps> = ({ system, 
 
   return (
     <>
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
         className="px-2 py-1 bg-red-50 text-red-500 rounded border border-red-100 text-[8px] font-black uppercase tracking-widest hover:bg-red-100 transition-colors flex items-center gap-1.5"
       >
@@ -33,29 +33,29 @@ export const SystemDebugOverlay: React.FC<SystemDebugOverlayProps> = ({ system, 
             <div className="flex items-center gap-3">
               <Code size={14} className="text-zinc-400" />
               <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                System Debug Data — <span className="text-zinc-900">{system.teamName || 'Untitled'}</span>
+                System Debug Data — <span className="text-darkDelegation">{system.teamName || 'Untitled'}</span>
               </h3>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={handleCopy}
                 className="flex items-center gap-1.5 px-2 py-1 bg-white border border-zinc-200 rounded-lg text-[9px] font-bold text-zinc-600 hover:bg-zinc-50 transition-all active:scale-95"
               >
                 {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
                 {copied ? 'Copied!' : 'Copy JSON'}
               </button>
-              <button 
-                onClick={() => setIsOpen(false)} 
-                className="p-1 px-2 hover:bg-zinc-200 rounded-lg text-zinc-400 hover:text-zinc-900 transition-colors"
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1 px-2 hover:bg-zinc-200 rounded-lg text-zinc-400 hover:text-darkDelegation transition-colors"
                 title="Close overlay"
               >
-                <X size={16}/>
+                <X size={16} />
               </button>
             </div>
           </div>
-          
-          <pre className="flex-1 overflow-auto p-6 text-[11px] font-mono whitespace-pre-wrap bg-zinc-900 text-green-400 selection:bg-green-500/20">
+
+          <pre className="flex-1 overflow-auto p-6 text-[11px] font-mono whitespace-pre-wrap bg-darkDelegation text-green-400 selection:bg-green-500/20">
             {JSON.stringify(system, null, 2)}
           </pre>
 

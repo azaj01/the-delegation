@@ -8,10 +8,10 @@ import { useUiStore } from '../integration/store/uiStore'
 import DeleteTaskModal from './DeleteTaskModal'
 
 const COLUMNS: { status: TaskStatus; label: string }[] = [
-  { status: 'scheduled',   label: 'Scheduled'   },
-  { status: 'on_hold',     label: 'On Hold'      },
-  { status: 'in_progress', label: 'In Progress'  },
-  { status: 'done',        label: 'Done'         },
+  { status: 'scheduled', label: 'Scheduled' },
+  { status: 'on_hold', label: 'On Hold' },
+  { status: 'in_progress', label: 'In Progress' },
+  { status: 'done', label: 'Done' },
 ]
 
 interface KanbanPanelProps {
@@ -21,7 +21,7 @@ interface KanbanPanelProps {
 function renderAgentTag(agentIndex: number) {
   const system = getActiveAgentSet();
   if (agentIndex === 0) { // Client / You
-     return (
+    return (
       <span key={agentIndex} className="flex items-center gap-1 text-[10px] font-bold" style={{ color: USER_COLOR }}>
         <span
           className="w-1.5 h-1.5 rounded-full shrink-0"
@@ -65,36 +65,36 @@ function TaskCard({ task }: { task: Task; key?: string }) {
         className="flex items-start justify-between gap-1 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <h3 className="text-xs text-zinc-900 leading-snug font-bold flex-1">
+        <h3 className="text-xs text-darkDelegation leading-snug font-bold flex-1">
           {task.title || 'Untitled Task'}
         </h3>
-          <div className="flex items-center gap-1 opacity-100 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 opacity-100 group-hover:opacity-100 transition-opacity">
 
-            {task.status !== 'done' && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setIsDeleteModalOpen(true)
-                  }}
-                  className="p-1 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded transition-all"
-                  title="Remove task"
-                >
-                  <Trash2 size={12} />
-                </button>
-                <DeleteTaskModal
-                  isOpen={isDeleteModalOpen}
-                  onClose={() => setIsDeleteModalOpen(false)}
-                  onConfirm={() => removeTask(task.id)}
-                  taskTitle={task.title}
-                />
-              </>
-            )}
-          </div>
-          <button className="text-zinc-300 group-hover:text-zinc-500 transition-colors">
-            {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          </button>
+          {task.status !== 'done' && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsDeleteModalOpen(true)
+                }}
+                className="p-1 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded transition-all"
+                title="Remove task"
+              >
+                <Trash2 size={12} />
+              </button>
+              <DeleteTaskModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={() => removeTask(task.id)}
+                taskTitle={task.title}
+              />
+            </>
+          )}
         </div>
+        <button className="text-zinc-300 group-hover:text-zinc-500 transition-colors">
+          {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </button>
+      </div>
 
       {isExpanded && (
         <p className="text-[11px] text-zinc-500 leading-relaxed bg-zinc-50/50 p-2 rounded border border-black/5 animate-in fade-in slide-in-from-top-1 duration-200">
@@ -106,21 +106,21 @@ function TaskCard({ task }: { task: Task; key?: string }) {
         <div className="flex flex-wrap gap-x-2 gap-y-1">
           {effectiveAgentIds.map(renderAgentTag)}
         </div>
-        
+
         <div className="flex items-center gap-2">
           {task.status === 'in_progress' && (
-            <span 
+            <span
               className="inline-block text-[10px] font-black uppercase tracking-widest rounded-full px-2 py-0.5 shadow-sm border whitespace-nowrap"
-              style={{ 
-                color: USER_COLOR, 
-                backgroundColor: USER_COLOR_LIGHT, 
-                borderColor: USER_COLOR_SOFT 
+              style={{
+                color: USER_COLOR,
+                backgroundColor: USER_COLOR_LIGHT,
+                borderColor: USER_COLOR_SOFT
               }}
             >
               working
             </span>
           )}
-          
+
           {(task.status === 'done' || task.draftOutput || (task.revisions && task.revisions.length > 0)) && (
             <button
               onClick={(e) => {
