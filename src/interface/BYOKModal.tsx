@@ -1,6 +1,7 @@
 import { Eye, EyeOff, Trash2, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { useUiStore } from '../integration/store/uiStore';
+import { DEFAULT_MODELS } from '../core/llm/constants';
 
 interface BYOKModalProps {
   onClose: () => void;
@@ -9,7 +10,7 @@ interface BYOKModalProps {
 const STORAGE_KEY = 'byok-config';
 
 const PROVIDERS = [
-  { id: 'gemini', label: 'Gemini', model: 'gemini-3-flash-preview', enabled: true },
+  { id: 'gemini', label: 'Gemini', model: DEFAULT_MODELS.text, enabled: true },
 ] as const;
 
 const BYOKModal: React.FC<BYOKModalProps> = ({ onClose }) => {

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { LLMMessage, LLMTokenUsage, LLMToolCall, LLMToolDefinition } from '../../core/llm/types';
+import { DEFAULT_MODELS, AVAILABLE_MODELS } from '../../core/llm/constants';
 import { calculateCost } from '../../core/llm/pricing';
 import { useTeamStore } from './teamStore';
 import { useUiStore } from './uiStore';
@@ -147,11 +148,7 @@ export const useCoreStore = create<CoreState>()(
       userBrief: '',
       phase: 'idle',
       finalOutput: null,
-      availableModels: [
-        'gemini-3-flash-preview',
-        'gemini-3.1-pro-preview',
-        'gemini-3.1-flash-lite-preview'
-      ],
+      availableModels: [...AVAILABLE_MODELS.text],
       totalTokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
       agentTokenUsage: {},
       totalEstimatedCost: 0,

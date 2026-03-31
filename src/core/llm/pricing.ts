@@ -1,3 +1,5 @@
+import { DEFAULT_MODELS } from './constants';
+
 export interface ModelPricing {
   inputPer1M?: number;
   outputPer1M?: number;
@@ -8,25 +10,25 @@ export interface ModelPricing {
 
 export const GEMINI_PRICING: Record<string, ModelPricing> = {
   // Text Models
+  [DEFAULT_MODELS.text]: { inputPer1M: 0.50, outputPer1M: 3.00 },
   'gemini-3.1-pro-preview': { inputPer1M: 2.00, outputPer1M: 12.00 },
-  'gemini-3-flash-preview': { inputPer1M: 0.50, outputPer1M: 3.00 },
   'gemini-3.1-flash-lite-preview': { inputPer1M: 0.25, outputPer1M: 1.50 },
   
   // Image Models
-  'gemini-3.1-flash-image-preview': { perImage: 0.067 },
+  [DEFAULT_MODELS.image]: { perImage: 0.067 },
   'gemini-3-pro-image-preview': { perImage: 0.134 },
   'gemini-2.5-flash-image': { perImage: 0.039 },
   
   // Music Models
+  [DEFAULT_MODELS.music]: { perSong: 0.040 },
   'lyria-3-pro-preview': { perSong: 0.080 },
-  'lyria-3-clip-preview': { perSong: 0.040 },
   
   // Video Models
+  [DEFAULT_MODELS.video]: { perSecond: 0.150 },
   'veo-3.1-generate-preview': { perSecond: 0.400 },
-  'veo-3.1-fast-generate-preview': { perSecond: 0.150 },
 };
 
-export const DEFAULT_PRICING: ModelPricing = GEMINI_PRICING['gemini-3-flash-preview'];
+export const DEFAULT_PRICING: ModelPricing = GEMINI_PRICING[DEFAULT_MODELS.text];
 
 export function calculateCost(promptTokens: number, completionTokens: number, modelName: string, durationOrCount?: number): number {
   const lowerName = modelName.toLowerCase();

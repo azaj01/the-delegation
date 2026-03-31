@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { getAllAgents } from '../../data/agents';
 import { AgentState, CharacterState } from '../../types';
 import { useTeamStore, getActiveAgentSet } from './teamStore';
+import { DEFAULT_MODELS } from '../../core/llm/constants';
 
 export const useUiStore = create<CharacterState>()(
   (set) => ({
@@ -40,7 +41,7 @@ export const useUiStore = create<CharacterState>()(
       return {
         provider: 'gemini',
         apiKey: '',
-        model: 'gemini-3-flash-preview'
+        model: DEFAULT_MODELS.text
       };
     })(),
 

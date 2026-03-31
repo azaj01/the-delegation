@@ -188,11 +188,15 @@ export class AgentBrain {
       let usage: any = undefined;
 
       if (activeTeam.outputType === 'image') {
-        const result = await provider.generateMultimodal(prompt, model, ["IMAGE", "TEXT"]);
+        const result = await provider.generateImage(prompt, model, (msg) => {
+          console.log(`[System:Image] ${msg}`);
+        });
         assetContent = result.data || '';
         usage = result.usage;
       } else if (activeTeam.outputType === 'music') {
-        const result = await provider.generateMultimodal(prompt, model, ["AUDIO", "TEXT"]);
+        const result = await provider.generateAudio(prompt, model, (msg) => {
+          console.log(`[System:Audio] ${msg}`);
+        });
         assetContent = result.data || '';
         usage = result.usage;
       } else if (activeTeam.outputType === 'video') {

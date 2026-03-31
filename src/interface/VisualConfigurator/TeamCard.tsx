@@ -1,6 +1,7 @@
 import { Edit2, Pipette, Trash2, Users, X } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AgenticSystem, DEFAULT_AGENTIC_SET_ID, getAllAgents } from '../../data/agents';
+import { DEFAULT_MODELS, AVAILABLE_MODELS, ModelType } from '../../core/llm/constants';
 import { USER_COLOR } from '../../theme/brand';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { useSceneManager } from '../../simulation/SceneContext';
@@ -47,7 +48,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         teamDescription: system.teamDescription || 'A custom agentic team.',
         color: system.color || '#A855F7',
         outputType: system.outputType || 'text',
-        outputModel: system.outputModel || 'gemini-3-flash-preview'
+        outputModel: system.outputModel || DEFAULT_MODELS.text
       });
       setErrorMsg(null);
       setShowDeleteConfirm(false);
@@ -65,7 +66,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
       localEditData.teamDescription !== (system.teamDescription || '') ||
       localEditData.color !== (system.color || '#A855F7') ||
       localEditData.outputType !== (system.outputType || 'text') ||
-      localEditData.outputModel !== (system.outputModel || 'gemini-3-flash-preview');
+      localEditData.outputModel !== (system.outputModel || DEFAULT_MODELS.text);
   }, [localEditData, system]);
 
   const isFormValid = !!(localEditData.teamName?.trim() &&
@@ -259,17 +260,11 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                   <select
                     value={localEditData.outputType || 'text'}
                     onChange={(e) => {
-                      const newType = e.target.value as any;
-                      const defaultModels: Record<string, string> = {
-                        text: 'gemini-3-flash-preview',
-                        image: 'gemini-3.1-flash-image-preview',
-                        music: 'lyria-3-clip-preview',
-                        video: 'veo-3.1-fast-generate-preview'
-                      };
+                      const newType = e.target.value as keyof typeof DEFAULT_MODELS;
                       setLocalEditData(prev => ({
                         ...prev,
                         outputType: newType,
-                        outputModel: defaultModels[newType] || prev.outputModel
+                        outputModel: DEFAULT_MODELS[newType] || prev.outputModel
                       }));
                     }}
                     className="w-full bg-white border border-zinc-100 text-[11px] font-bold rounded-xl px-2.5 py-1.5 outline-none cursor-pointer"
@@ -283,33 +278,13 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                 <div className="space-y-1">
                   <label className="text-[7px] font-black uppercase text-zinc-400 ml-1">Output Model</label>
                   <select
-                    value={localEditData.outputModel || 'gemini-3-flash-preview'}
+                    value={localEditData.outputModel || DEFAULT_MODELS.text}
                     onChange={(e) => setLocalEditData(prev => ({ ...prev, outputModel: e.target.value }))}
                     className="w-full bg-white border border-zinc-100 text-[10px] font-bold rounded-xl px-2.5 py-1.5 outline-none cursor-pointer lowercase"
                   >
-                    {localEditData.outputType === 'text' ? (
-                      <>
-                        <option value="gemini-3-flash-preview">gemini-3-flash-preview</option>
-                        <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview</option>
-                        <option value="gemini-3.1-flash-lite-preview">gemini-3.1-flash-lite-preview</option>
-                      </>
-                    ) : localEditData.outputType === 'image' ? (
-                      <>
-                        <option value="gemini-3.1-flash-image-preview">gemini-3.1-flash-image-preview</option>
-                        <option value="gemini-3-pro-image-preview">gemini-3-pro-image-preview</option>
-                        <option value="gemini-2.5-flash-image">gemini-2.5-flash-image</option>
-                      </>
-                    ) : localEditData.outputType === 'music' ? (
-                      <>
-                        <option value="lyria-3-clip-preview">lyria-3-clip-preview</option>
-                        <option value="lyria-3-pro-preview">lyria-3-pro-preview</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="veo-3.1-fast-generate-preview">veo-3.1-fast-generate-preview</option>
-                        <option value="veo-3.1-generate-preview">veo-3.1-generate-preview</option>
-                      </>
-                    )}
+                    {(AVAILABLE_MODELS[localEditData.outputType as ModelType] || []).map(model => (
+                      <option key={model} value={model}>{model}</option>
+                    ))}
                   </select>
                 </div>
               </div>

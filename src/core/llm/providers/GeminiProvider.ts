@@ -1,5 +1,6 @@
 import { FunctionDeclaration, GoogleGenAI, Tool, Type } from '@google/genai';
 import { LLMMessage, LLMProvider, LLMResponse, LLMToolCall, LLMToolDefinition } from '../types';
+import { DEFAULT_MODELS } from '../constants';
 
 export class GeminiProvider implements LLMProvider {
   private client: GoogleGenAI;
@@ -12,7 +13,7 @@ export class GeminiProvider implements LLMProvider {
     messages: LLMMessage[],
     tools?: LLMToolDefinition[],
     systemInstruction?: string,
-    modelName: string = 'gemini-3-flash-preview'
+    modelName: string = DEFAULT_MODELS.text
   ): Promise<LLMResponse> {
     const contents = this.mapMessagesToGemini(messages);
 
@@ -99,6 +100,79 @@ export class GeminiProvider implements LLMProvider {
     };
   }
 
+  async generateImage(
+    prompt: string,
+    modelName: string = DEFAULT_MODELS.image,
+    onProgress?: (msg: string) => void
+  ): Promise<{ data: string; usage?: any }> {
+    if (onProgress) onProgress("Generating image...");
+
+    const result = await this.client.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: {
+        responseModalities: ["IMAGE", "TEXT"],
+        imageConfig: {
+          aspectRatio: '16:9',
+          imageSize: '1K', // Default 1K, options: '512', '1K', '2K', '4K'
+        }
+      }
+    });
+
+    const candidate = result.candidates?.[0];
+    const parts = candidate?.content?.parts || [];
+    let base64Data: string | undefined;
+
+    for (const part of parts) {
+      if (part.inlineData) {
+        base64Data = part.inlineData.data;
+      }
+    }
+
+    return {
+      data: base64Data || '',
+      usage: result.usageMetadata ? {
+        promptTokens: result.usageMetadata.promptTokenCount || 0,
+        completionTokens: result.usageMetadata.candidatesTokenCount || 0,
+        totalTokens: result.usageMetadata.totalTokenCount || 0
+      } : undefined
+    };
+  }
+
+  async generateAudio(
+    prompt: string,
+    modelName: string = DEFAULT_MODELS.music,
+    onProgress?: (msg: string) => void
+  ): Promise<{ data: string; usage?: any }> {
+    if (onProgress) onProgress("Generating audio...");
+    const result = await this.client.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: {
+        responseModalities: ["AUDIO", "TEXT"],
+      }
+    });
+
+    const candidate = result.candidates?.[0];
+    const parts = candidate?.content?.parts || [];
+    let base64Data: string | undefined;
+
+    for (const part of parts) {
+      if (part.inlineData) {
+        base64Data = part.inlineData.data;
+      }
+    }
+
+    return {
+      data: base64Data || '',
+      usage: result.usageMetadata ? {
+        promptTokens: result.usageMetadata.promptTokenCount || 0,
+        completionTokens: result.usageMetadata.candidatesTokenCount || 0,
+        totalTokens: result.usageMetadata.totalTokenCount || 0
+      } : undefined
+    };
+  }
+
   async generateMultimodal(
     prompt: string,
     modelName: string,
@@ -140,24 +214,23 @@ export class GeminiProvider implements LLMProvider {
 
   async generateVideo(
     prompt: string,
-    modelName: string,
+    modelName: string = DEFAULT_MODELS.video,
     onProgress?: (msg: string) => void
   ): Promise<{ videoUrl: string; usage?: any }> {
-    // 1. Initial request with explicit config to control quality and cost (720p is more economical than 4k)
+    // 1. Initial request with explicit config for Veo 3.1
     let operation = await (this.client.models as any).generateVideos({
       model: modelName,
       prompt: prompt,
       config: {
-        resolution: '720p',
-        aspectRatio: '16:9',
-        durationSeconds: 4,
+        resolution: '720p', // Options: '720p', '1080p', '4k'
+        aspectRatio: '16:9', // Options: '16:9', '9:16'
+        durationSeconds: 4,  // Options: 4, 6, 8 (Must be 8 for >= 1080p)
         generateAudio: true,
         sampleCount: 1,
-
       }
     });
 
-    // 2. Poll the operation status until the video is ready (interval of 10s to avoid API spam)
+    // 2. Poll the operation status until the video is ready
     while (!operation.done) {
       if (onProgress) onProgress("Generating video (this may take a minute)...");
       await new Promise((resolve) => setTimeout(resolve, 10000));

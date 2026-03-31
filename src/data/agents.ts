@@ -1,4 +1,5 @@
 import { USER_COLOR } from '../theme/brand';
+import { DEFAULT_MODELS } from '../core/llm/constants';
 
 export const USER_ID = 'user';
 export const USER_NAME = 'User';
@@ -43,7 +44,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamDescription: 'A high-level strategic advisor for project direction and roadmap.',
     color: '#64748B',
     outputType: 'text',
-    outputModel: 'gemini-3-flash-preview',
+    outputModel: DEFAULT_MODELS.text,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'visionary-advisor',
@@ -51,7 +52,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       name: 'Visionary Advisor',
       description: 'Handles project direction, roadmap, and ecosystem growth strategy.',
       color: '#64748B',
-      model: 'gemini-3-flash-preview',
+      model: DEFAULT_MODELS.text,
       humanInTheLoop: true,
       position: { x: 0, y: 130 }
     }
@@ -65,7 +66,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamDescription: 'A horizontal hub for parallel creative campaign management.',
     color: '#6366F1',
     outputType: 'text',
-    outputModel: 'gemini-3-flash-preview',
+    outputModel: DEFAULT_MODELS.text,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'campaign-director',
@@ -73,7 +74,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       name: 'Campaign Director',
       description: 'Coordinates campaign assets and synthesizes the final message.',
       color: '#6366F1',
-      model: 'gemini-3-flash-preview',
+      model: DEFAULT_MODELS.text,
       humanInTheLoop: true,
       position: { x: 0, y: 130 },
       subagents: [
@@ -83,7 +84,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'Copywriter',
           description: 'Crafts persuasive narratives for social and PR.',
           color: '#818CF8',
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           humanInTheLoop: true,
           position: { x: -300, y: 280 }
         },
@@ -93,7 +94,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'Community Manager',
           description: 'Handles engagement strategies and potential FAQ.',
           color: '#4F46E5',
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           position: { x: 0, y: 280 }
         },
         {
@@ -102,7 +103,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'PR Strategist',
           description: 'Manages media relations and influencer outreach.',
           color: '#312E81',
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           position: { x: 300, y: 280 }
         }
       ]
@@ -117,7 +118,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamDescription: 'High-fidelity audio production following Lyria guidelines.',
     color: '#F43F5E',
     outputType: 'music',
-    outputModel: 'lyria-3-clip-preview',
+    outputModel: DEFAULT_MODELS.music,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'master-producer',
@@ -125,7 +126,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       name: 'Master Producer',
       description: 'Orchestrates the 4 pillars of sound into a cohesive track.',
       color: '#F43F5E',
-      model: 'gemini-3-flash-preview',
+      model: DEFAULT_MODELS.text,
       humanInTheLoop: true,
       position: { x: 0, y: 130 },
       subagents: [
@@ -135,7 +136,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'Genre Expert',
           description: 'Defines style, mood, and global aesthetic (e.g., Synthwave, Lofi).',
           color: '#FB7185',
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           position: { x: -450, y: 280 }
         },
         {
@@ -144,7 +145,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'Tempo Architect',
           description: 'Specifies BPM, rhythmical complexity, and time signatures.',
           color: '#FDA4AF',
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           position: { x: -150, y: 280 }
         },
         {
@@ -153,7 +154,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'Instrumentalist',
           description: 'Selects timbres, arrangement, and orchestration layers.',
           color: '#E11D48',
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           position: { x: 150, y: 280 }
         },
         {
@@ -162,7 +163,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'Dynamics Engineer',
           description: 'Controls volume, texture, contrast, and emotional progression.',
           color: '#9F1239',
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           position: { x: 450, y: 280 }
         }
       ]
@@ -177,7 +178,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamDescription: 'Pro image generation using the [Subject] + [Action] + [Context] + [Comp] + [Style] formula.',
     color: '#F59E0B',
     outputType: 'image',
-    outputModel: 'gemini-3.1-flash-image-preview',
+    outputModel: DEFAULT_MODELS.image,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'art-director',
@@ -186,7 +187,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       description: 'Synthesizes descriptions into valid Nano Banana prompts.',
       color: '#F59E0B',
       humanInTheLoop: true,
-      model: 'gemini-3-flash-preview',
+      model: DEFAULT_MODELS.text,
       position: { x: 0, y: 130 },
       subagents: [
         {
@@ -196,7 +197,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           description: 'Focuses on Subject and Action within the scene.',
           color: '#FBBF24',
           humanInTheLoop: true,
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           position: { x: -150, y: 280 }
         },
         {
@@ -206,7 +207,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           description: 'Focuses on Composition, Lighting, and Style/Materiality.',
           color: '#D97706',
           humanInTheLoop: true,
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           position: { x: 150, y: 280 }
         }
       ]
@@ -221,7 +222,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamDescription: 'Full cinematic production: Visuals + Soundstage (Veo 3.1 style).',
     color: '#10B981',
     outputType: 'video',
-    outputModel: 'veo-3.1-fast-generate-preview',
+    outputModel: DEFAULT_MODELS.video,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'film-director',
@@ -229,7 +230,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       name: 'Film Director',
       description: 'Orchestrates visuals and soundstage with global cinematic vision.',
       color: '#10B981',
-      model: 'gemini-3-flash-preview',
+      model: DEFAULT_MODELS.text,
       humanInTheLoop: true,
       position: { x: 0, y: 130 },
       subagents: [
@@ -239,7 +240,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'Visual Lead',
           description: 'Manages cinematography and VFX direction.',
           color: '#34D399',
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           position: { x: -200, y: 280 },
           subagents: [
             {
@@ -248,7 +249,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
               name: 'Cinematographer',
               description: 'Defines camera work, shot composition, and subject action.',
               color: '#059669',
-              model: 'gemini-3-flash-preview',
+              model: DEFAULT_MODELS.text,
               position: { x: -200, y: 430 }
             }
           ]
@@ -259,7 +260,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'Audio Lead',
           description: 'Manages the soundstage: Dialogue, SFX, and Ambience.',
           color: '#059669',
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           position: { x: 200, y: 280 },
           subagents: [
             {
@@ -268,7 +269,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
               name: 'Sound Designer',
               description: 'Specifies SFX (SFX:), Ambient Noise (Ambient noise:), and Dialogue (" ").',
               color: '#064E3B',
-              model: 'gemini-3-flash-preview',
+              model: DEFAULT_MODELS.text,
               position: { x: 200, y: 430 }
             }
           ]
@@ -285,7 +286,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamDescription: 'A linear chain for extracting metrics and drafting project case studies.',
     color: '#06B6D4',
     outputType: 'text',
-    outputModel: 'gemini-3-flash-preview',
+    outputModel: DEFAULT_MODELS.text,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'strategy-lead',
@@ -293,7 +294,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       name: 'Strategy Lead',
       description: 'Synthesizes project results and oversees the case study narrative.',
       color: '#06B6D4',
-      model: 'gemini-3-flash-preview',
+      model: DEFAULT_MODELS.text,
       humanInTheLoop: true,
       position: { x: 0, y: 130 },
       subagents: [
@@ -303,7 +304,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           name: 'Researcher',
           description: 'Extracts data, metrics, and key achievements from the project.',
           color: '#22D3EE',
-          model: 'gemini-3-flash-preview',
+          model: DEFAULT_MODELS.text,
           position: { x: 0, y: 260 },
           subagents: [
             {
@@ -312,7 +313,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
               name: 'Case Writer',
               description: 'Drafts the final case study narrative and formats the results.',
               color: '#0891B2',
-              model: 'gemini-3-flash-preview',
+              model: DEFAULT_MODELS.text,
               position: { x: 0, y: 390 }
             }
           ]
