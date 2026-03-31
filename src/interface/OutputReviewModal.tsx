@@ -14,7 +14,8 @@ import {
   Monitor, 
   Clock, 
   Maximize, 
-  Volume2
+  Volume2,
+  AlertCircle
 } from 'lucide-react'
 import { AVAILABLE_MODELS } from '../core/llm/constants'
 import { InfoBubble } from './components/InfoBubble'
@@ -32,12 +33,14 @@ export function OutputReviewModal() {
   const scene = useSceneManager()
   const [prompt, setPrompt] = useState(pendingOutputPrompt)
   const [params, setParams] = useState(pendingOutputParams)
+  const [isConfirmingReset, setIsConfirmingReset] = useState(false)
 
   // Sync internal state when store changes
   useEffect(() => {
     if (isReviewingOutput) {
       setPrompt(pendingOutputPrompt)
       setParams(pendingOutputParams)
+      setIsConfirmingReset(false)
     }
   }, [isReviewingOutput, pendingOutputPrompt, pendingOutputParams])
 
@@ -51,10 +54,14 @@ export function OutputReviewModal() {
     }
   }
 
-  const handleReset = () => {
-    if (window.confirm('Are you sure you want to reset the project? All progress will be lost.')) {
-      resetProject()
-    }
+  const handleCancelAndReset = () => {
+    setIsConfirmingReset(true)
+  }
+
+  const confirmReset = () => {
+    resetProject()
+    setIsConfirmingReset(false)
+    setReviewingOutput(false)
   }
 
   const updateParam = (key: string, value: any) => {
@@ -180,8 +187,14 @@ export function OutputReviewModal() {
   }[activeTeam.outputType] || Sparkles
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-zinc-900/40 backdrop-blur-md p-4">
-      <div className="bg-white border border-black/10 rounded-[32px] w-180 max-w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden scale-in">
+    <div 
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-zinc-900/40 backdrop-blur-md p-4"
+      onClick={handleCancelAndReset}
+    >
+      <div 
+        className="bg-white border border-black/10 rounded-[32px] w-180 max-w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden scale-in"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-zinc-100 bg-white">
           <div className="flex items-center gap-4">
@@ -198,7 +211,7 @@ export function OutputReviewModal() {
             </div>
           </div>
           <button
-            onClick={() => setReviewingOutput(false)}
+            onClick={handleCancelAndReset}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-all active:scale-90"
           >
             <X size={18} />
@@ -255,31 +268,63 @@ export function OutputReviewModal() {
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-6 border-t border-zinc-100 flex justify-between items-center bg-white">
+        <div className="px-8 py-6 border-t border-zinc-100 flex justify-end items-center bg-white gap-3">
           <button
-            onClick={handleReset}
-            className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-500 transition-colors"
+            onClick={handleCancelAndReset}
+            className="px-6 py-3 bg-white border border-zinc-200 text-zinc-500 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-zinc-50 hover:text-red-500 hover:border-red-500 transition-all active:scale-[0.98]"
           >
-            Reset Project
+            Cancel & Reset Project
           </button>
           
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setReviewingOutput(false)}
-              className="px-6 py-3 bg-white border border-zinc-200 text-zinc-500 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-zinc-50 active:scale-[0.98] transition-all"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleGenerate}
-              className="px-8 py-3 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-black/10 flex items-center gap-2"
-            >
-              <Check size={14} strokeWidth={3} />
-              Approve & Generate
-            </button>
-          </div>
+          <button
+            onClick={handleGenerate}
+            className="px-8 py-3 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-black/10 flex items-center gap-2"
+          >
+            <Check size={14} strokeWidth={3} />
+            Approve & Generate
+          </button>
         </div>
       </div>
+
+      {/* Confirmation Modal Overlay */}
+      {isConfirmingReset && (
+        <div 
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-zinc-900/40 backdrop-blur-md p-4 cursor-default"
+          onClick={(e) => {
+            e.stopPropagation()
+            setIsConfirmingReset(false)
+          }}
+        >
+          <div 
+            className="bg-white border border-black/10 rounded-[24px] w-96 p-8 shadow-2xl flex flex-col items-center text-center gap-6 animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-red-500">
+              <AlertCircle size={32} />
+            </div>
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-widest text-zinc-800">Are you absolutely sure?</h3>
+              <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
+                All progress will be lost and the project will be reset to its initial state. This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex flex-col w-full gap-2 mt-2">
+              <button
+                onClick={confirmReset}
+                className="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-red-600 active:scale-[0.98] transition-all"
+              >
+                Yes, Reset Project
+              </button>
+              <button
+                onClick={() => setIsConfirmingReset(false)}
+                className="w-full py-4 bg-zinc-100 text-zinc-500 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-zinc-200 active:scale-[0.98] transition-all"
+              >
+                No, Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
