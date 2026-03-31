@@ -37,7 +37,59 @@ export interface AgenticSystem {
 }
 
 export const AGENTIC_SETS: AgenticSystem[] = [
-  // 1. Strategy Coach (Pattern: Solo Expert)
+  // 1. Creative Agency (unboring.net)
+  {
+    id: 'unboring-net',
+    teamName: 'unboring.net',
+    teamType: 'Agency',
+    teamDescription: 'A full-service creative agency covering branding, design, development and go-to-market strategy.',
+    color: '#4285F4',
+    outputType: 'text',
+    outputModel: DEFAULT_MODELS.text,
+    outputAutoApprove: true,
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'agency-orchestrator',
+      index: 1,
+      name: 'Creative Director',
+      description: 'Orchestrates branding, design, and development to deliver integrated creative solutions.',
+      color: '#4285F4',
+      model: DEFAULT_MODELS.text,
+      humanInTheLoop: true,
+      position: { x: 0, y: 130 },
+      subagents: [
+        {
+          id: 'agency-developer',
+          index: 2,
+          name: 'Developer',
+          description: 'Architects and develops robust digital platforms and interactive experiences.',
+          color: '#34A853',
+          model: DEFAULT_MODELS.text,
+          position: { x: -300, y: 280 }
+        },
+        {
+          id: 'agency-designer',
+          index: 3,
+          name: 'Designer',
+          description: 'Crafts visual identities, user interfaces, and premium brand aesthetics.',
+          color: '#FBBC05',
+          model: DEFAULT_MODELS.text,
+          position: { x: 0, y: 280 }
+        },
+        {
+          id: 'agency-copywriter',
+          index: 4,
+          name: 'Copywriter',
+          description: 'Crafts compelling narratives and strategic messaging for brands.',
+          color: '#EA4335',
+          humanInTheLoop: true,
+          model: DEFAULT_MODELS.text,
+          position: { x: 300, y: 280 }
+        }
+      ]
+    }
+  },
+  // 2. Strategy Coach (Pattern: Solo Expert)
   {
     id: 'strategy-coach',
     teamName: 'Strategy Coach',
@@ -59,128 +111,13 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       position: { x: 0, y: 130 }
     }
   },
-
-  // 2. Communications Agency (Horizontal Hub)
-  {
-    id: 'comm-agency',
-    teamName: 'PR Agency',
-    teamType: 'Agency',
-    teamDescription: 'A horizontal hub for parallel creative campaign management.',
-    color: '#6366F1',
-    outputType: 'text',
-    outputModel: DEFAULT_MODELS.text,
-    outputAutoApprove: true,
-    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
-    leadAgent: {
-      id: 'campaign-director',
-      index: 1,
-      name: 'Campaign Director',
-      description: 'Coordinates campaign assets and synthesizes the final message.',
-      color: '#6366F1',
-      model: DEFAULT_MODELS.text,
-      humanInTheLoop: true,
-      position: { x: 0, y: 130 },
-      subagents: [
-        {
-          id: 'copywriter',
-          index: 2,
-          name: 'Copywriter',
-          description: 'Crafts persuasive narratives for social and PR.',
-          color: '#818CF8',
-          model: DEFAULT_MODELS.text,
-          humanInTheLoop: true,
-          position: { x: -300, y: 280 }
-        },
-        {
-          id: 'community-manager',
-          index: 3,
-          name: 'Community Manager',
-          description: 'Handles engagement strategies and potential FAQ.',
-          color: '#4F46E5',
-          model: DEFAULT_MODELS.text,
-          position: { x: 0, y: 280 }
-        },
-        {
-          id: 'pr-strategist',
-          index: 4,
-          name: 'PR Strategist',
-          description: 'Manages media relations and influencer outreach.',
-          color: '#312E81',
-          model: DEFAULT_MODELS.text,
-          position: { x: 300, y: 280 }
-        }
-      ]
-    }
-  },
-
-  // 3. Music Studio (Specialized Panel - Lyria)
-  {
-    id: 'music-studio',
-    teamName: 'Music Studio',
-    teamType: 'Production',
-    teamDescription: 'High-fidelity audio production following Lyria guidelines.',
-    color: '#F43F5E',
-    outputType: 'music',
-    outputModel: DEFAULT_MODELS.music,
-    outputAutoApprove: false,
-    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
-    leadAgent: {
-      id: 'master-producer',
-      index: 1,
-      name: 'Master Producer',
-      description: 'Orchestrates the 4 pillars of sound into a cohesive track.',
-      color: '#F43F5E',
-      model: DEFAULT_MODELS.text,
-      humanInTheLoop: true,
-      position: { x: 0, y: 130 },
-      subagents: [
-        {
-          id: 'genre-expert',
-          index: 2,
-          name: 'Genre Expert',
-          description: 'Defines style, mood, and global aesthetic (e.g., Synthwave, Lofi).',
-          color: '#FB7185',
-          model: DEFAULT_MODELS.text,
-          position: { x: -450, y: 280 }
-        },
-        {
-          id: 'tempo-architect',
-          index: 3,
-          name: 'Tempo Architect',
-          description: 'Specifies BPM, rhythmical complexity, and time signatures.',
-          color: '#FDA4AF',
-          model: DEFAULT_MODELS.text,
-          position: { x: -150, y: 280 }
-        },
-        {
-          id: 'instrumentalist',
-          index: 4,
-          name: 'Instrumentalist',
-          description: 'Selects timbres, arrangement, and orchestration layers.',
-          color: '#E11D48',
-          model: DEFAULT_MODELS.text,
-          position: { x: 150, y: 280 }
-        },
-        {
-          id: 'dynamics-engineer',
-          index: 5,
-          name: 'Dynamics Engineer',
-          description: 'Controls volume, texture, contrast, and emotional progression.',
-          color: '#9F1239',
-          model: DEFAULT_MODELS.text,
-          position: { x: 450, y: 280 }
-        }
-      ]
-    }
-  },
-
-  // 4. Photo Studio (Visual Composition - Nano Banana)
+  // 3. Photo Studio (Visual Composition - Nano Banana)
   {
     id: 'photo-studio',
-    teamName: 'Photo Studio',
+    teamName: 'Nano Banana Lab',
     teamType: 'Visual',
     teamDescription: 'Pro image generation using the [Subject] + [Action] + [Context] + [Comp] + [Style] formula.',
-    color: '#F59E0B',
+    color: '#FBBF24',
     outputType: 'image',
     outputModel: DEFAULT_MODELS.image,
     outputAutoApprove: false,
@@ -190,7 +127,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       index: 1,
       name: 'Art Director',
       description: 'Synthesizes descriptions into valid Nano Banana prompts.',
-      color: '#F59E0B',
+      color: '#FBBF24',
       humanInTheLoop: true,
       model: DEFAULT_MODELS.text,
       position: { x: 0, y: 130 },
@@ -200,7 +137,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           index: 2,
           name: 'Scene Designer',
           description: 'Focuses on Subject and Action within the scene.',
-          color: '#FBBF24',
+          color: '#F59E0B',
           humanInTheLoop: true,
           model: DEFAULT_MODELS.text,
           position: { x: -150, y: 280 }
@@ -210,7 +147,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           index: 3,
           name: 'Lighting Stylist',
           description: 'Focuses on Composition, Lighting, and Style/Materiality.',
-          color: '#D97706',
+          color: '#E0E672',
           humanInTheLoop: true,
           model: DEFAULT_MODELS.text,
           position: { x: 150, y: 280 }
@@ -219,10 +156,74 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     }
   },
 
+  // 4. Music Studio (Specialized Panel - Lyria)
+  {
+    id: 'music-studio',
+    teamName: 'Lyria Factory',
+    teamType: 'Music Production',
+    teamDescription: 'High-fidelity audio production following Lyria guidelines.',
+    color: '#43E47C',
+    outputType: 'music',
+    outputModel: DEFAULT_MODELS.music,
+    outputAutoApprove: false,
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'master-producer',
+      index: 1,
+      name: 'Master Producer',
+      description: 'Orchestrates the 4 pillars of sound into a cohesive track.',
+      color: '#43E47C',
+      model: DEFAULT_MODELS.text,
+      humanInTheLoop: true,
+      position: { x: 0, y: 130 },
+      subagents: [
+        {
+          id: 'genre-expert',
+          index: 2,
+          name: 'Genre Expert',
+          description: 'Defines style, mood, and global aesthetic (e.g., Synthwave, Lofi).',
+          color: '#74D295',
+          model: DEFAULT_MODELS.text,
+          humanInTheLoop: true,
+          position: { x: -450, y: 280 }
+        },
+        {
+          id: 'tempo-architect',
+          index: 3,
+          name: 'Tempo Architect',
+          description: 'Specifies BPM, rhythmical complexity, and time signatures.',
+          color: '#92D540',
+          model: DEFAULT_MODELS.text,
+          humanInTheLoop: true,
+          position: { x: -150, y: 280 }
+        },
+        {
+          id: 'instrumentalist',
+          index: 4,
+          name: 'Instrumentalist',
+          description: 'Selects timbres, arrangement, and orchestration layers.',
+          color: '#40D5AD',
+          model: DEFAULT_MODELS.text,
+          humanInTheLoop: true,
+          position: { x: 150, y: 280 }
+        },
+        {
+          id: 'dynamics-engineer',
+          index: 5,
+          name: 'Dynamics Engineer',
+          description: 'Controls volume, texture, contrast, and emotional progression.',
+          color: '#50BB55',
+          model: DEFAULT_MODELS.text,
+          humanInTheLoop: true,
+          position: { x: 450, y: 280 }
+        }
+      ]
+    }
+  },
   // 5. Film Studio (Matrix/Departmental - Veo 3.1)
   {
     id: 'film-studio',
-    teamName: 'Film Studio',
+    teamName: 'Veo Studio',
     teamType: 'Cinematic',
     teamDescription: 'Full cinematic production: Visuals + Soundstage (Veo 3.1 style).',
     color: '#10B981',
@@ -247,6 +248,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           description: 'Manages cinematography and VFX direction.',
           color: '#34D399',
           model: DEFAULT_MODELS.text,
+          humanInTheLoop: true,
           position: { x: -200, y: 280 },
           subagents: [
             {
@@ -267,6 +269,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           description: 'Manages the soundstage: Dialogue, SFX, and Ambience.',
           color: '#059669',
           model: DEFAULT_MODELS.text,
+          humanInTheLoop: true,
           position: { x: 200, y: 280 },
           subagents: [
             {
@@ -290,7 +293,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamName: 'Case Study Squad',
     teamType: 'Documentation',
     teamDescription: 'A linear chain for extracting metrics and drafting project case studies.',
-    color: '#06B6D4',
+    color: '#E34B99',
     outputType: 'text',
     outputModel: DEFAULT_MODELS.text,
     outputAutoApprove: false, // Testing manual approval for text
@@ -300,7 +303,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       index: 1,
       name: 'Strategy Lead',
       description: 'Synthesizes project results and oversees the case study narrative.',
-      color: '#06B6D4',
+      color: '#E34B99',
       model: DEFAULT_MODELS.text,
       humanInTheLoop: true,
       position: { x: 0, y: 130 },
@@ -310,7 +313,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           index: 2,
           name: 'Researcher',
           description: 'Extracts data, metrics, and key achievements from the project.',
-          color: '#22D3EE',
+          color: '#E6D979',
           model: DEFAULT_MODELS.text,
           position: { x: 0, y: 260 },
           subagents: [
@@ -319,7 +322,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
               index: 3,
               name: 'Case Writer',
               description: 'Drafts the final case study narrative and formats the results.',
-              color: '#0891B2',
+              color: '#5E888E',
               model: DEFAULT_MODELS.text,
               position: { x: 0, y: 390 }
             }

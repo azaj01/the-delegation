@@ -1,6 +1,6 @@
-import { Cpu, Save, Target, Trash2, User, X, Check, Pipette, Zap } from 'lucide-react';
+import { Cpu, Save, Target, Trash2, User, X, Check, Pipette, Zap, CircleUser } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
-import { AgentNode, AgenticSystem, USER_ID, USER_NAME, getAllCharacters } from '../../data/agents';
+import { AgentNode, AgenticSystem, getAllCharacters } from '../../data/agents';
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../../theme/brand';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useTeamStore } from '../../integration/store/teamStore';
@@ -161,7 +161,7 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                 </div>
               )}
 
-              {renderField('Name', <User size={12} />, isView ? (
+              {renderField('Name', <CircleUser size={12} />, isView ? (
                 <p className="text-sm font-bold text-zinc-900">{editData.name}</p>
               ) : (
                 <div className="space-y-1">
@@ -257,13 +257,13 @@ export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({
                 </div>
               ), "Tools are automatically assigned based on the agent's role and team hierarchy.")}
 
-              {renderField('Supervision', <Zap size={12} />, (
-                <div 
+              {renderField('Supervision', <User size={12} />, (
+                <div
                   onClick={() => !isView && updateDraft({ humanInTheLoop: !editData.humanInTheLoop })}
                   className={`
                     group flex items-center justify-between p-4 rounded-2xl border transition-all duration-200
-                    ${editData.humanInTheLoop 
-                      ? 'bg-amber-50 border-amber-200 shadow-sm' 
+                    ${editData.humanInTheLoop
+                      ? 'bg-amber-50 border-amber-200 shadow-sm'
                       : 'bg-zinc-50 border-zinc-100 hover:border-zinc-200'}
                     ${isView ? 'pointer-events-none' : 'cursor-pointer active:scale-[0.98]'}
                   `}

@@ -1,6 +1,5 @@
 import { Handle, Position } from '@xyflow/react';
-import { User, ShieldCheck } from 'lucide-react';
-import React from 'react';
+import { User } from 'lucide-react';
 import { HandleData } from '../flowUtils';
 import { USER_COLOR, USER_COLOR_LIGHT, USER_COLOR_SOFT } from '../../../theme/brand';
 import { Avatar } from '../../components/Avatar';
@@ -88,14 +87,14 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
 
             {data.agent?.humanInTheLoop && (
               <div
-                className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 w-fit gap-1"
+                className="text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter border leading-none flex items-center h-4 shrink-0 w-fit gap-1"
                 style={{
                   backgroundColor: '#fffbeb', // amber-50
                   color: '#b45309', // amber-700
                   borderColor: '#fde68a' // amber-200
                 }}
               >
-                <ShieldCheck size={8} strokeWidth={3} />
+                <User size={8} strokeWidth={3} />
                 Human-in-the-loop
               </div>
             )}
