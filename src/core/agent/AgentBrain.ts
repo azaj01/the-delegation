@@ -1,5 +1,5 @@
 import { LLMMessage } from '../llm/types';
-import { LLMFactory } from '../llm/LLMFactory';
+import { GeminiProvider } from '../llm/providers/GeminiProvider';
 import { useUiStore } from '../../integration/store/uiStore';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { useTeamStore } from '../../integration/store/teamStore';
@@ -38,7 +38,8 @@ export class AgentBrain {
       this.refreshFromStore();
       const core = useCoreStore.getState();
       const llmConfig = useUiStore.getState().llmConfig;
-      const provider = LLMFactory.getProvider(llmConfig);
+      if (!llmConfig.apiKey) throw new Error('Gemini API key is required');
+      const provider = new GeminiProvider(llmConfig.apiKey);
       const model = this.host.data.model || llmConfig.model;
       const teamId = useTeamStore.getState().selectedAgentSetId;
       const activeTeam = useTeamStore.getState().customSystems.find(s => s.id === teamId)
@@ -165,6 +166,8 @@ export class AgentBrain {
       return { text, toolCalls };
     } catch (error) {
       console.error(`[AgentBrain:${this.host.data.name}] Logic error:`, error);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      useUiStore.getState().setBYOKOpen(true, errMsg);
       throw error;
     } finally {
       this.isThinking = false;
@@ -233,7 +236,8 @@ export class AgentBrain {
 
     try {
       const llmConfig = useUiStore.getState().llmConfig;
-      const provider = LLMFactory.getProvider(llmConfig) as any;
+      if (!llmConfig.apiKey) throw new Error('Gemini API key is required');
+      const provider = new GeminiProvider(llmConfig.apiKey) as any;
       const model = options.model || activeTeam.outputModel || llmConfig.model;
 
       core.addLogEntry({
@@ -288,9 +292,11 @@ export class AgentBrain {
     } catch (error) {
       console.error('[AgentBrain] Final asset generation failed:', error);
       core.setIsGeneratingAsset(false);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      useUiStore.getState().setBYOKOpen(true, errMsg);
       core.addLogEntry({
         agentIndex: 0,
-        action: `Error generating final ${activeTeam.outputType}: ${error instanceof Error ? error.message : String(error)}`,
+        action: `Error generating final ${activeTeam.outputType}: ${errMsg}`,
         taskId: undefined
       });
     }

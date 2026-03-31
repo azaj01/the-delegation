@@ -31,7 +31,6 @@ export interface LLMToolDefinition {
 }
 
 export interface LLMConfig {
-  provider: 'gemini' | 'openai' | 'anthropic' | 'local';
   apiKey?: string;
   baseUrl?: string;
   model: string;

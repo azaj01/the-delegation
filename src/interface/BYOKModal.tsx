@@ -9,25 +9,17 @@ interface BYOKModalProps {
 
 const STORAGE_KEY = 'byok-config';
 
-const PROVIDERS = [
-  { id: 'gemini', label: 'Gemini', model: DEFAULT_MODELS.text, enabled: true },
-] as const;
-
 const BYOKModal: React.FC<BYOKModalProps> = ({ onClose }) => {
   const { llmConfig, setLlmConfig, byokError } = useUiStore();
 
-  const [selectedProvider, setSelectedProvider] = useState<string>(llmConfig.provider);
   const [apiKey, setApiKey] = useState<string>(llmConfig.apiKey || '');
   const [showKey, setShowKey] = useState(false);
   const [isErrorExpanded, setIsErrorExpanded] = useState(false);
 
   const handleSave = () => {
-    const providerId = selectedProvider || llmConfig.provider || 'gemini';
-    const provider = PROVIDERS.find(p => p.id === providerId) || PROVIDERS[0];
     const config = {
-      provider: provider.id as 'gemini' | 'openai' | 'anthropic' | 'local',
       apiKey: apiKey.trim(),
-      model: provider.model,
+      model: llmConfig.model || DEFAULT_MODELS.text,
     };
     setLlmConfig(config);
     try {
@@ -39,12 +31,9 @@ const BYOKModal: React.FC<BYOKModalProps> = ({ onClose }) => {
   };
 
   const handleClear = () => {
-    const providerId = selectedProvider || llmConfig.provider || 'gemini';
-    const provider = PROVIDERS.find(p => p.id === providerId) || PROVIDERS[0];
     const emptyConfig = {
-      provider: provider.id as 'gemini' | 'openai' | 'anthropic' | 'local',
       apiKey: '',
-      model: provider.model,
+      model: llmConfig.model || DEFAULT_MODELS.text,
     };
     setApiKey('');
     setLlmConfig(emptyConfig);

@@ -39,7 +39,6 @@ export const useUiStore = create<CharacterState>()(
         if (saved) return JSON.parse(saved);
       } catch { }
       return {
-        provider: 'gemini',
         apiKey: '',
         model: DEFAULT_MODELS.text
       };
