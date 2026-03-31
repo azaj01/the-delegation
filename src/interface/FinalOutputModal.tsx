@@ -7,7 +7,15 @@ import { Loader2, Download } from 'lucide-react'
 import { TeamOutputBadge } from './components/TeamOutputBadge'
 
 export function FinalOutputModal() {
-  const { isFinalOutputOpen, setFinalOutputOpen, finalOutput, finalAssetType, finalAssetContent, isGeneratingAsset } = useCoreStore()
+  const { 
+    isFinalOutputOpen, 
+    setFinalOutputOpen, 
+    finalOutput, 
+    finalAssetType, 
+    finalAssetContent, 
+    isGeneratingAsset,
+    referenceImages
+  } = useCoreStore()
   const activeTeam = useActiveTeam()
   const [copied, setCopied] = useState(false)
 
@@ -175,16 +183,31 @@ export function FinalOutputModal() {
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-6 border-t border-black/5 flex justify-between items-center bg-white">
-          <div className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest leading-none">
-            Generated March 2026
+        <div className="px-8 py-6 border-t border-black/5 flex flex-col gap-6 bg-white">
+          {referenceImages.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-[9px] font-black uppercase tracking-widest text-zinc-300">Visual Inspiration</p>
+              <div className="flex gap-2">
+                {referenceImages.map((img, idx) => (
+                  <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border border-black/5 bg-zinc-50 shadow-sm">
+                    <img src={img} alt="Ref" className="w-full h-full object-cover grayscale opacity-50" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <div className="flex justify-between items-center">
+            <div className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest leading-none">
+              Generated March 2026
+            </div>
+            <button
+              onClick={handleCopy}
+              className="px-6 py-3 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-black/10"
+            >
+              {copied ? 'Copied!' : `Copy ${finalAssetType === 'text' ? 'Output' : 'Prompt'}`}
+            </button>
           </div>
-          <button
-            onClick={handleCopy}
-            className="px-6 py-3 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-black/10"
-          >
-            {copied ? 'Copied!' : `Copy ${finalAssetType === 'text' ? 'Output' : 'Prompt'}`}
-          </button>
         </div>
       </div>
     </div>

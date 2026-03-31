@@ -40,19 +40,41 @@ export class AgentBrain {
       const llmConfig = useUiStore.getState().llmConfig;
       const provider = LLMFactory.getProvider(llmConfig);
       const model = this.host.data.model || llmConfig.model;
+      const teamId = useTeamStore.getState().selectedAgentSetId;
+      const activeTeam = useTeamStore.getState().customSystems.find(s => s.id === teamId)
+        || AGENTIC_SETS.find(s => s.id === teamId);
+
+      const hasVisionSupport = activeTeam?.outputType === 'image' || activeTeam?.outputType === 'video';
 
       // 1. Manage Message History
       if (!options.isChat) {
-        this.history.push({
+        const userMsg: LLMMessage = {
           role: 'user',
           content: prompt,
           metadata: options.silent ? { internal: true } : undefined
-        });
+        };
+        
+        // Attach reference images if VISION is supported for this project type
+        if (hasVisionSupport && core.referenceImages.length > 0) {
+          userMsg.images = core.referenceImages;
+        }
+
+        this.history.push(userMsg);
         this.syncToStore();
       }
 
       // 2. Prepare context
-      const messages: LLMMessage[] = this.history.slice(-10);
+      let messages: LLMMessage[] = this.history.slice(-10);
+
+      // In chat mode, ensure the latest user message also carries images if it's the brief phase
+      if (options.isChat && hasVisionSupport && core.referenceImages.length > 0) {
+        messages = messages.map((m, idx) => {
+          if (idx === messages.length - 1 && m.role === 'user') {
+            return { ...m, images: core.referenceImages };
+          }
+          return m;
+        });
+      }
       const allAgents = this.host.simulation.getAllAgents();
       const systemPrompt = PromptBuilder.buildSystemPrompt(this.host.data, core.phase, core.userBrief, allAgents);
       const toolDefs = options.tools || ToolRegistry.getDefinitions(this.host.data.index, core.phase, this.host.data.subagents?.length || 0);
@@ -226,7 +248,7 @@ export class AgentBrain {
       if (activeTeam.outputType === 'image') {
         const result = await provider.generateImage(prompt, model, (msg: string) => {
           console.log(`[System:Image] ${msg}`);
-        }, options);
+        }, options, core.referenceImages);
         assetContent = result.data || '';
         usage = result.usage;
       } else if (activeTeam.outputType === 'music') {
@@ -238,7 +260,7 @@ export class AgentBrain {
       } else if (activeTeam.outputType === 'video') {
         const result = await provider.generateVideo(prompt, model, (msg: string) => {
           console.log(`[System:Video] ${msg}`);
-        }, options);
+        }, options, core.referenceImages);
         assetContent = result.videoUrl || '';
         usage = result.usage;
       } else if (activeTeam.outputType === 'text') {

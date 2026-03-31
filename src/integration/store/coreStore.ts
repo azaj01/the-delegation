@@ -69,6 +69,7 @@ export type ProjectPhase = 'idle' | 'working' | 'done'
 interface CoreState {
   // ── Project ──────────────────────────────────────────────────
   userBrief: string
+  referenceImages: string[]
   phase: ProjectPhase
   finalOutput: string | null
   availableModels: string[]
@@ -107,6 +108,9 @@ interface CoreState {
 
   // ── Actions — Project —————————————————————————————————────────
   setUserBrief: (brief: string) => void;
+  addReferenceImage: (base64: string) => void;
+  removeReferenceImage: (index: number) => void;
+  clearReferenceImages: () => void;
   setPhase: (phase: ProjectPhase) => void;
   startProject: (brief: string) => void;
   setFinalOutput: (output: string) => void;
@@ -154,6 +158,7 @@ export const useCoreStore = create<CoreState>()(
   persist(
     (set) => ({
       userBrief: '',
+      referenceImages: [],
       phase: 'idle',
       finalOutput: null,
       availableModels: [...AVAILABLE_MODELS.text],
@@ -203,9 +208,17 @@ export const useCoreStore = create<CoreState>()(
         isReviewingOutput: false,
         pendingOutputPrompt: '',
         pendingOutputParams: {},
+        referenceImages: [],
       }),
 
       setUserBrief: (brief) => set({ userBrief: brief }),
+      addReferenceImage: (base64) => set((s) => ({ 
+        referenceImages: [...s.referenceImages, base64].slice(0, 3) 
+      })),
+      removeReferenceImage: (index) => set((s) => ({ 
+        referenceImages: s.referenceImages.filter((_, i) => i !== index) 
+      })),
+      clearReferenceImages: () => set({ referenceImages: [] }),
       setPhase: (phase) => set({ phase }),
       startProject: (brief) => set({ userBrief: brief, phase: 'working', finalAssetType: 'text', finalAssetContent: null }),
       setFinalOutput: (output) => set({ finalOutput: output }),

@@ -104,10 +104,11 @@ export class GeminiProvider implements LLMProvider {
     prompt: string,
     modelName: string = DEFAULT_MODELS.image,
     onProgress?: (msg: string) => void,
-    options: { aspectRatio?: string; imageSize?: string } = {}
+    options: { aspectRatio?: string; imageSize?: string } = {},
+    images?: string[]
   ): Promise<{ data: string; usage?: any }> {
     if (onProgress) onProgress("Generating image...");
-    
+
     const config = {
       responseModalities: ["IMAGE", "TEXT"],
       imageConfig: {
@@ -115,10 +116,26 @@ export class GeminiProvider implements LLMProvider {
         imageSize: options.imageSize || '1K', // Default 1K, options: '512', '1K', '2K', '4K'
       }
     };
+
+    const contents: any[] = [{ text: prompt }];
     
+    if (images && images.length > 0) {
+      for (const img of images) {
+        const base64Match = img.match(/^data:(image\/[a-z]+);base64,(.+)$/);
+        if (base64Match) {
+          contents.push({
+            inlineData: {
+              mimeType: base64Match[1],
+              data: base64Match[2]
+            }
+          });
+        }
+      }
+    }
+
     const result = await this.client.models.generateContent({
       model: modelName,
-      contents: prompt,
+      contents,
       config: config as any
     });
 
@@ -176,44 +193,44 @@ export class GeminiProvider implements LLMProvider {
     };
   }
 
-  async generateMultimodal(
-    prompt: string,
-    modelName: string,
-    modalities: string[] = ["IMAGE", "TEXT"]
-  ): Promise<{ content: string | null; data?: string; usage?: any }> {
-    const result = await this.client.models.generateContent({
-      model: modelName,
-      contents: prompt,
-      config: {
-        responseModalities: modalities as any,
-        candidateCount: 1,
-      }
-    });
+  // async generateMultimodal(
+  //   prompt: string,
+  //   modelName: string,
+  //   modalities: string[] = ["IMAGE", "TEXT"]
+  // ): Promise<{ content: string | null; data?: string; usage?: any }> {
+  //   const result = await this.client.models.generateContent({
+  //     model: modelName,
+  //     contents: prompt,
+  //     config: {
+  //       responseModalities: modalities as any,
+  //       candidateCount: 1,
+  //     }
+  //   });
 
-    const candidate = result.candidates?.[0];
-    const parts = candidate?.content?.parts || [];
+  //   const candidate = result.candidates?.[0];
+  //   const parts = candidate?.content?.parts || [];
 
-    let contentStr: string | null = null;
-    let base64Data: string | undefined;
+  //   let contentStr: string | null = null;
+  //   let base64Data: string | undefined;
 
-    for (const part of parts) {
-      if (part.text) {
-        contentStr = (contentStr || '') + part.text;
-      } else if (part.inlineData) {
-        base64Data = part.inlineData.data;
-      }
-    }
+  //   for (const part of parts) {
+  //     if (part.text) {
+  //       contentStr = (contentStr || '') + part.text;
+  //     } else if (part.inlineData) {
+  //       base64Data = part.inlineData.data;
+  //     }
+  //   }
 
-    return {
-      content: contentStr,
-      data: base64Data,
-      usage: result.usageMetadata ? {
-        promptTokens: result.usageMetadata.promptTokenCount || 0,
-        completionTokens: result.usageMetadata.candidatesTokenCount || 0,
-        totalTokens: result.usageMetadata.totalTokenCount || 0
-      } : undefined
-    };
-  }
+  //   return {
+  //     content: contentStr,
+  //     data: base64Data,
+  //     usage: result.usageMetadata ? {
+  //       promptTokens: result.usageMetadata.promptTokenCount || 0,
+  //       completionTokens: result.usageMetadata.candidatesTokenCount || 0,
+  //       totalTokens: result.usageMetadata.totalTokenCount || 0
+  //     } : undefined
+  //   };
+  // }
 
   async generateVideo(
     prompt: string,
@@ -224,12 +241,29 @@ export class GeminiProvider implements LLMProvider {
       aspectRatio?: '16:9' | '9:16';
       durationSeconds?: 4 | 6 | 8;
       generateAudio?: boolean;
-    } = {}
+    } = {},
+    images?: string[]
   ): Promise<{ videoUrl: string; usage?: any }> {
+    const contents: any[] = [{ text: prompt }];
+
+    if (images && images.length > 0) {
+      for (const img of images) {
+        const base64Match = img.match(/^data:(image\/[a-z]+);base64,(.+)$/);
+        if (base64Match) {
+          contents.push({
+            inlineData: {
+              mimeType: base64Match[1],
+              data: base64Match[2]
+            }
+          });
+        }
+      }
+    }
+
     // 1. Initial request with explicit config for Veo 3.1
     let operation = await (this.client.models as any).generateVideos({
       model: modelName,
-      prompt: prompt,
+      contents,
       config: {
         resolution: options.resolution || '720p', // Options: '720p', '1080p', '4k'
         aspectRatio: options.aspectRatio || '16:9', // Options: '16:9', '9:16'
@@ -298,6 +332,29 @@ export class GeminiProvider implements LLMProvider {
               response: JSON.parse(m.content)
             }
           });
+        }
+
+        if (m.images) {
+          for (const img of m.images) {
+            // Strip data URL prefix if present: "data:image/png;base64,..."
+            const base64Match = img.match(/^data:(image\/[a-z]+);base64,(.+)$/);
+            if (base64Match) {
+              parts.push({
+                inlineData: {
+                  mimeType: base64Match[1],
+                  data: base64Match[2]
+                }
+              });
+            } else {
+              // Assume it's already a raw base64 string and default to jpeg
+              parts.push({
+                inlineData: {
+                  mimeType: 'image/jpeg',
+                  data: img
+                }
+              });
+            }
+          }
         }
 
         return { role, parts };

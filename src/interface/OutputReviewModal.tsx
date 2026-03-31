@@ -26,7 +26,8 @@ export function OutputReviewModal() {
     setReviewingOutput, 
     pendingOutputPrompt, 
     pendingOutputParams,
-    resetProject
+    resetProject,
+    referenceImages
   } = useCoreStore()
   
   const activeTeam = useActiveTeam()
@@ -257,6 +258,20 @@ export function OutputReviewModal() {
                   <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Output Type</p>
                   <p className="text-xs font-black capitalize">{activeTeam.outputType}</p>
                 </div>
+
+                {referenceImages.length > 0 && (
+                  <div className="pt-6 border-t border-white/10 space-y-3">
+                    <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Visual Inspiration</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {referenceImages.map((img, idx) => (
+                        <div key={idx} className="aspect-square rounded-lg overflow-hidden border border-white/5 bg-white/5">
+                          <img src={img} alt="Ref" className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="pt-4 border-t border-white/10">
                   <p className="text-[10px] leading-relaxed text-zinc-400 italic">
                     "This is the final terminal phase. You can adjust the parameters and the synthesized prompt to get the best result. Once approved, the simulation will complete and your asset will be generated."
