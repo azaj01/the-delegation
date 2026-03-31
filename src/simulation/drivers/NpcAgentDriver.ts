@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { AgentNode, USER_ID } from '../../data/agents';
+import { AgentNode, USER_ID, MAX_AGENTS } from '../../data/agents';
 import { useCoreStore } from '../../integration/store/coreStore';
 import { IAgentDriver } from '../../types';
 import { CharacterController } from '../CharacterController';
@@ -73,8 +73,8 @@ export class NpcAgentDriver implements IAgentDriver {
       // Suspend ALL autonomous deciding while busy with the store-driven tasks.
       // We only allow flavor updates if we are not walking (set by SceneManager)
       if (currentState !== 'walk' && currentState !== 'sit_idle' && currentState !== 'sit_work') {
-          // You could optionally put some idle-standing animations here, but basically
-          // we want to stay where the SceneManager put us.
+        // You could optionally put some idle-standing animations here, but basically
+        // we want to stay where the SceneManager put us.
       }
       return;
     }
@@ -169,13 +169,23 @@ export class NpcAgentDriver implements IAgentDriver {
       const areaPois = this.controller.poiManager.getFreePoisByPrefix('area-', this.agentIndex);
       if (areaPois.length > 0) {
         const areaPoi = areaPois[Math.floor(Math.random() * areaPois.length)];
-        const target = areaPoi.position;
-        if (target) {
-          if (this.controller.moveTo(this.agentIndex, target, 'look_around', undefined, currentPos, areaPoi.quaternion)) {
-            this.controller.poiManager.releaseAll(this.agentIndex);
-            this.behaviorTimer = Math.random() * 5 + 10;
-            return;
-          }
+
+        // Calculate distributed position (0.75m radius, 1 slot per MAX_AGENTS)
+        const angle = (this.agentIndex * (Math.PI * 2)) / MAX_AGENTS;
+        const radius = 1;
+        const target = areaPoi.position.clone();
+        target.x += Math.cos(angle) * radius;
+        target.z += Math.sin(angle) * radius;
+
+        // Calculate "natural" rotation: facing the center of the area
+        const direction = new THREE.Vector3().subVectors(areaPoi.position, target).normalize();
+        const rotationY = Math.atan2(direction.x, direction.z);
+        const targetQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationY);
+
+        if (this.controller.moveTo(this.agentIndex, target, 'look_around', undefined, currentPos, targetQuaternion)) {
+          this.controller.poiManager.releaseAll(this.agentIndex);
+          this.behaviorTimer = Math.random() * 5 + 10;
+          return;
         }
       }
     }
