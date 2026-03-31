@@ -37,7 +37,6 @@ export interface AgenticSystem {
 }
 
 export const AGENTIC_SETS: AgenticSystem[] = [
-  // 1. Creative Agency (unboring.net)
   {
     id: 'unboring-net',
     teamName: 'unboring.net',
@@ -89,29 +88,6 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       ]
     }
   },
-  // 2. Strategy Coach (Pattern: Solo Expert)
-  {
-    id: 'strategy-coach',
-    teamName: 'Strategy Coach',
-    teamType: 'Strategic',
-    teamDescription: 'A high-level strategic advisor for project direction and roadmap.',
-    color: '#64748B',
-    outputType: 'text',
-    outputModel: DEFAULT_MODELS.text,
-    outputAutoApprove: true,
-    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
-    leadAgent: {
-      id: 'visionary-advisor',
-      index: 1,
-      name: 'Visionary Advisor',
-      description: 'Handles project direction, roadmap, and ecosystem growth strategy.',
-      color: '#64748B',
-      model: DEFAULT_MODELS.text,
-      humanInTheLoop: true,
-      position: { x: 0, y: 130 }
-    }
-  },
-  // 3. Photo Studio (Visual Composition - Nano Banana)
   {
     id: 'photo-studio',
     teamName: 'Nano Banana Lab',
@@ -155,8 +131,6 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       ]
     }
   },
-
-  // 4. Music Studio (Specialized Panel - Lyria)
   {
     id: 'music-studio',
     teamName: 'Lyria Factory',
@@ -220,13 +194,12 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       ]
     }
   },
-  // 5. Film Studio (Matrix/Departmental - Veo 3.1)
   {
     id: 'film-studio',
     teamName: 'Veo Studio',
     teamType: 'Cinematic',
     teamDescription: 'Full cinematic production: Visuals + Soundstage (Veo 3.1 style).',
-    color: '#10B981',
+    color: '#E64347',
     outputType: 'video',
     outputModel: DEFAULT_MODELS.video,
     outputAutoApprove: false,
@@ -236,7 +209,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       index: 1,
       name: 'Film Director',
       description: 'Orchestrates visuals and soundstage with global cinematic vision.',
-      color: '#10B981',
+      color: '#E64347',
       model: DEFAULT_MODELS.text,
       humanInTheLoop: true,
       position: { x: 0, y: 130 },
@@ -246,7 +219,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           index: 2,
           name: 'Visual Lead',
           description: 'Manages cinematography and VFX direction.',
-          color: '#34D399',
+          color: '#F17DC5',
           model: DEFAULT_MODELS.text,
           humanInTheLoop: true,
           position: { x: -200, y: 280 },
@@ -256,7 +229,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
               index: 4,
               name: 'Cinematographer',
               description: 'Defines camera work, shot composition, and subject action.',
-              color: '#059669',
+              color: '#E643C5',
               model: DEFAULT_MODELS.text,
               position: { x: -200, y: 430 }
             }
@@ -267,7 +240,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
           index: 3,
           name: 'Audio Lead',
           description: 'Manages the soundstage: Dialogue, SFX, and Ambience.',
-          color: '#059669',
+          color: '#7CE630',
           model: DEFAULT_MODELS.text,
           humanInTheLoop: true,
           position: { x: 200, y: 280 },
@@ -277,7 +250,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
               index: 5,
               name: 'Sound Designer',
               description: 'Specifies SFX (SFX:), Ambient Noise (Ambient noise:), and Dialogue (" ").',
-              color: '#064E3B',
+              color: '#50BB55',
               model: DEFAULT_MODELS.text,
               position: { x: 200, y: 430 }
             }
@@ -286,42 +259,61 @@ export const AGENTIC_SETS: AgenticSystem[] = [
       ]
     }
   },
-
-  // 6. Case Study Squad (Sequential Pipeline)
   {
-    id: 'case-study-squad',
-    teamName: 'Case Study Squad',
-    teamType: 'Documentation',
-    teamDescription: 'A linear chain for extracting metrics and drafting project case studies.',
+    id: 'strategy-coach',
+    teamName: 'Strategy Coach',
+    teamType: 'Strategic',
+    teamDescription: 'A high-level strategic advisor for project direction and roadmap.',
+    color: '#64748B',
+    outputType: 'text',
+    outputModel: DEFAULT_MODELS.text,
+    outputAutoApprove: true,
+    user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
+    leadAgent: {
+      id: 'visionary-advisor',
+      index: 1,
+      name: 'Visionary Advisor',
+      description: 'Handles project direction, roadmap, and ecosystem growth strategy.',
+      color: '#64748B',
+      model: DEFAULT_MODELS.text,
+      humanInTheLoop: true,
+      position: { x: 0, y: 130 }
+    }
+  },
+  {
+    id: 'pr-agency',
+    teamName: 'PR Agency',
+    teamType: 'Public Relations',
+    teamDescription: 'A sequential pipeline for media outreach: from strategy to press drafting.',
     color: '#E34B99',
     outputType: 'text',
     outputModel: DEFAULT_MODELS.text,
-    outputAutoApprove: false, // Testing manual approval for text
+    outputAutoApprove: false,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
-      id: 'strategy-lead',
+      id: 'pr-director',
       index: 1,
-      name: 'Strategy Lead',
-      description: 'Synthesizes project results and oversees the case study narrative.',
+      name: 'PR Director',
+      description: 'Oversees media relations, strategic communications, and brand reputation.',
       color: '#E34B99',
       model: DEFAULT_MODELS.text,
       humanInTheLoop: true,
       position: { x: 0, y: 130 },
       subagents: [
         {
-          id: 'researcher',
+          id: 'media-strategist',
           index: 2,
-          name: 'Researcher',
-          description: 'Extracts data, metrics, and key achievements from the project.',
+          name: 'Media Strategist',
+          description: 'Identifies key media outlets and manages journalist outreach.',
           color: '#E6D979',
           model: DEFAULT_MODELS.text,
           position: { x: 0, y: 260 },
           subagents: [
             {
-              id: 'case-writer',
+              id: 'press-writer',
               index: 3,
-              name: 'Case Writer',
-              description: 'Drafts the final case study narrative and formats the results.',
+              name: 'Press Writer',
+              description: 'Drafts press releases and media kits based on strategic goals.',
               color: '#5E888E',
               model: DEFAULT_MODELS.text,
               position: { x: 0, y: 390 }
