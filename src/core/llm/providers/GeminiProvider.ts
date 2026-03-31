@@ -150,6 +150,10 @@ export class GeminiProvider implements LLMProvider {
       config: {
         resolution: '720p',
         aspectRatio: '16:9',
+        durationSeconds: 4,
+        generateAudio: true,
+        sampleCount: 1,
+
       }
     });
 
@@ -165,13 +169,13 @@ export class GeminiProvider implements LLMProvider {
     // 3. Extract the URI from the generated video object
     const videoData = operation.response?.generatedVideos?.[0];
     let videoUri = (videoData?.video as any)?.uri || '';
-    
+
     // Append API key to allow direct browser download
     if (videoUri && videoUri.includes('generativelanguage.googleapis.com')) {
       const separator = videoUri.includes('?') ? '&' : '?';
       videoUri += `${separator}key=${this.apiKey}`;
     }
-    
+
     return {
       videoUrl: videoUri,
       usage: {

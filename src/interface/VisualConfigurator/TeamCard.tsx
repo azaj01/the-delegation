@@ -264,7 +264,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                         text: 'gemini-3-flash-preview',
                         image: 'gemini-3.1-flash-image-preview',
                         music: 'lyria-3-clip-preview',
-                        video: 'veo-3.1-generate-preview'
+                        video: 'veo-3.1-fast-generate-preview'
                       };
                       setLocalEditData(prev => ({
                         ...prev,

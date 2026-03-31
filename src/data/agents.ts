@@ -221,7 +221,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     teamDescription: 'Full cinematic production: Visuals + Soundstage (Veo 3.1 style).',
     color: '#10B981',
     outputType: 'video',
-    outputModel: 'veo-3.1-generate-preview',
+    outputModel: 'veo-3.1-fast-generate-preview',
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'film-director',
