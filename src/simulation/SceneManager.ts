@@ -246,9 +246,15 @@ export class SceneManager {
       });
     }
   }
-
   public setCoreHandler(handler: ((npcIndex: number, text: string) => Promise<string | null>) | null): void {
     this.coreHandler = handler;
+  }
+
+  public getLeadBrain() {
+    if (!this.simulation) return null;
+    const set = getActiveAgentSet();
+    const lead = this.simulation.getAgent(set.leadAgent.index);
+    return lead?.brain || null;
   }
 
   /** 

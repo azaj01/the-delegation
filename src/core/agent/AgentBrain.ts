@@ -171,12 +171,48 @@ export class AgentBrain {
     const activeTeam = useTeamStore.getState().customSystems.find(s => s.id === teamId) 
       || AGENTIC_SETS.find(s => s.id === teamId);
 
-    if (!activeTeam || activeTeam.outputType === 'text') return;
+    if (!activeTeam) return;
+
+    // Check if we need manual approval
+    if (activeTeam.outputAutoApprove === false) {
+      core.setPendingOutputPrompt(prompt);
+      
+      // Prepare default params based on output type
+      const defaultParams: any = { model: activeTeam.outputModel };
+      if (activeTeam.outputType === 'image') {
+        defaultParams.aspectRatio = '16:9';
+        defaultParams.imageSize = '1K';
+      } else if (activeTeam.outputType === 'video') {
+        defaultParams.resolution = '720p';
+        defaultParams.aspectRatio = '16:9';
+        defaultParams.durationSeconds = 4;
+        defaultParams.generateAudio = true;
+      }
+      
+      core.setPendingOutputParams(defaultParams);
+      core.setReviewingOutput(true);
+      return;
+    }
+
+    // Standard auto-approve flow
+    await this.processFinalAsset(prompt, { model: activeTeam.outputModel });
+  }
+
+  public async processFinalAsset(prompt: string, options: any) {
+    const core = useCoreStore.getState();
+    const teamId = useTeamStore.getState().selectedAgentSetId;
+    const activeTeam = useTeamStore.getState().customSystems.find(s => s.id === teamId) 
+      || AGENTIC_SETS.find(s => s.id === teamId);
+
+    if (!activeTeam) return;
+
+    core.setIsGeneratingAsset(true);
+    core.setReviewingOutput(false);
 
     try {
       const llmConfig = useUiStore.getState().llmConfig;
       const provider = LLMFactory.getProvider(llmConfig) as any;
-      const model = activeTeam.outputModel || llmConfig.model;
+      const model = options.model || activeTeam.outputModel || llmConfig.model;
 
       core.addLogEntry({
         agentIndex: 0,
@@ -188,23 +224,30 @@ export class AgentBrain {
       let usage: any = undefined;
 
       if (activeTeam.outputType === 'image') {
-        const result = await provider.generateImage(prompt, model, (msg) => {
+        const result = await provider.generateImage(prompt, model, (msg: string) => {
           console.log(`[System:Image] ${msg}`);
-        });
+        }, options);
         assetContent = result.data || '';
         usage = result.usage;
       } else if (activeTeam.outputType === 'music') {
-        const result = await provider.generateAudio(prompt, model, (msg) => {
+        const result = await provider.generateAudio(prompt, model, (msg: string) => {
           console.log(`[System:Audio] ${msg}`);
         });
         assetContent = result.data || '';
         usage = result.usage;
       } else if (activeTeam.outputType === 'video') {
-        const result = await provider.generateVideo(prompt, model, (msg) => {
+        const result = await provider.generateVideo(prompt, model, (msg: string) => {
           console.log(`[System:Video] ${msg}`);
-        });
+        }, options);
         assetContent = result.videoUrl || '';
         usage = result.usage;
+      } else if (activeTeam.outputType === 'text') {
+        // For text, the prompt is the final output
+        core.setFinalOutput(prompt);
+        core.setPhase('done');
+        core.setFinalOutputOpen(true);
+        core.setIsGeneratingAsset(false);
+        return;
       }
 
       core.addResponseLog({

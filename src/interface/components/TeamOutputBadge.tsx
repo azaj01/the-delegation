@@ -1,6 +1,7 @@
-import { FileText, Image, Music, Video } from 'lucide-react';
+import { FileText, Image as ImageIcon, Music, Video } from 'lucide-react';
 import React from 'react';
 import { AgenticSystem } from '../../data/agents';
+import { InfoTooltip } from './InfoTooltip';
 
 interface TeamOutputBadgeProps {
   system: AgenticSystem;
@@ -9,20 +10,43 @@ interface TeamOutputBadgeProps {
 
 export const TeamOutputBadge: React.FC<TeamOutputBadgeProps> = ({ system, className = '' }) => {
   return (
-    <div className={`flex items-center gap-2.5 px-2.5 py-1.5 bg-zinc-50/50 border border-zinc-100/50 rounded-xl backdrop-blur-sm ${className}`}>
-      <div className="flex items-center gap-1.5 text-zinc-400">
-        {system.outputType === 'text' && <FileText size={12} strokeWidth={2.5} />}
-        {system.outputType === 'image' && <Image size={12} strokeWidth={2.5} />}
-        {system.outputType === 'music' && <Music size={12} strokeWidth={2.5} />}
-        {system.outputType === 'video' && <Video size={12} strokeWidth={2.5} />}
-        <span className="text-[9px] font-black uppercase tracking-wider text-zinc-500">
-          {system.outputType || 'TEXT'}
-        </span>
+    <div className={`flex items-center gap-3 px-3 py-1.5 bg-zinc-50/50 border border-zinc-100/50 cursor-pointer rounded-xl backdrop-blur-sm ${className}`}>
+      {/* Left Column: Stacked type and status */}
+      <div className="flex flex-col justify-center gap-1 pr-3">
+        {/* Output Type Row */}
+        <div className="flex items-center gap-1.5 text-zinc-400">
+          {system.outputType === 'text' && <FileText size={11} strokeWidth={2.5} />}
+          {system.outputType === 'image' && <ImageIcon size={11} strokeWidth={2.5} />}
+          {system.outputType === 'music' && <Music size={11} strokeWidth={2.5} />}
+          {system.outputType === 'video' && <Video size={11} strokeWidth={2.5} />}
+          <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500 leading-none">
+            {system.outputType || 'TEXT'}
+          </span>
+        </div>
+        
+        {/* Auto-Approve Status Row */}
+        {system.outputAutoApprove !== undefined && (
+          <InfoTooltip
+            text={system.outputAutoApprove
+              ? 'Output will be generated and delivered automatically'
+              : 'Output requires your manual review and approval before generation'}
+          >
+            <div className="flex items-center gap-1.5">
+              <div className={`w-1 h-1 rounded-full ${system.outputAutoApprove ? 'bg-emerald-500' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.2)]'}`} />
+              <span className="text-[7px] font-bold text-zinc-300 uppercase tracking-tighter leading-none whitespace-nowrap">
+                {system.outputAutoApprove ? 'AUTO APPROVE' : 'MANUAL REVIEW'}
+              </span>
+            </div>
+          </InfoTooltip>
+        )}
       </div>
-      <div className="w-px h-3 bg-zinc-200/50" />
-      <div className="flex items-center gap-1.5">
-        <span className="text-[8px] font-black text-zinc-300 uppercase tracking-tight shrink-0">LLM</span>
-        <span className="text-[9px] font-bold text-zinc-600 font-mono lowercase whitespace-nowrap">
+
+      <div className="w-px h-6 bg-zinc-200/50" />
+
+      {/* Right Column: Model Name */}
+      <div className="flex flex-col gap-0.5 flex-1 min-w-0 pl-1">
+        <span className="text-[7px] font-black text-zinc-300 uppercase tracking-widest leading-none">GENERATION MODEL</span>
+        <span className="text-[10px] font-bold text-zinc-600 font-mono lowercase leading-tight">
           {system.outputModel}
         </span>
       </div>

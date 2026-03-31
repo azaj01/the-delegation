@@ -6,7 +6,7 @@ import { useCoreStore } from '../../integration/store/coreStore';
 import { useTeamStore } from '../../integration/store/teamStore';
 import { Avatar } from '../components/Avatar';
 import { ColorPicker } from './ColorPicker';
-import { InfoBubble } from './InfoBubble';
+import { InfoBubble } from '../components/InfoBubble';
 import { getBrightness, MAX_BRIGHTNESS } from './colorUtils';
 
 interface AgentConfigPanelProps {

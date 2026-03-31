@@ -103,20 +103,23 @@ export class GeminiProvider implements LLMProvider {
   async generateImage(
     prompt: string,
     modelName: string = DEFAULT_MODELS.image,
-    onProgress?: (msg: string) => void
+    onProgress?: (msg: string) => void,
+    options: { aspectRatio?: string; imageSize?: string } = {}
   ): Promise<{ data: string; usage?: any }> {
     if (onProgress) onProgress("Generating image...");
-
+    
+    const config = {
+      responseModalities: ["IMAGE", "TEXT"],
+      imageConfig: {
+        aspectRatio: options.aspectRatio || '16:9',
+        imageSize: options.imageSize || '1K', // Default 1K, options: '512', '1K', '2K', '4K'
+      }
+    };
+    
     const result = await this.client.models.generateContent({
       model: modelName,
       contents: prompt,
-      config: {
-        responseModalities: ["IMAGE", "TEXT"],
-        imageConfig: {
-          aspectRatio: '16:9',
-          imageSize: '1K', // Default 1K, options: '512', '1K', '2K', '4K'
-        }
-      }
+      config: config as any
     });
 
     const candidate = result.candidates?.[0];
@@ -215,17 +218,23 @@ export class GeminiProvider implements LLMProvider {
   async generateVideo(
     prompt: string,
     modelName: string = DEFAULT_MODELS.video,
-    onProgress?: (msg: string) => void
+    onProgress?: (msg: string) => void,
+    options: {
+      resolution?: '720p' | '1080p' | '4k';
+      aspectRatio?: '16:9' | '9:16';
+      durationSeconds?: 4 | 6 | 8;
+      generateAudio?: boolean;
+    } = {}
   ): Promise<{ videoUrl: string; usage?: any }> {
     // 1. Initial request with explicit config for Veo 3.1
     let operation = await (this.client.models as any).generateVideos({
       model: modelName,
       prompt: prompt,
       config: {
-        resolution: '720p', // Options: '720p', '1080p', '4k'
-        aspectRatio: '16:9', // Options: '16:9', '9:16'
-        durationSeconds: 4,  // Options: 4, 6, 8 (Must be 8 for >= 1080p)
-        generateAudio: true,
+        resolution: options.resolution || '720p', // Options: '720p', '1080p', '4k'
+        aspectRatio: options.aspectRatio || '16:9', // Options: '16:9', '9:16'
+        durationSeconds: options.durationSeconds || 4,  // Options: 4, 6, 8 (Must be 8 for >= 1080p)
+        generateAudio: options.generateAudio !== undefined ? options.generateAudio : true,
         sampleCount: 1,
       }
     });

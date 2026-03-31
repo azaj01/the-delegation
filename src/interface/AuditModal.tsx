@@ -7,6 +7,7 @@ import { useUiStore } from '../integration/store/uiStore';
 import { getAllAgents } from '../data/agents';
 import { useActiveTeam } from '../integration/store/teamStore';
 import { Avatar } from './components/Avatar';
+import { InfoBubble } from './components/InfoBubble';
 
 interface AuditModalProps {
   taskId: string;
@@ -142,6 +143,7 @@ export const AuditModal: React.FC<AuditModalProps> = ({ taskId, isOpen, onClose,
                 <div className="flex items-center gap-2 mb-6 text-amber-500">
                   <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                   <span className="text-[10px] font-black uppercase tracking-widest">Version History</span>
+                  <InfoBubble text="View previous iterations of this task. You can see how the work evolved or revert to a stronger version." />
                 </div>
                 <div className="space-y-2 overflow-y-auto pr-2 max-h-[60vh] [scrollbar-width:none]">
                   {task.revisions.map((rev, idx) => (
@@ -191,8 +193,11 @@ export const AuditModal: React.FC<AuditModalProps> = ({ taskId, isOpen, onClose,
         {!isViewMode && selectedRevisionIndex === null && (
           <div className="px-8 py-4 border-t border-zinc-100 bg-white">
              <div className="flex items-center gap-2 mb-2 text-zinc-400">
-                <GitPullRequest size={12} />
-                <span className="text-[9px] font-black uppercase tracking-widest">Your Feedback</span>
+                <div className="flex items-center gap-2">
+                  <GitPullRequest size={12} />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Your Feedback</span>
+                </div>
+                <InfoBubble text="Provide specific instructions for what to change. The agent will read this and attempt a new version." />
              </div>
              <textarea
                value={feedback}

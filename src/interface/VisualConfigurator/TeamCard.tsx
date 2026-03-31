@@ -7,6 +7,7 @@ import { useTeamStore } from '../../integration/store/teamStore';
 import { useSceneManager } from '../../simulation/SceneContext';
 import { getBrightness, getDarkenedColor } from './colorUtils';
 import { ColorPicker } from './ColorPicker';
+import { InfoBubble } from '../components/InfoBubble';
 import { TeamOutputBadge } from '../components/TeamOutputBadge';
 
 interface TeamCardProps {
@@ -48,7 +49,8 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         teamDescription: system.teamDescription || 'A custom agentic team.',
         color: system.color || '#A855F7',
         outputType: system.outputType || 'text',
-        outputModel: system.outputModel || DEFAULT_MODELS.text
+        outputModel: system.outputModel || DEFAULT_MODELS.text,
+        outputAutoApprove: system.outputAutoApprove !== undefined ? system.outputAutoApprove : (system.outputType === 'text')
       });
       setErrorMsg(null);
       setShowDeleteConfirm(false);
@@ -66,7 +68,8 @@ export const TeamCard: React.FC<TeamCardProps> = ({
       localEditData.teamDescription !== (system.teamDescription || '') ||
       localEditData.color !== (system.color || '#A855F7') ||
       localEditData.outputType !== (system.outputType || 'text') ||
-      localEditData.outputModel !== (system.outputModel || DEFAULT_MODELS.text);
+      localEditData.outputModel !== (system.outputModel || DEFAULT_MODELS.text) ||
+      localEditData.outputAutoApprove !== (system.outputAutoApprove);
   }, [localEditData, system]);
 
   const isFormValid = !!(localEditData.teamName?.trim() &&
@@ -264,7 +267,8 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                       setLocalEditData(prev => ({
                         ...prev,
                         outputType: newType,
-                        outputModel: DEFAULT_MODELS[newType] || prev.outputModel
+                        outputModel: DEFAULT_MODELS[newType] || prev.outputModel,
+                        outputAutoApprove: newType === 'text'
                       }));
                     }}
                     className="w-full bg-white border border-zinc-100 text-[11px] font-bold rounded-xl px-2.5 py-1.5 outline-none cursor-pointer"
@@ -288,6 +292,24 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                   </select>
                 </div>
               </div>
+              
+              <div className="flex items-center justify-between p-2.5 bg-zinc-50 border border-zinc-100/50 rounded-xl mt-0.5">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[8px] font-black uppercase text-zinc-900 tracking-wider">Auto-Approve Output</span>
+                    <InfoBubble text="When enabled, the team will generate the final asset immediately after finishing all tasks without waiting for your review." />
+                  </div>
+                  <span className="text-[7px] text-zinc-400 font-bold leading-tight">Generate asset without review</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setLocalEditData(prev => ({ ...prev, outputAutoApprove: !prev.outputAutoApprove }))}
+                  className={`w-8 h-4 rounded-full transition-all relative ${localEditData.outputAutoApprove !== false ? 'bg-zinc-900 shadow-[0_0_8px_rgba(0,0,0,0.15)]' : 'bg-zinc-200'}`}
+                >
+                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${localEditData.outputAutoApprove !== false ? 'left-[16px]' : 'left-[4px]'}`} />
+                </button>
+              </div>
+
               <button onClick={handleSave} disabled={!isFormValid} className={`w-full py-2.5 mt-1 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all shadow-lg ${isFormValid ? 'bg-zinc-900 text-white shadow-black/10' : 'bg-zinc-50 text-zinc-300 shadow-none cursor-not-allowed'}`}>Save Changes</button>
             </div>
           ) : (

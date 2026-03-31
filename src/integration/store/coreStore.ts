@@ -79,6 +79,11 @@ interface CoreState {
   finalAssetType: 'text' | 'image' | 'audio' | 'video'
   finalAssetContent: string | null
   isGeneratingAsset: boolean
+  
+  // ── Output Review ────────────────────────────────────────────
+  isReviewingOutput: boolean
+  pendingOutputPrompt: string
+  pendingOutputParams: any
 
   // ── Tasks ────────────────────────────────────────────────────
   tasks: Task[]
@@ -107,6 +112,9 @@ interface CoreState {
   setFinalOutput: (output: string) => void;
   setFinalAsset: (type: 'image' | 'audio' | 'video', content: string) => void;
   setIsGeneratingAsset: (isGenerating: boolean) => void;
+  setReviewingOutput: (val: boolean) => void;
+  setPendingOutputPrompt: (prompt: string) => void;
+  setPendingOutputParams: (params: any) => void;
 
   // ── Actions — Tasks ───────────────────────────────────────────
   addTask: (task: Omit<Task, 'id' | 'revisions' | 'createdAt' | 'updatedAt'>) => Task;
@@ -156,6 +164,9 @@ export const useCoreStore = create<CoreState>()(
       finalAssetType: 'text',
       finalAssetContent: null,
       isGeneratingAsset: false,
+      isReviewingOutput: false,
+      pendingOutputPrompt: '',
+      pendingOutputParams: {},
       tasks: [],
       actionLog: [],
       debugLog: [],
@@ -189,6 +200,9 @@ export const useCoreStore = create<CoreState>()(
         finalAssetType: 'text',
         finalAssetContent: null,
         isGeneratingAsset: false,
+        isReviewingOutput: false,
+        pendingOutputPrompt: '',
+        pendingOutputParams: {},
       }),
 
       setUserBrief: (brief) => set({ userBrief: brief }),
@@ -197,6 +211,9 @@ export const useCoreStore = create<CoreState>()(
       setFinalOutput: (output) => set({ finalOutput: output }),
       setFinalAsset: (type, content) => set({ finalAssetType: type, finalAssetContent: content, isGeneratingAsset: false }),
       setIsGeneratingAsset: (isGenerating) => set({ isGeneratingAsset: isGenerating }),
+      setReviewingOutput: (val) => set({ isReviewingOutput: val }),
+      setPendingOutputPrompt: (prompt) => set({ pendingOutputPrompt: prompt }),
+      setPendingOutputParams: (params) => set({ pendingOutputParams: params }),
 
       addTask: (task) => {
         const newTask: Task = {

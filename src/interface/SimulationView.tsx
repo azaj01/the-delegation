@@ -34,7 +34,7 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
       {/* Simulation View Header */}
       <div className="h-14 border-b border-black/5 flex items-center justify-between px-5 bg-white shrink-0">
         <div className="flex-1 flex items-center gap-4">
-          <button 
+          <button
             onClick={() => setIsFlowModalOpen(true)}
             className="flex items-center gap-4 hover:bg-zinc-50 px-2.5 py-1.5 rounded-2xl transition-all active:scale-95 group cursor-pointer"
             title="View Team Flow"
@@ -48,7 +48,7 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
           <TeamOutputBadge system={activeSet} className="hidden md:flex" />
         </div>
 
-        <div className="flex-1 flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1">
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
             className="p-2 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
@@ -69,18 +69,18 @@ const SimulationView: React.FC<SimulationViewProps> = ({ canvasRef, isFullscreen
       </div>
 
       {isFlowModalOpen && (
-        <TeamFlowModal 
-          isOpen={isFlowModalOpen} 
-          onClose={() => setIsFlowModalOpen(false)} 
+        <TeamFlowModal
+          isOpen={isFlowModalOpen}
+          onClose={() => setIsFlowModalOpen(false)}
           system={activeSet}
         />
       )}
 
       {activeAuditTaskId && (
-        <AuditModal 
-          isOpen={!!activeAuditTaskId} 
-          taskId={activeAuditTaskId} 
-          onClose={() => setActiveAuditTaskId(null)} 
+        <AuditModal
+          isOpen={!!activeAuditTaskId}
+          taskId={activeAuditTaskId}
+          onClose={() => setActiveAuditTaskId(null)}
         />
       )}
     </div>

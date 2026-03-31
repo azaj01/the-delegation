@@ -1,0 +1,285 @@
+import { useState, useEffect } from 'react'
+import { useCoreStore } from '../integration/store/coreStore'
+import { useActiveTeam } from '../integration/store/teamStore'
+import { useSceneManager } from '../simulation/SceneContext'
+import { 
+  Sparkles, 
+  Settings2, 
+  Image as ImageIcon, 
+  Video, 
+  Music, 
+  Type, 
+  X, 
+  Check, 
+  Monitor, 
+  Clock, 
+  Maximize, 
+  Volume2
+} from 'lucide-react'
+import { AVAILABLE_MODELS } from '../core/llm/constants'
+import { InfoBubble } from './components/InfoBubble'
+
+export function OutputReviewModal() {
+  const { 
+    isReviewingOutput, 
+    setReviewingOutput, 
+    pendingOutputPrompt, 
+    pendingOutputParams,
+    resetProject
+  } = useCoreStore()
+  
+  const activeTeam = useActiveTeam()
+  const scene = useSceneManager()
+  const [prompt, setPrompt] = useState(pendingOutputPrompt)
+  const [params, setParams] = useState(pendingOutputParams)
+
+  // Sync internal state when store changes
+  useEffect(() => {
+    if (isReviewingOutput) {
+      setPrompt(pendingOutputPrompt)
+      setParams(pendingOutputParams)
+    }
+  }, [isReviewingOutput, pendingOutputPrompt, pendingOutputParams])
+
+  if (!isReviewingOutput) return null
+
+  const handleGenerate = async () => {
+    const brain = scene?.getLeadBrain()
+    if (brain) {
+      // Trigger the actual generation
+      await brain.processFinalAsset(prompt, params)
+    }
+  }
+
+  const handleReset = () => {
+    if (window.confirm('Are you sure you want to reset the project? All progress will be lost.')) {
+      resetProject()
+    }
+  }
+
+  const updateParam = (key: string, value: any) => {
+    setParams((prev: any) => ({ ...prev, [key]: value }))
+  }
+
+  const renderImageControls = () => (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+          <Maximize size={12} /> Aspect Ratio
+          <InfoBubble text="The horizontal or vertical proportions of the generated asset." />
+        </label>
+        <select 
+          value={params.aspectRatio || '16:9'} 
+          onChange={(e) => updateParam('aspectRatio', e.target.value)}
+          className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-zinc-900 outline-none"
+        >
+          <option value="1:1">1:1 Square</option>
+          <option value="16:9">16:9 Cinematic</option>
+          <option value="9:16">9:16 Vertical</option>
+          <option value="4:3">4:3 Classic</option>
+          <option value="3:2">3:2 Professional</option>
+        </select>
+      </div>
+      <div className="space-y-2">
+        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+          <Settings2 size={12} /> Image Size
+          <InfoBubble text="Target dimensions for the final image. Higher sizes offer more detail but may take longer." />
+        </label>
+        <select 
+          value={params.imageSize || '1K'} 
+          onChange={(e) => updateParam('imageSize', e.target.value)}
+          className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-zinc-900 outline-none"
+        >
+          <option value="512">512px (Fast)</option>
+          <option value="1K">1K (Standard)</option>
+          <option value="2K">2K (High Res)</option>
+          <option value="4K">4K (Ultra)</option>
+        </select>
+      </div>
+    </div>
+  )
+
+  const renderVideoControls = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+            <Monitor size={12} /> Resolution
+            <InfoBubble text="Video output quality. Higher resolutions increase visual fidelity and processing requirements." />
+          </label>
+          <select 
+            value={params.resolution || '720p'} 
+            onChange={(e) => updateParam('resolution', e.target.value)}
+            className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-zinc-900 outline-none"
+          >
+            <option value="720p">720p HD</option>
+            <option value="1080p">1080p Full HD</option>
+            <option value="4k">4K Vision</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+            <Clock size={12} /> Duration
+            <InfoBubble text="Total runtime of the generated video clip." />
+          </label>
+          <select 
+            value={params.durationSeconds || 4} 
+            onChange={(e) => updateParam('durationSeconds', parseInt(e.target.value))}
+            className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-zinc-900 outline-none"
+          >
+            <option value="4">4 Seconds</option>
+            <option value="6">6 Seconds</option>
+            <option value="8">8 Seconds</option>
+          </select>
+        </div>
+      </div>
+      <div className="flex items-center justify-between p-3 bg-zinc-100/50 rounded-xl border border-zinc-200/50">
+        <div className="flex items-center gap-2">
+          <Volume2 size={14} className="text-zinc-400" />
+          <span className="text-xs font-bold text-zinc-600">Generate Soundtrack</span>
+          <InfoBubble text="Include a matching synthesized music track tailored to the video content." />
+        </div>
+        <button 
+          onClick={() => updateParam('generateAudio', !params.generateAudio)}
+          className={`w-10 h-5 rounded-full transition-colors flex items-center px-1 ${params.generateAudio ? 'bg-black' : 'bg-zinc-300'}`}
+        >
+          <div className={`w-3 h-3 bg-white rounded-full transition-transform ${params.generateAudio ? 'translate-x-5' : 'translate-x-0'}`} />
+        </button>
+      </div>
+    </div>
+  )
+
+  const renderModelControl = () => {
+    const type = activeTeam.outputType === 'music' ? 'music' : (activeTeam.outputType as keyof typeof AVAILABLE_MODELS);
+    const models = AVAILABLE_MODELS[type] || [];
+    
+    return (
+      <div className="space-y-2">
+        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+          <Sparkles size={12} /> Generation Model
+          <InfoBubble text="Select the specific Gemini model used for the final generation. Flash models are faster, Pro models are more capable." />
+        </label>
+        <select 
+          value={params.model || activeTeam.outputModel} 
+          onChange={(e) => updateParam('model', e.target.value)}
+          className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-zinc-900 outline-none"
+        >
+          {models.map(m => (
+            <option key={m} value={m}>{m}</option>
+          ))}
+        </select>
+      </div>
+    )
+  }
+
+  const Icon = {
+    image: ImageIcon,
+    video: Video,
+    music: Music,
+    text: Type
+  }[activeTeam.outputType] || Sparkles
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-zinc-900/40 backdrop-blur-md p-4">
+      <div className="bg-white border border-black/10 rounded-[32px] w-180 max-w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden scale-in">
+        {/* Header */}
+        <div className="flex items-center justify-between px-8 py-6 border-b border-zinc-100 bg-white">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-white shadow-lg">
+              <Icon size={24} />
+            </div>
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-widest text-zinc-800 flex items-center gap-2">
+                Review & Optimize Output
+              </h2>
+              <p className="text-[11px] text-zinc-400 mt-0.5">
+                The lead agent has synthesized the team's work. Fine-tune it before final generation.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setReviewingOutput(false)}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-all active:scale-90"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 bg-zinc-50/30">
+          {/* Prompt Editor */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                PROMPT / CONTENT
+              </label>
+              <div className="px-2 py-0.5 bg-zinc-100 rounded text-[9px] font-bold text-zinc-400 tracking-tighter">
+                EDITABLE
+              </div>
+            </div>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className="w-full h-40 bg-white border border-zinc-200 rounded-2xl p-4 text-sm text-zinc-700 leading-relaxed font-sans focus:ring-2 focus:ring-zinc-900 outline-none resize-none shadow-sm"
+              placeholder="Enter the final generation prompt..."
+            />
+          </div>
+
+          {/* Parameters Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              {renderModelControl()}
+              {activeTeam.outputType === 'image' && renderImageControls()}
+              {activeTeam.outputType === 'video' && renderVideoControls()}
+            </div>
+            
+            <div className="bg-zinc-900 rounded-[24px] p-6 text-white space-y-4 shadow-xl">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">System Information</h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Team</p>
+                  <p className="text-xs font-black">{activeTeam.teamName}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Output Type</p>
+                  <p className="text-xs font-black capitalize">{activeTeam.outputType}</p>
+                </div>
+                <div className="pt-4 border-t border-white/10">
+                  <p className="text-[10px] leading-relaxed text-zinc-400 italic">
+                    "This is the final terminal phase. You can adjust the parameters and the synthesized prompt to get the best result. Once approved, the simulation will complete and your asset will be generated."
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-8 py-6 border-t border-zinc-100 flex justify-between items-center bg-white">
+          <button
+            onClick={handleReset}
+            className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-500 transition-colors"
+          >
+            Reset Project
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setReviewingOutput(false)}
+              className="px-6 py-3 bg-white border border-zinc-200 text-zinc-500 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-zinc-50 active:scale-[0.98] transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleGenerate}
+              className="px-8 py-3 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-black/10 flex items-center gap-2"
+            >
+              <Check size={14} strokeWidth={3} />
+              Approve & Generate
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

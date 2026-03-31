@@ -10,6 +10,7 @@ import { FinalOutputModal } from './interface/FinalOutputModal';
 import Header from './interface/Header';
 import InspectorPanel from './interface/InspectorPanel';
 import { KanbanPanel } from './interface/KanbanPanel';
+import { OutputReviewModal } from './interface/OutputReviewModal';
 import SimulationView from './interface/SimulationView';
 import { VisualConfigurator } from './interface/VisualConfigurator/VisualConfigurator';
 import { SceneContext } from './simulation/SceneContext';
@@ -124,6 +125,7 @@ const App: React.FC = () => {
 
         {/* Final output — fixed viewport overlay */}
         <FinalOutputModal />
+        <OutputReviewModal />
       </div>
     </SceneContext.Provider>
   );

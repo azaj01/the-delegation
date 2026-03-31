@@ -44,10 +44,10 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
 
       <div className="flex items-center gap-3">
         <div className="shrink-0 p-0.5 rounded-xl bg-zinc-50 border border-zinc-100/50">
-          <Avatar 
-            type={isUser ? "user" : (data.isLead ? "lead" : "sub")} 
-            color={isUser ? USER_COLOR : data.color} 
-            size={48} 
+          <Avatar
+            type={isUser ? "user" : (data.isLead ? "lead" : "sub")}
+            color={isUser ? USER_COLOR : data.color}
+            size={48}
           />
         </div>
 
@@ -87,7 +87,7 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
             )}
 
             {data.agent?.humanInTheLoop && (
-              <div 
+              <div
                 className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border shadow-sm leading-none flex items-center h-4 shrink-0 w-fit gap-1"
                 style={{
                   backgroundColor: '#fffbeb', // amber-50
@@ -96,7 +96,7 @@ export const VisualFlowNode = ({ data, selected, type }: any) => {
                 }}
               >
                 <ShieldCheck size={8} strokeWidth={3} />
-                Human-in-the-loop required
+                Human-in-the-loop
               </div>
             )}
 

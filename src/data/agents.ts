@@ -27,6 +27,7 @@ export interface AgenticSystem {
   color: string;
   outputType: OutputType;
   outputModel: string;
+  outputAutoApprove?: boolean;
   user: {
     index: number;
     model: string;
@@ -45,6 +46,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     color: '#64748B',
     outputType: 'text',
     outputModel: DEFAULT_MODELS.text,
+    outputAutoApprove: true,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'visionary-advisor',
@@ -67,6 +69,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     color: '#6366F1',
     outputType: 'text',
     outputModel: DEFAULT_MODELS.text,
+    outputAutoApprove: true,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'campaign-director',
@@ -119,6 +122,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     color: '#F43F5E',
     outputType: 'music',
     outputModel: DEFAULT_MODELS.music,
+    outputAutoApprove: false,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'master-producer',
@@ -179,6 +183,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     color: '#F59E0B',
     outputType: 'image',
     outputModel: DEFAULT_MODELS.image,
+    outputAutoApprove: false,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'art-director',
@@ -223,6 +228,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     color: '#10B981',
     outputType: 'video',
     outputModel: DEFAULT_MODELS.video,
+    outputAutoApprove: false,
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'film-director',
@@ -287,6 +293,7 @@ export const AGENTIC_SETS: AgenticSystem[] = [
     color: '#06B6D4',
     outputType: 'text',
     outputModel: DEFAULT_MODELS.text,
+    outputAutoApprove: false, // Testing manual approval for text
     user: { index: 0, model: 'Human', position: { x: 0, y: 0 } },
     leadAgent: {
       id: 'strategy-lead',
