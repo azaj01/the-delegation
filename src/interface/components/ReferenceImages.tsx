@@ -1,10 +1,13 @@
 import React, { useRef } from 'react';
 import { Image as ImageIcon, Plus, X, UploadCloud } from 'lucide-react';
 import { useCoreStore } from '../../integration/store/coreStore';
+import { useActiveTeam } from '../../integration/store/teamStore';
 import { USER_COLOR } from '../../theme/brand';
 
 export const ReferenceImages: React.FC = () => {
   const { referenceImages, addReferenceImage, removeReferenceImage } = useCoreStore();
+  const activeTeam = useActiveTeam();
+  const maxImages = (activeTeam.outputType === 'video' && activeTeam.outputModel === 'veo-3.1-lite-generate-preview') ? 1 : 3;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = React.useState(false);
 
@@ -14,7 +17,7 @@ export const ReferenceImages: React.FC = () => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.type.startsWith('image/')) {
-        if (referenceImages.length >= 3) break;
+        if (referenceImages.length >= maxImages) break;
 
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -65,7 +68,7 @@ export const ReferenceImages: React.FC = () => {
             }`}>Reference Images</span>
         </div>
         <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-tighter">
-          {referenceImages.length}/3 Slots
+          {referenceImages.length}/{maxImages} Slots
         </span>
       </div>
 
@@ -96,7 +99,7 @@ export const ReferenceImages: React.FC = () => {
         ))}
 
         {/* Add Button */}
-        {referenceImages.length < 3 && (
+        {referenceImages.length < maxImages && (
           <button
             onClick={triggerUpload}
             className={`aspect-square rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-1 group active:scale-95 ${isDragging ? 'border-zinc-300 bg-white' : 'border-zinc-100 hover:border-zinc-200 hover:bg-zinc-50'
@@ -112,7 +115,7 @@ export const ReferenceImages: React.FC = () => {
         )}
 
         {/* Empty Slots */}
-        {Array.from({ length: Math.max(0, 3 - referenceImages.length - (referenceImages.length < 3 ? 1 : 0)) }).map((_, i) => (
+        {Array.from({ length: Math.max(0, maxImages - referenceImages.length - (referenceImages.length < maxImages ? 1 : 0)) }).map((_, i) => (
           <div
             key={`empty-${i}`}
             className="aspect-square rounded-xl border border-zinc-50 bg-zinc-50/30 flex items-center justify-center opacity-40"

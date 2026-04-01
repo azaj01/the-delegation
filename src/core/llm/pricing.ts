@@ -24,7 +24,8 @@ export const GEMINI_PRICING: Record<string, ModelPricing> = {
   'lyria-3-pro-preview': { perSong: 0.080 },
   
   // Video Models
-  [DEFAULT_MODELS.video]: { perSecond: 0.150 },
+  [DEFAULT_MODELS.video]: { perSecond: 0.050 },
+  'veo-3.1-fast-generate-preview': { perSecond: 0.150 },
   'veo-3.1-generate-preview': { perSecond: 0.400 },
 };
 

@@ -1,6 +1,6 @@
 {
   "name": "the-delegation",
-  "description": "What if you could stop prompting & start delegating to a team of AI agents in a living 3D office?",
+  "description": "A no-code 3D playground to explore, design, and interact with Agentic AI systems",
   "license": "MIT",
   "author": "Arturo Paracuellos <arturo@unboring.net>",
   "repository": {

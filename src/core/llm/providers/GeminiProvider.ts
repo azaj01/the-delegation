@@ -247,7 +247,9 @@ export class GeminiProvider implements LLMProvider {
     const contents: any[] = [{ text: prompt }];
 
     if (images && images.length > 0) {
-      for (const img of images) {
+      // veo-3.1-lite-generate-preview only supports 1 image
+      const imagesToGenerate = modelName === 'veo-3.1-lite-generate-preview' ? images.slice(0, 1) : images;
+      for (const img of imagesToGenerate) {
         const base64Match = img.match(/^data:(image\/[a-z]+);base64,(.+)$/);
         if (base64Match) {
           contents.push({
