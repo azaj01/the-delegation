@@ -83,8 +83,8 @@ const ChatPanel: React.FC = () => {
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
     const pastedText = e.clipboardData.getData('text');
-    // simulateTyping(pastedText);
-    setInput(pastedText);
+    simulateTyping(pastedText);
+    // setInput(pastedText);
   };
 
   const handleSend = async () => {

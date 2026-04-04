@@ -1,6 +1,8 @@
 import { FunctionDeclaration, GoogleGenAI, Tool, Type } from '@google/genai';
 import { LLMMessage, LLMProvider, LLMResponse, LLMToolCall, LLMToolDefinition } from '../types';
 import { DEFAULT_MODELS } from '../constants';
+import { calculateTokensForCost } from '../pricing';
+
 
 export class GeminiProvider implements LLMProvider {
   private client: GoogleGenAI;
@@ -118,7 +120,7 @@ export class GeminiProvider implements LLMProvider {
     };
 
     const contents: any[] = [{ text: prompt }];
-    
+
     if (images && images.length > 0) {
       for (const img of images) {
         const base64Match = img.match(/^data:(image\/[a-z]+);base64,(.+)$/);
@@ -149,13 +151,16 @@ export class GeminiProvider implements LLMProvider {
       }
     }
 
+    const imageTokens = calculateTokensForCost(modelName, 1);
+
     return {
       data: base64Data || '',
-      usage: result.usageMetadata ? {
-        promptTokens: result.usageMetadata.promptTokenCount || 0,
-        completionTokens: result.usageMetadata.candidatesTokenCount || 0,
-        totalTokens: result.usageMetadata.totalTokenCount || 0
-      } : undefined
+      usage: {
+        promptTokens: result.usageMetadata?.promptTokenCount || 0,
+        completionTokens: (result.usageMetadata?.candidatesTokenCount || 0) + imageTokens,
+        totalTokens: (result.usageMetadata?.totalTokenCount || 0) + imageTokens,
+        count: 1
+      }
     };
   }
 
@@ -183,13 +188,16 @@ export class GeminiProvider implements LLMProvider {
       }
     }
 
+    const audioTokens = calculateTokensForCost(modelName, 1);
+
     return {
       data: base64Data || '',
-      usage: result.usageMetadata ? {
-        promptTokens: result.usageMetadata.promptTokenCount || 0,
-        completionTokens: result.usageMetadata.candidatesTokenCount || 0,
-        totalTokens: result.usageMetadata.totalTokenCount || 0
-      } : undefined
+      usage: {
+        promptTokens: result.usageMetadata?.promptTokenCount || 0,
+        completionTokens: (result.usageMetadata?.candidatesTokenCount || 0) + audioTokens,
+        totalTokens: (result.usageMetadata?.totalTokenCount || 0) + audioTokens,
+        count: 1
+      }
     };
   }
 
@@ -240,7 +248,6 @@ export class GeminiProvider implements LLMProvider {
       resolution?: '720p' | '1080p' | '4k';
       aspectRatio?: '16:9' | '9:16';
       durationSeconds?: 4 | 6 | 8;
-      generateAudio?: boolean;
     } = {},
     images?: string[]
   ): Promise<{ videoUrl: string; usage?: any }> {
@@ -270,7 +277,6 @@ export class GeminiProvider implements LLMProvider {
         resolution: options.resolution || '720p', // Options: '720p', '1080p', '4k'
         aspectRatio: options.aspectRatio || '16:9', // Options: '16:9', '9:16'
         durationSeconds: options.durationSeconds || 4,  // Options: 4, 6, 8 (Must be 8 for >= 1080p)
-        generateAudio: options.generateAudio !== undefined ? options.generateAudio : true,
         sampleCount: 1,
       }
     });
@@ -294,13 +300,16 @@ export class GeminiProvider implements LLMProvider {
       videoUri += `${separator}key=${this.apiKey}`;
     }
 
+    const videoDuration = videoData?.durationSeconds || 4;
+    const videoTokens = calculateTokensForCost(modelName, videoDuration);
+
     return {
       videoUrl: videoUri,
       usage: {
         promptTokens: 0,
-        completionTokens: 0,
-        totalTokens: 0,
-        duration: videoData?.durationSeconds || 8
+        completionTokens: videoTokens,
+        totalTokens: videoTokens,
+        duration: videoDuration
       }
     };
   }
