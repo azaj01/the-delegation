@@ -201,45 +201,6 @@ export class GeminiProvider implements LLMProvider {
     };
   }
 
-  // async generateMultimodal(
-  //   prompt: string,
-  //   modelName: string,
-  //   modalities: string[] = ["IMAGE", "TEXT"]
-  // ): Promise<{ content: string | null; data?: string; usage?: any }> {
-  //   const result = await this.client.models.generateContent({
-  //     model: modelName,
-  //     contents: prompt,
-  //     config: {
-  //       responseModalities: modalities as any,
-  //       candidateCount: 1,
-  //     }
-  //   });
-
-  //   const candidate = result.candidates?.[0];
-  //   const parts = candidate?.content?.parts || [];
-
-  //   let contentStr: string | null = null;
-  //   let base64Data: string | undefined;
-
-  //   for (const part of parts) {
-  //     if (part.text) {
-  //       contentStr = (contentStr || '') + part.text;
-  //     } else if (part.inlineData) {
-  //       base64Data = part.inlineData.data;
-  //     }
-  //   }
-
-  //   return {
-  //     content: contentStr,
-  //     data: base64Data,
-  //     usage: result.usageMetadata ? {
-  //       promptTokens: result.usageMetadata.promptTokenCount || 0,
-  //       completionTokens: result.usageMetadata.candidatesTokenCount || 0,
-  //       totalTokens: result.usageMetadata.totalTokenCount || 0
-  //     } : undefined
-  //   };
-  // }
-
   async generateVideo(
     prompt: string,
     modelName: string = DEFAULT_MODELS.video,
@@ -251,37 +212,110 @@ export class GeminiProvider implements LLMProvider {
     } = {},
     images?: string[]
   ): Promise<{ videoUrl: string; usage?: any }> {
-    const contents: any[] = [{ text: prompt }];
+    if (modelName.includes('lite')) {
+      return this.createVideoLite(prompt, modelName, onProgress, options, images);
+    } else {
+      return this.createVideo(prompt, modelName, onProgress, options, images);
+    }
+  }
+
+  private async createVideo(
+    prompt: string,
+    modelName: string,
+    onProgress?: (msg: string) => void,
+    options: any = {},
+    images?: string[]
+  ): Promise<{ videoUrl: string; usage?: any }> {
+    const videoConfig: any = {
+      resolution: options.resolution || '720p',
+      aspectRatio: options.aspectRatio || '16:9',
+      durationSeconds: options.durationSeconds || 4,
+      sampleCount: 1,
+    };
+
+    const generateVideoPayload: any = {
+      model: modelName,
+      config: videoConfig
+    };
+
+    if (prompt) {
+      generateVideoPayload.prompt = prompt;
+    }
 
     if (images && images.length > 0) {
-      // veo-3.1-lite-generate-preview only supports 1 image
-      const imagesToGenerate = modelName === 'veo-3.1-lite-generate-preview' ? images.slice(0, 1) : images;
-      for (const img of imagesToGenerate) {
-        const base64Match = img.match(/^data:(image\/[a-z]+);base64,(.+)$/);
-        if (base64Match) {
-          contents.push({
-            inlineData: {
-              mimeType: base64Match[1],
-              data: base64Match[2]
-            }
+      const referenceImagesPayload: any[] = [];
+      for (const img of images) {
+        const m = img.match(/^data:(image\/[a-z]+);base64,(.+)$/);
+        if (m) {
+          referenceImagesPayload.push({
+            image: {
+              imageBytes: m[2],
+              mimeType: m[1]
+            },
+            referenceType: 'asset' // Using lowercase string as currently mapped in other parts
           });
         }
       }
+      
+      if (referenceImagesPayload.length > 0) {
+        generateVideoPayload.config.referenceImages = referenceImagesPayload;
+        // MUST be 8 when using reference images
+        videoConfig.durationSeconds = 8;
+      }
     }
 
-    // 1. Initial request with explicit config for Veo 3.1
-    let operation = await (this.client.models as any).generateVideos({
-      model: modelName,
-      contents,
-      config: {
-        resolution: options.resolution || '720p', // Options: '720p', '1080p', '4k'
-        aspectRatio: options.aspectRatio || '16:9', // Options: '16:9', '9:16'
-        durationSeconds: options.durationSeconds || 4,  // Options: 4, 6, 8 (Must be 8 for >= 1080p)
-        sampleCount: 1,
-      }
-    });
+    // Also must be 8 for 1080p or 4k
+    if (videoConfig.resolution === '1080p' || videoConfig.resolution === '4k') {
+      videoConfig.durationSeconds = 8;
+    }
 
-    // 2. Poll the operation status until the video is ready
+    let operation = await (this.client.models as any).generateVideos(generateVideoPayload);
+
+    return this.pollVideoOperation(operation, modelName, onProgress);
+  }
+
+  private async createVideoLite(
+    prompt: string,
+    modelName: string,
+    onProgress?: (msg: string) => void,
+    options: any = {},
+    images?: string[]
+  ): Promise<{ videoUrl: string; usage?: any }> {
+    const videoConfig: any = {
+      resolution: options.resolution || '720p',
+      aspectRatio: options.aspectRatio || '16:9',
+      durationSeconds: options.durationSeconds || 4,
+      sampleCount: 1,
+    };
+
+    const request: any = {
+      model: modelName,
+      prompt: prompt,
+      config: videoConfig
+    };
+
+    if (images && images.length > 0) {
+      // Lite models support 1 primary image for animation (Image object)
+      const m = images[0].match(/^data:(image\/[a-z]+);base64,(.+)$/);
+      if (m) {
+        request.image = {
+          imageBytes: m[2],
+          mimeType: m[1]
+        };
+      }
+    }
+
+    // Use the official SDK Client
+    let operation = await (this.client.models as any).generateVideos(request);
+
+    return this.pollVideoOperation(operation, modelName, onProgress);
+  }
+
+  private async pollVideoOperation(
+    operation: any,
+    modelName: string,
+    onProgress?: (msg: string) => void
+  ): Promise<{ videoUrl: string; usage?: any }> {
     while (!operation.done) {
       if (onProgress) onProgress("Generating video (this may take a minute)...");
       await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -290,11 +324,9 @@ export class GeminiProvider implements LLMProvider {
       });
     }
 
-    // 3. Extract the URI from the generated video object
     const videoData = operation.response?.generatedVideos?.[0];
     let videoUri = (videoData?.video as any)?.uri || '';
 
-    // Append API key to allow direct browser download
     if (videoUri && videoUri.includes('generativelanguage.googleapis.com')) {
       const separator = videoUri.includes('?') ? '&' : '?';
       videoUri += `${separator}key=${this.apiKey}`;
